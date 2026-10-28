@@ -34,12 +34,21 @@ class MenuActivity : AppCompatActivity() {
         b.btnOfflineRefresh.setOnClickListener { refreshAreas() }
         b.btnOfflineDelete.setOnClickListener { deleteAreas() }
         b.btnImport.setOnClickListener { pickGpx.launch(arrayOf("*/*")) }
+        val prefs = Prefs(this)
+        b.dirKey.setText(prefs.directoryKey)
+        b.btnDirSave.setOnClickListener {
+            prefs.directoryKey = b.dirKey.text.toString()
+            Toast.makeText(this, if (prefs.directoryKey.isBlank()) "People search off" else "People search on", Toast.LENGTH_SHORT).show()
+        }
+        b.btnDirOrder.setOnClickListener {
+            runCatching { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(Directory.ORDER_URL))) }
+        }
         val pm = packageManager.getPackageInfo(packageName, 0)
         b.about.text = "Swiss Bike-Hike Map ${pm.versionName}\n\n" +
             "Map: swisstopo vector base map, national map 1:25 000, hiking trail network, Veloland and Mountainbikeland routes, closures (© swisstopo, © SchweizMobil).\n" +
             "Routing: BRouter (MIT) on OpenStreetMap data (ODbL), profiles « trekking » and « hiking-mountain ».\n" +
             "Map rendering: MapLibre Native (BSD).\n" +
-            "Search: GeoAdmin API."
+            "Search: GeoAdmin API; people and firms: search.ch directory (Swisscom Directories AG) with your own key."
         b.paperInfo.text = MapStyle.paperFile(this).let { f ->
             if (f.exists()) "Local file in use: ${Fmt.mb(f.length())}, ${date(f.lastModified())}\n(${f.absolutePath})"
             else "Online from swisstopo (needs a connection unless the area is saved below).\n\nFor a fully offline paper map, build paper.pmtiles with tools/make-paper.py on the computer and copy it to:\n${f.absolutePath}"

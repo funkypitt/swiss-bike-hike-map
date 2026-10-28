@@ -32,6 +32,11 @@ class Prefs(ctx: Context) {
         set(v) { v ?: return; p.edit().putFloat("b_n", v.latitudeNorth.toFloat()).putFloat("b_e", v.longitudeEast.toFloat())
             .putFloat("b_s", v.latitudeSouth.toFloat()).putFloat("b_w", v.longitudeWest.toFloat()).apply() }
 
+    /** The person's own search.ch key; blank = people search off. Never shipped with the app. */
+    var directoryKey: String
+        get() = p.getString("directory_key", "") ?: ""
+        set(v) = p.edit().putString("directory_key", v.trim()).apply()
+
     fun downloadId(name: String): Long = p.getLong("dl_$name", -1)
     fun setDownloadId(name: String, id: Long) = p.edit().putLong("dl_$name", id).apply()
 }

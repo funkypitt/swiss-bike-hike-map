@@ -27,4 +27,11 @@
     <string name="recording_notif">Recording your track</string>
     <string name="saved">Saved to Documents/Swiss Bike-Hike Map/%1$s</string>
     <string name="no_fix">No GPS fix yet</string>
+    <string name="places">PLACES</string>
+    <string name="people">PEOPLE &amp; FIRMS</string>
+    <string name="search_people_hint">Name, business, then Search</string>
+    <string name="directory_need_key">People search needs your own search.ch key: paste it in MENU.</string>
+    <string name="directory_nobody">Nobody listed</string>
+    <string name="directory_key_hint">search.ch key (private use)</string>
+    <string name="directory_credit">Data: Swisscom Directories AG. A private key allows about a thousand requests a month; each search is kept for a month, no more than forty leave the phone a day.</string>
 </resources>
