@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The position in navigation: a blue triangle pointing the way, white outline, like a GPS box. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="44dp" android:height="44dp" android:viewportWidth="44" android:viewportHeight="44">
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M22,2 L41,40 L22,31 L3,40 Z"/>
+    <path android:fillColor="#1565D8"
+        android:pathData="M22,8 L36,36 L22,29.5 L8,36 Z"/>
+</vector>

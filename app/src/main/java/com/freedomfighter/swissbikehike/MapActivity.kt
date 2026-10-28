@@ -34,6 +34,7 @@ import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.geometry.LatLngBounds
 import org.maplibre.android.location.LocationComponentActivationOptions
+import org.maplibre.android.location.LocationComponentOptions
 import org.maplibre.android.location.OnCameraTrackingChangedListener
 import org.maplibre.android.location.modes.CameraMode
 import org.maplibre.android.location.modes.RenderMode
@@ -71,6 +72,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
     private var route: Router.Result? = null
     private var routeCum: DoubleArray? = null
     private var lastLocation: Location? = null
+    private var prevFix: Location? = null
     private var follow = 0 // 0 free, 1 centred north up, 2 centred heading up
     private var routing = false
     private var nav = false
@@ -196,7 +198,8 @@ class MapActivity : AppCompatActivity(), LocationListener {
         val lc = m.locationComponent
         if (!lc.isLocationComponentActivated) {
             lc.activateLocationComponent(
-                LocationComponentActivationOptions.builder(this, s).useDefaultLocationEngine(false).build())
+                LocationComponentActivationOptions.builder(this, s).useDefaultLocationEngine(false)
+                    .locationComponentOptions(puckOptions(nav)).build())
             lc.addOnCameraTrackingChangedListener(object : OnCameraTrackingChangedListener {
                 override fun onCameraTrackingDismissed() { follow = 0; updateFollowButton() }
                 override fun onCameraTrackingChanged(currentMode: Int) {}
@@ -205,11 +208,29 @@ class MapActivity : AppCompatActivity(), LocationListener {
             lc.addOnLocationClickListener { setFollow(if (follow == 0) (if (nav) 2 else 1) else follow) }
         }
         lc.isLocationComponentEnabled = true
-        lc.renderMode = RenderMode.COMPASS
+        applyPuck()
         lastLocation?.let { lc.forceLocationUpdate(it) }
     }
 
+    /** The blue dot with its compass tick outside navigation; a blue triangle turned to the course in navigation. */
+    private fun puckOptions(arrow: Boolean): LocationComponentOptions {
+        val b = LocationComponentOptions.builder(this)
+        if (arrow) b.gpsDrawable(R.drawable.nav_arrow).backgroundDrawable(R.drawable.nav_none)
+            .backgroundDrawableStale(R.drawable.nav_none).gpsDrawable(R.drawable.nav_arrow).accuracyAlpha(0f)
+        return b.build()
+    }
+
+    private fun applyPuck() {
+        val lc = map?.locationComponent ?: return
+        if (!lc.isLocationComponentActivated) return
+        lc.applyStyle(puckOptions(nav))
+        lc.renderMode = if (nav) RenderMode.GPS else RenderMode.COMPASS
+    }
+
     override fun onLocationChanged(loc: Location) {
+        // Some receivers give no course when slow or just started: take it from the last few metres.
+        prevFix?.let { p -> if (!loc.hasBearing() && p.distanceTo(loc) >= 3f) loc.bearing = p.bearingTo(loc).let { if (it < 0) it + 360f else it } }
+        if (prevFix == null || prevFix!!.distanceTo(loc) >= 3f) prevFix = loc
         lastLocation = loc
         map?.locationComponent?.let { if (it.isLocationComponentActivated) it.forceLocationUpdate(loc) }
         val kmh = if (loc.hasSpeed()) loc.speed * 3.6 else 0.0
@@ -420,12 +441,14 @@ class MapActivity : AppCompatActivity(), LocationListener {
         // The position sits in the lower part of the screen, so most of the map shows the way ahead.
         map?.setPadding(0, (b.map.height * 0.45).toInt(), 0, 0)
         follow = 0 // so that the tracking transition below runs even if the map was already following
+        applyPuck()
         setFollow(2)
         updateNav()
     }
 
     private fun stopNav() {
         nav = false
+        applyPuck()
         map?.setPadding(0, 0, 0, 0)
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         b.navPanel.visibility = View.GONE

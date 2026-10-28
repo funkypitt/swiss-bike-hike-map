@@ -38,37 +38,51 @@ class TurnArrowView @JvmOverloads constructor(ctx: Context, attrs: AttributeSet?
             TurnHints.RNDB, TurnHints.RNLB -> roundabout(c)
             TurnHints.TLU, TurnHints.TRU, TurnHints.TU -> uturn(c, cmd != TurnHints.TLU)
             TurnHints.KL, TurnHints.KR, TurnHints.EL, TurnHints.ER -> keep(c, cmd == TurnHints.KR || cmd == TurnHints.ER)
-            TurnHints.TL -> bent(c, 50f, 88f, 50f, 42f, 10f, 42f)
-            TurnHints.TR -> bent(c, 50f, 88f, 50f, 42f, 90f, 42f)
-            TurnHints.TSLL -> bent(c, 50f, 88f, 50f, 48f, 20f, 18f)
-            TurnHints.TSLR -> bent(c, 50f, 88f, 50f, 48f, 80f, 18f)
-            TurnHints.TSHL -> bent(c, 50f, 88f, 50f, 36f, 16f, 70f)
-            TurnHints.TSHR -> bent(c, 50f, 88f, 50f, 36f, 84f, 70f)
+            TurnHints.TL -> bent(c, 50f, 88f, 50f, 40f, 8f, 40f)
+            TurnHints.TR -> bent(c, 50f, 88f, 50f, 40f, 92f, 40f)
+            TurnHints.TSLL -> bent(c, 50f, 88f, 50f, 50f, 16f, 12f)
+            TurnHints.TSLR -> bent(c, 50f, 88f, 50f, 50f, 84f, 12f)
+            TurnHints.TSHL -> bent(c, 62f, 88f, 62f, 30f, 8f, 84f)
+            TurnHints.TSHR -> bent(c, 38f, 88f, 38f, 30f, 92f, 84f)
             else -> arrow(c, 50f, 90f, 50f, 14f)
         }
         c.restore()
     }
 
+    // Head geometry, in the 100-unit box: the tip is the end point, the base is HEAD_LEN behind it and
+    // 2 × HEAD_HALF wide; the shaft stops SHAFT_GAP before the tip, inside the base, so its round end
+    // never shows past the triangle's sides.
+    private val headLen = 30f; private val headHalf = 17f; private val shaftGap = 14f
+
     /** Straight shaft with a head at the end. */
     private fun arrow(c: Canvas, x0: Float, y0: Float, x1: Float, y1: Float) {
-        c.drawLine(x0, y0, x1, y1, paint)
+        val (sx, sy) = back(x0, y0, x1, y1, shaftGap)
+        c.drawLine(x0, y0, sx, sy, paint)
         head(c, x0, y0, x1, y1)
     }
 
     /** Shaft up to the corner, then to the end, head at the end. */
     private fun bent(c: Canvas, x0: Float, y0: Float, cx: Float, cy: Float, x1: Float, y1: Float) {
-        val p = Path(); p.moveTo(x0, y0); p.lineTo(cx, cy); p.lineTo(x1, y1)
+        val (sx, sy) = back(cx, cy, x1, y1, shaftGap)
+        val p = Path(); p.moveTo(x0, y0); p.lineTo(cx, cy); p.lineTo(sx, sy)
         c.drawPath(p, paint)
         head(c, cx, cy, x1, y1)
     }
 
+    /** The point `d` units before (x, y) on the way from (fromX, fromY). */
+    private fun back(fromX: Float, fromY: Float, x: Float, y: Float, d: Float): Pair<Float, Float> {
+        val a = atan2((y - fromY).toDouble(), (x - fromX).toDouble())
+        return Pair(x - d * cos(a).toFloat(), y - d * sin(a).toFloat())
+    }
+
     private fun head(c: Canvas, fromX: Float, fromY: Float, x: Float, y: Float) {
         val a = atan2((y - fromY).toDouble(), (x - fromX).toDouble())
-        val len = 24f; val w = 0.55
+        val ca = cos(a).toFloat(); val sa = sin(a).toFloat()
+        val bx = x - headLen * ca; val by = y - headLen * sa
         val p = Path()
-        p.moveTo(x + len * 0.35f * cos(a).toFloat(), y + len * 0.35f * sin(a).toFloat())
-        p.lineTo(x - len * cos(a - w).toFloat(), y - len * sin(a - w).toFloat())
-        p.lineTo(x - len * cos(a + w).toFloat(), y - len * sin(a + w).toFloat())
+        p.moveTo(x, y)
+        p.lineTo(bx - headHalf * sa, by + headHalf * ca)
+        p.lineTo(bx + headHalf * sa, by - headHalf * ca)
         p.close()
         c.drawPath(p, fill)
     }
@@ -77,7 +91,7 @@ class TurnArrowView @JvmOverloads constructor(ctx: Context, attrs: AttributeSet?
         val dx = if (right) 1f else -1f
         c.drawLine(50f, 90f, 50f, 60f, paint)
         c.drawLine(50f, 60f, 50f - 18f * dx, 22f, ghost)
-        arrow(c, 50f, 60f, 50f + 22f * dx, 16f)
+        arrow(c, 50f, 60f, 50f + 24f * dx, 10f)
     }
 
     private fun uturn(c: Canvas, right: Boolean) {
@@ -85,9 +99,9 @@ class TurnArrowView @JvmOverloads constructor(ctx: Context, attrs: AttributeSet?
         val p = Path()
         p.moveTo(50f - 20f * dx, 90f); p.lineTo(50f - 20f * dx, 45f)
         p.arcTo(30f, 20f, 70f, 70f, 180f, 180f * dx, false)
-        p.lineTo(50f + 20f * dx, 70f)
+        p.lineTo(50f + 20f * dx, 82f - shaftGap)
         c.drawPath(p, paint)
-        head(c, 50f + 20f * dx, 50f, 50f + 20f * dx, 78f)
+        head(c, 50f + 20f * dx, 50f, 50f + 20f * dx, 82f)
     }
 
     private fun roundabout(c: Canvas) {
