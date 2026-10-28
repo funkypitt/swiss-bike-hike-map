@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/ink">
+
+    <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+
+        <org.maplibre.android.maps.MapView
+            android:id="@+id/map"
+            android:layout_width="match_parent" android:layout_height="match_parent"/>
+
+        <!-- top row: mode badge left, FIND + MENU right -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:padding="8dp" android:gravity="top">
+            <TextView android:id="@+id/modeBadge" android:layout_width="wrap_content" android:layout_height="56dp"
+                android:minWidth="96dp" android:paddingStart="16dp" android:paddingEnd="16dp"
+                android:gravity="center" android:textSize="20sp" android:textStyle="bold" android:letterSpacing="0.12"
+                android:background="@drawable/badge_walk" android:text="@string/walk"/>
+            <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1"/>
+            <TextView android:id="@+id/btnFind" style="@style/Btn" android:layout_width="wrap_content"
+                android:layout_height="56dp" android:paddingStart="14dp" android:paddingEnd="14dp" android:text="@string/find"/>
+            <TextView android:id="@+id/btnMenu" style="@style/Btn" android:layout_width="wrap_content"
+                android:layout_height="56dp" android:paddingStart="14dp" android:paddingEnd="14dp"
+                android:layout_marginStart="8dp" android:text="@string/menu"/>
+        </LinearLayout>
+
+        <!-- route summary strip -->
+        <TextView android:id="@+id/routeStrip" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="72dp" android:layout_marginStart="8dp" android:layout_marginEnd="8dp"
+            android:background="@color/ink" android:textColor="@color/paper" android:textSize="16sp"
+            android:fontFamily="monospace" android:textStyle="bold" android:gravity="center"
+            android:paddingTop="8dp" android:paddingBottom="8dp" android:visibility="gone"/>
+
+        <!-- right column: zoom and follow -->
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:orientation="vertical" android:layout_gravity="end|center_vertical" android:padding="8dp">
+            <TextView android:id="@+id/btnZoomIn" style="@style/BtnGlyph" android:text="+"/>
+            <TextView android:id="@+id/btnZoomOut" style="@style/BtnGlyph" android:text="−" android:layout_marginTop="8dp"/>
+            <TextView android:id="@+id/btnFollow" style="@style/BtnGlyph" android:text="◎" android:layout_marginTop="24dp"/>
+        </LinearLayout>
+
+        <!-- status line (routing…, messages) -->
+        <TextView android:id="@+id/status" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_gravity="center" android:background="@color/ink" android:textColor="@color/paper"
+            android:textSize="18sp" android:textStyle="bold" android:padding="14dp" android:visibility="gone"/>
+
+        <TextView android:id="@+id/attribution" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_gravity="bottom|start" android:text="@string/attribution" android:textSize="10sp"
+            android:textColor="@color/ink" android:background="#B3FFFFFF" android:paddingStart="4dp"
+            android:paddingEnd="4dp"/>
+    </FrameLayout>
+
+    <!-- action row -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:background="@color/paper" android:padding="6dp">
+        <TextView android:id="@+id/btnGo" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
+            android:layout_height="56dp" android:text="@string/go" android:enabled="false"/>
+        <TextView android:id="@+id/btnRec" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
+            android:layout_height="56dp" android:text="@string/rec" android:layout_marginStart="6dp"/>
+        <TextView android:id="@+id/btnPaper" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
+            android:layout_height="56dp" android:text="@string/paper" android:layout_marginStart="6dp"/>
+    </LinearLayout>
+
+    <!-- data bar -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:background="@color/ink" android:paddingTop="6dp" android:paddingBottom="8dp">
+        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+            <TextView android:id="@+id/vSpeed" style="@style/DataValue" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="--"/>
+            <TextView style="@style/DataLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/speed"/>
+        </LinearLayout>
+        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+            <TextView android:id="@+id/vAlt" style="@style/DataValue" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="--"/>
+            <TextView style="@style/DataLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/alt"/>
+        </LinearLayout>
+        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+            <TextView android:id="@+id/vDist" style="@style/DataValue" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="--"/>
+            <TextView android:id="@+id/lDist" style="@style/DataLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/dist"/>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

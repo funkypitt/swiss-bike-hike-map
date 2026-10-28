@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">Swiss Bike-Hike Map</string>
+    <string name="bike">BIKE</string>
+    <string name="walk">WALK</string>
+    <string name="legend_bike">Official cycling routes in <b>blue</b>\nMountain-bike routes in <b>orange</b></string>
+    <string name="legend_walk"><b>Yellow</b> hiking trail\n<b>White-red-white</b> mountain trail\n<b>White-blue-white</b> alpine trail</string>
+    <string name="attribution">Map © swisstopo · Routing © OpenStreetMap contributors</string>
+    <string name="go">GO</string>
+    <string name="clear">CLEAR</string>
+    <string name="rec">REC</string>
+    <string name="stop">STOP</string>
+    <string name="paper">PAPER</string>
+    <string name="map">MAP</string>
+    <string name="find">FIND</string>
+    <string name="menu">MENU</string>
+    <string name="speed">SPEED km/h</string>
+    <string name="alt">ALT m</string>
+    <string name="dist">DIST km</string>
+    <string name="togo">TO GO km</string>
+    <string name="search_hint">Place, address, peak, hut…</string>
+    <string name="routing">Routing…</string>
+    <string name="route_fail">No route found</string>
+    <string name="need_data_title">Routing data</string>
+    <string name="need_data_msg">Routing for Switzerland needs two files from brouter.de (about 450 MB), downloaded once. Use Wi-Fi.</string>
+    <string name="download">DOWNLOAD</string>
+    <string name="later">LATER</string>
+    <string name="recording_notif">Recording your track</string>
+    <string name="saved">Saved to Documents/Swiss Bike-Hike Map/%1$s</string>
+    <string name="no_fix">No GPS fix yet</string>
+</resources>

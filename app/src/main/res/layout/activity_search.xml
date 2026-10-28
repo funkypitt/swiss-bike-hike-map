@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/paper" android:padding="8dp">
+    <EditText android:id="@+id/query" android:layout_width="match_parent" android:layout_height="56dp"
+        android:hint="@string/search_hint" android:textSize="20sp" android:inputType="text"
+        android:imeOptions="actionSearch" android:background="@drawable/btn" android:paddingStart="14dp"
+        android:paddingEnd="14dp" android:textColor="@color/ink" android:textColorHint="@color/grey"
+        android:singleLine="true"/>
+    <ListView android:id="@+id/list" android:layout_width="match_parent" android:layout_height="match_parent"
+        android:layout_marginTop="8dp" android:divider="@color/ink" android:dividerHeight="1dp"/>
+</LinearLayout>

@@ -1,0 +1,53 @@
+<resources>
+    <style name="Theme.Sbh" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/ink</item>
+        <item name="android:navigationBarColor">@color/ink</item>
+        <item name="android:windowBackground">@color/paper</item>
+        <item name="android:textColor">@color/ink</item>
+        <item name="colorAccent">@color/ink</item>
+        <item name="colorPrimary">@color/ink</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+    <style name="Btn">
+        <item name="android:background">@drawable/btn</item>
+        <item name="android:textColor">@drawable/btn_text</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:gravity">center</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:minWidth">56dp</item>
+        <item name="android:padding">0dp</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+    <style name="BtnGlyph" parent="Btn">
+        <item name="android:textSize">30sp</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:layout_width">56dp</item>
+        <item name="android:layout_height">56dp</item>
+    </style>
+    <style name="DataValue">
+        <item name="android:textColor">@color/paper</item>
+        <item name="android:textSize">30sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:gravity">center</item>
+        <item name="android:singleLine">true</item>
+    </style>
+    <style name="DataLabel">
+        <item name="android:textColor">@color/grey</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:letterSpacing">0.1</item>
+    </style>
+    <style name="MenuHead">
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.12</item>
+        <item name="android:paddingTop">20dp</item>
+        <item name="android:paddingBottom">6dp</item>
+    </style>
+</resources>

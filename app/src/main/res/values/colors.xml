@@ -1,0 +1,8 @@
+<resources>
+    <color name="ink">#000000</color>
+    <color name="paper">#FFFFFF</color>
+    <color name="grey">#9A9A9A</color>
+    <color name="bike_red">#E30613</color>
+    <color name="walk_yellow">#FFD500</color>
+    <color name="route_magenta">#E6007E</color>
+</resources>
