@@ -11,8 +11,8 @@ import java.net.URL
 
 /**
  * Builds the one map style: swisstopo's vector base map with the clutter removed, the official trail
- * network drawn in the signpost colours, the official cycling routes, the closures, the paper map,
- * the route and the pins. Everything is in a single style so the same JSON can be saved offline.
+ * network drawn in the signpost colours, the official cycling routes, the closures, the route and
+ * the pins. Everything is in a single style so the same JSON can be saved offline.
  */
 object MapStyle {
     const val STYLE_URL = "https://vectortiles.geo.admin.ch/styles/ch.swisstopo.basemap.vt/style.json"
@@ -36,14 +36,11 @@ object MapStyle {
     const val IMG_PIN = "pin"
 
     /** Layer ids by group, so visibility can be switched without rebuilding. */
-    val baseLayers = ArrayList<String>()     // swisstopo vector layers (hidden in paper mode)
-    val paperLayers = listOf("paper")
     val walkLayers = listOf("trail-hiking-casing", "trail-hiking", "trail-mountain", "trail-mountain-dash",
         "trail-alpine", "trail-alpine-dash", "closures-walk")
     val bikeLayers = listOf("veloland", "mtbland", "closures-bike", "closures-mtb")
 
     fun styleFile(ctx: Context) = File(ctx.filesDir, "style.json")
-    fun paperFile(ctx: Context) = File(ctx.getExternalFilesDir(null) ?: ctx.filesDir, "paper/paper.pmtiles")
 
     /** The swisstopo style: cached copy refreshed weekly, the asset copy as the last resort. */
     suspend fun baseStyle(ctx: Context): String = withContext(Dispatchers.IO) {
@@ -59,17 +56,13 @@ object MapStyle {
         if (cache.exists()) cache.readText() else ctx.assets.open("basemap-style.json").bufferedReader().readText()
     }
 
-    fun build(ctx: Context, base: String): String {
+    fun build(base: String): String {
         val s = JSONObject(base)
         val sources = s.getJSONObject("sources")
         val baseSrc = sources.keys().asSequence()
             .first { sources.getJSONObject(it).optString("url").contains("ch.swisstopo.base.vt") }
 
         // --- sources ---
-        val paper = paperFile(ctx)
-        sources.put("paper", raster(
-            if (paper.exists()) "pmtiles://file://${paper.absolutePath}" else WMTS.format("ch.swisstopo.pixelkarte-farbe", "jpeg"),
-            128, 18))
         sources.put("veloland", raster(WMTS.format("ch.astra.veloland", "png"), 128, 16))
         sources.put("mtbland", raster(WMTS.format("ch.astra.mountainbikeland", "png"), 128, 16))
         sources.put("closures-walk", raster(WMS.format("ch.astra.wanderland-sperrungen_umleitungen"), 256, 14))
@@ -81,7 +74,6 @@ object MapStyle {
         // --- layers: prune, remember, insert ---
         val old = s.getJSONArray("layers")
         val layers = JSONArray()
-        baseLayers.clear()
         // Insert our layers where the label block starts: above every road and building fill,
         // below the names. (The style's first symbol layer, landcover_pt, comes before the roads.)
         val anchors = listOf("housenumber", "contour_line_pt", "transportation_label", "place_other")
@@ -91,12 +83,11 @@ object MapStyle {
             val id = l.getString("id")
             if (firstSymbol < 0 && id in anchors) firstSymbol = layers.length()
             if (id in clutter) continue
-            if (id != "background") baseLayers.add(id)
             layers.put(l)
         }
         if (firstSymbol < 0) firstSymbol = layers.length()
 
-        // Below the labels: paper (just above background), then official routes and trails.
+        // Below the labels: official routes and trails.
         val below = JSONArray()
         below.put(rasterLayer("veloland", "veloland", 9))
         below.put(rasterLayer("mtbland", "mtbland", 9))
@@ -109,7 +100,6 @@ object MapStyle {
 
         val merged = JSONArray()
         for (i in 0 until layers.length()) {
-            if (i == 1) merged.put(rasterLayer("paper", "paper", 0))
             if (i == firstSymbol) for (j in 0 until below.length()) merged.put(below.get(j))
             merged.put(layers.get(i))
         }

@@ -2,7 +2,10 @@
 
 A private, single-screen map app for cycling and hiking in Switzerland. Old-school GPS
 interface: pick **BIKE** or **WALK**, see the official trails in the signpost colours,
-long-press to drop a pin, **GO** to route on-device, **REC** to record a GPX.
+long-press to drop a pin, **GO** to route on-device, **NAV** for turn-by-turn guidance with one
+big arrow, **REC** to record a GPX. Pins can be saved as favourites (places, people and firms
+from the directory, bare coordinates) and lists of places imported from GPX, KML/KMZ, GeoJSON,
+CSV or plain text with coordinates (WGS84, LV95, LV03 or degrees-minutes).
 
 Everything is recycled:
 
@@ -13,10 +16,10 @@ Everything is recycled:
 | Official hiking trails | the `sac_scale` attribute of swisstopo's vector tiles: yellow / white-red-white / white-blue-white |
 | Official cycling routes | swisstopo WMTS overlays Veloland (blue) and Mountainbikeland (orange) |
 | Closures and detours | swisstopo WMS overlays, online only |
-| Paper map 1:25 000 | swisstopo WMTS, or a local PMTiles file made by `tools/make-paper.py` |
 | Routing | [BRouter](https://github.com/abrensch/brouter) (MIT) embedded as the `brouter` module, OpenStreetMap data from brouter.de (profiles `trekking` and `hiking-mountain`) |
-| Search | GeoAdmin search API |
-| Offline | MapLibre offline packs for the area on screen, zoom 8 to 15 |
+| Turn instructions | BRouter's own voice hints (`turnInstructionMode`), read through `brouter/.../TurnHints.java` |
+| Search | GeoAdmin search API; people and firms through the search.ch directory with the person's own key |
+| Offline | MapLibre offline packs for the area on screen, zoom 8 to 15, refreshed automatically once a week over Wi-Fi |
 
 Data © swisstopo, © SchweizMobil, © OpenStreetMap contributors.
 
@@ -31,7 +34,7 @@ upstream (`brouter/UPSTREAM-COMMIT.txt`); the two profile files and `lookups.dat
 
 - Routing: `Android/data/com.freedomfighter.swissbikehike/files/brouter/segments4/E5_N45.rd5` and `E10_N45.rd5`
   (about 450 MB), downloaded by the app over Wi-Fi on first **GO**, refreshed from the menu (brouter.de rebuilds them weekly).
-- Paper map: optional `Android/data/com.freedomfighter.swissbikehike/files/paper/paper.pmtiles`, see `tools/make-paper.py`.
+- Favourites: `favourites.json` in the app's private storage; export as GPX waypoints to `Documents/Swiss Bike-Hike Map/`.
 - Saved areas: MapLibre's own database in the app's private storage.
 - Recorded tracks: `Documents/Swiss Bike-Hike Map/<date>_<mode>.gpx`.
 
@@ -42,7 +45,7 @@ upstream (`brouter/UPSTREAM-COMMIT.txt`); the two profile files and `lookups.dat
 | Routing, both modes | | 450 MB |
 | Vector base map | 6 to 14 | about 1.0 GB |
 | Hillshade (relief tiles used by the style) | 6 to 14 | about 1.4 GB |
-| Paper 1:25 000 | 8 to 15 | about 3.6 GB |
-| Paper 1:25 000 | 8 to 16 | about 11 GB |
+
+(The 1:25 000 paper map, dropped in 0.3.0, would have added 3.6 GB at zoom 15 or 11 GB at zoom 16.)
 
 The box includes a good share of France, Italy, Germany and Austria; Switzerland alone is roughly half.

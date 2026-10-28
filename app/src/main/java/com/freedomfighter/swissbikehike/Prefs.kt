@@ -12,10 +12,6 @@ class Prefs(ctx: Context) {
         get() = Mode.of(p.getString("mode", null))
         set(v) = p.edit().putString("mode", v.name).apply()
 
-    var paper: Boolean
-        get() = p.getBoolean("paper", false)
-        set(v) = p.edit().putBoolean("paper", v).apply()
-
     /** Last camera: Lausanne by default. */
     var camera: Triple<LatLng, Double, Double>
         get() = Triple(
@@ -36,6 +32,14 @@ class Prefs(ctx: Context) {
     var directoryKey: String
         get() = p.getString("directory_key", "") ?: ""
         set(v) = p.edit().putString("directory_key", v.trim()).apply()
+
+    /** Automatic refresh of the saved areas: when it last completed, and a line for the menu. */
+    var offlineRefreshed: Long
+        get() = p.getLong("offline_refreshed", 0L)
+        set(v) = p.edit().putLong("offline_refreshed", v).apply()
+    var offlineRefreshStatus: String
+        get() = p.getString("offline_refresh_status", "") ?: ""
+        set(v) = p.edit().putString("offline_refresh_status", v).apply()
 
     fun downloadId(name: String): Long = p.getLong("dl_$name", -1)
     fun setDownloadId(name: String, id: Long) = p.edit().putLong("dl_$name", id).apply()

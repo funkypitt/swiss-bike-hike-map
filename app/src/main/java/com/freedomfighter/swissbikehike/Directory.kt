@@ -15,7 +15,7 @@ import java.util.Locale
  * questions leave the phone in a day.
  */
 object Directory {
-    class Hit(val name: String, val street: String, val zip: String, val city: String, val phone: String) {
+    class Hit(val name: String, val street: String, val zip: String, val city: String, val phone: String, val person: Boolean = false) {
         val address: String get() = listOf(street, listOf(zip, city).filter { it.isNotBlank() }.joinToString(" ")).filter { it.isNotBlank() }.joinToString(", ")
     }
 
@@ -79,7 +79,8 @@ object Directory {
             else tag(e, "name") ?: tag(e, "org") ?: ""
             if (name.isBlank()) continue
             val street = listOfNotNull(tag(e, "street"), tag(e, "streetno")).joinToString(" ").trim()
-            out.add(Hit(name, street, tag(e, "zip").orEmpty(), tag(e, "city").orEmpty(), tag(e, "phone").orEmpty()))
+            out.add(Hit(name, street, tag(e, "zip").orEmpty(), tag(e, "city").orEmpty(), tag(e, "phone").orEmpty(),
+                type.equals("Person", ignoreCase = true)))
         }
         return out
     }
@@ -91,8 +92,8 @@ object Directory {
     private fun unescape(s: String) = s.replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"")
         .replace("&apos;", "'").replace("&#39;", "'").replace("&amp;", "&")
 
-    private fun encode(hits: List<Hit>) = hits.joinToString("\n") { listOf(it.name, it.street, it.zip, it.city, it.phone).joinToString("\t") }
+    private fun encode(hits: List<Hit>) = hits.joinToString("\n") { listOf(it.name, it.street, it.zip, it.city, it.phone, if (it.person) "p" else "o").joinToString("\t") }
     private fun decode(s: String): List<Hit> = if (s.isBlank()) emptyList() else s.split('\n').mapNotNull { line ->
-        val p = line.split('\t'); if (p.size < 5) null else Hit(p[0], p[1], p[2], p[3], p[4])
+        val p = line.split('\t'); if (p.size < 5) null else Hit(p[0], p[1], p[2], p[3], p[4], p.getOrNull(5) == "p")
     }
 }

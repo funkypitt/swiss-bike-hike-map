@@ -14,8 +14,6 @@
         <TextView android:id="@+id/btnOfflineRefresh" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="REFRESH SAVED AREAS"/>
         <TextView android:id="@+id/btnOfflineDelete" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="DELETE SAVED AREAS"/>
 
-        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="PAPER MAP 1:25 000"/>
-        <TextView android:id="@+id/paperInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="15sp" android:lineSpacingExtra="4dp"/>
 
         <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="PEOPLE &amp; FIRMS (search.ch)"/>
         <EditText android:id="@+id/dirKey" android:layout_width="match_parent" android:layout_height="56dp"

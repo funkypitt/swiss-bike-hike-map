@@ -7,7 +7,10 @@ import android.text.Html
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
+import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.widget.doAfterTextChanged
@@ -22,23 +25,43 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
- * Search: places through the GeoAdmin search server (addresses, place names, peaks, huts), or
- * people and businesses through the search.ch directory with the person's own key. A directory
- * hit is placed on the map by geocoding its address with GeoAdmin.
+ * Search: places through the GeoAdmin search server (addresses, place names, peaks, huts) or typed
+ * coordinates; people and businesses through the search.ch directory with the person's own key;
+ * the favourites, with import and export of place lists. Every pick ends as a pin on the map.
  */
 class SearchActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_LAT = "lat"; const val EXTRA_LON = "lon"; const val EXTRA_LABEL = "label"
+        const val EXTRA_KIND = "kind"; const val EXTRA_DETAIL = "detail"
     }
-    private class Hit(val label: String, val lat: Double, val lon: Double)
+    private enum class Tab { PLACES, PEOPLE, FAVS }
+    private class Hit(val label: String, val lat: Double, val lon: Double, val kind: String = Favourites.PLACE, val detail: String = "")
+
     private lateinit var b: ActivitySearchBinding
     private val hits = ArrayList<Hit>()
     private val dirHits = ArrayList<Directory.Hit>()
-    private var people = false
+    private val favs = ArrayList<Fav>()
+    private var tab = Tab.PLACES
     private var job: Job? = null
     private lateinit var adapter: ArrayAdapter<String>
+
+    private val pickFile = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri ?: return@registerForActivityResult
+        lifecycleScope.launch {
+            val found = withContext(Dispatchers.IO) {
+                runCatching { contentResolver.openInputStream(uri)?.use { Favourites.read(it) } ?: emptyList() }.getOrDefault(emptyList())
+            }
+            if (found.isEmpty()) { Toast.makeText(this@SearchActivity, R.string.fav_none_in_file, Toast.LENGTH_LONG).show(); return@launch }
+            val n = Favourites.addAll(this@SearchActivity, found)
+            Toast.makeText(this@SearchActivity, getString(R.string.fav_imported, n), Toast.LENGTH_LONG).show()
+            showFavs()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,47 +70,103 @@ class SearchActivity : AppCompatActivity() {
         Insets.pad(b.root)
         adapter = ArrayAdapter<String>(this, R.layout.item_search, R.id.text)
         b.list.adapter = adapter
-        b.list.setOnItemClickListener { _, _, pos, _ -> if (people) pick(dirHits[pos]) else finishWith(hits[pos]) }
-        b.btnPlaces.setOnClickListener { setMode(false) }
-        b.btnPeople.setOnClickListener { setMode(true) }
+        b.list.setOnItemClickListener { _, _, pos, _ ->
+            when (tab) {
+                Tab.PLACES -> hits.getOrNull(pos)?.let { finishWith(it) }
+                Tab.PEOPLE -> dirHits.getOrNull(pos)?.let { pick(it) }
+                Tab.FAVS -> favs.getOrNull(pos)?.let { finishWith(Hit(it.name, it.lat, it.lon, it.kind, it.detail)) }
+            }
+        }
+        b.list.setOnItemLongClickListener { _, _, pos, _ ->
+            if (tab != Tab.FAVS) return@setOnItemLongClickListener false
+            val f = favs.getOrNull(pos) ?: return@setOnItemLongClickListener false
+            AlertDialog.Builder(this).setMessage("Remove « ${f.name} » from the favourites?")
+                .setPositiveButton("REMOVE") { _, _ -> Favourites.remove(this, f); showFavs() }
+                .setNegativeButton("CANCEL", null).show()
+            true
+        }
+        b.btnPlaces.setOnClickListener { setTab(Tab.PLACES) }
+        b.btnPeople.setOnClickListener { setTab(Tab.PEOPLE) }
+        b.btnFavs.setOnClickListener { setTab(Tab.FAVS) }
+        b.btnImport.setOnClickListener { pickFile.launch(arrayOf("*/*")) }
+        b.btnExport.setOnClickListener { exportFavs() }
         b.query.doAfterTextChanged { text ->
-            if (people) return@doAfterTextChanged
-            job?.cancel()
             val q = text?.toString()?.trim() ?: ""
-            if (q.length < 2) { clear(); return@doAfterTextChanged }
-            job = lifecycleScope.launch {
-                delay(300)
-                val found = searchPlaces(q)
-                hits.clear(); hits.addAll(found)
-                adapter.clear(); adapter.addAll(found.map { it.label })
+            when (tab) {
+                Tab.PEOPLE -> {}
+                Tab.FAVS -> showFavs()
+                Tab.PLACES -> {
+                    job?.cancel()
+                    if (q.length < 2) { clear(); return@doAfterTextChanged }
+                    val typed = Favourites.parseCoords(q)
+                    if (typed != null) {
+                        val h = Hit(Favourites.coordsName(typed.latitude, typed.longitude), typed.latitude, typed.longitude, Favourites.COORDS)
+                        hits.clear(); hits.add(h); adapter.clear(); adapter.add(h.label)
+                        return@doAfterTextChanged
+                    }
+                    job = lifecycleScope.launch {
+                        delay(300)
+                        val found = searchPlaces(q)
+                        hits.clear(); hits.addAll(found)
+                        adapter.clear(); adapter.addAll(found.map { it.label })
+                    }
+                }
             }
         }
         b.query.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_SEARCH && people) { searchPeople(); true } else false
+            if (actionId == EditorInfo.IME_ACTION_SEARCH && tab == Tab.PEOPLE) { searchPeople(); true } else false
         }
-        setMode(false)
+        setTab(Tab.PLACES)
         b.query.requestFocus()
     }
 
     private fun clear() { hits.clear(); dirHits.clear(); adapter.clear() }
 
-    private fun setMode(p: Boolean) {
-        people = p
+    private fun setTab(t: Tab) {
+        tab = t
         clear()
-        b.query.hint = getString(if (p) R.string.search_people_hint else R.string.search_hint)
-        b.credit.visibility = if (p) View.VISIBLE else View.GONE
+        b.query.hint = getString(when (t) { Tab.PLACES -> R.string.search_hint; Tab.PEOPLE -> R.string.search_people_hint; Tab.FAVS -> R.string.fav_hint })
+        b.credit.visibility = if (t == Tab.PEOPLE) View.VISIBLE else View.GONE
         b.credit.text = if (Directory.enabled(this)) Directory.CREDIT + " · press Search" else getString(R.string.directory_need_key)
-        style(b.btnPlaces, !p); style(b.btnPeople, p)
+        b.favRow.visibility = if (t == Tab.FAVS) View.VISIBLE else View.GONE
+        style(b.btnPlaces, t == Tab.PLACES); style(b.btnPeople, t == Tab.PEOPLE); style(b.btnFavs, t == Tab.FAVS)
+        if (t == Tab.FAVS) showFavs() else b.query.text?.let { if (it.isNotBlank()) b.query.setText(it.toString()) }
     }
 
-    private fun style(v: android.widget.TextView, active: Boolean) {
+    private fun style(v: TextView, active: Boolean) {
         v.setBackgroundResource(if (active) R.drawable.btn_active else R.drawable.btn)
         v.setTextColor(AppCompatResources.getColorStateList(this, if (active) R.drawable.btn_active_text else R.drawable.btn_text))
     }
 
     private fun finishWith(h: Hit) {
-        setResult(Activity.RESULT_OK, Intent().putExtra(EXTRA_LAT, h.lat).putExtra(EXTRA_LON, h.lon).putExtra(EXTRA_LABEL, h.label))
+        setResult(Activity.RESULT_OK, Intent().putExtra(EXTRA_LAT, h.lat).putExtra(EXTRA_LON, h.lon).putExtra(EXTRA_LABEL, h.label)
+            .putExtra(EXTRA_KIND, h.kind).putExtra(EXTRA_DETAIL, h.detail))
         finish()
+    }
+
+    // ---- favourites ----
+
+    private fun showFavs() {
+        val q = b.query.text?.toString()?.trim()?.lowercase(Locale.ROOT) ?: ""
+        val all = Favourites.list(this)
+        favs.clear()
+        favs.addAll(all.filter { q.isEmpty() || it.name.lowercase(Locale.ROOT).contains(q) || it.detail.lowercase(Locale.ROOT).contains(q) }
+            .sortedBy { it.name.lowercase(Locale.ROOT) })
+        adapter.clear()
+        if (all.isEmpty()) adapter.add(getString(R.string.fav_empty))
+        else adapter.addAll(favs.map { f -> listOf(glyph(f.kind) + " " + f.name, f.detail).filter { it.isNotBlank() }.joinToString("\n") })
+    }
+
+    private fun glyph(kind: String) = when (kind) { Favourites.PERSON -> "☺"; Favourites.FIRM -> "▣"; Favourites.COORDS -> "✚"; else -> "●" }
+
+    private fun exportFavs() {
+        val all = Favourites.list(this)
+        if (all.isEmpty()) { Toast.makeText(this, R.string.fav_empty, Toast.LENGTH_LONG).show(); return }
+        val name = "favourites-" + SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()) + ".gpx"
+        val uri = Documents.save(this, name, "application/gpx+xml", Favourites.gpx(all).toByteArray())
+        if (uri == null) { Toast.makeText(this, "Could not write the file", Toast.LENGTH_LONG).show(); return }
+        Toast.makeText(this, getString(R.string.fav_exported, name), Toast.LENGTH_LONG).show()
+        Documents.share(this, uri, "application/gpx+xml")
     }
 
     // ---- people and businesses ----
@@ -115,7 +194,8 @@ class SearchActivity : AppCompatActivity() {
             val place = (if (h.street.isNotBlank()) geocode("${h.street} ${h.zip} ${h.city}", "address") else null)
                 ?: geocode("${h.zip} ${h.city}", "zipcode")
             if (place == null) { Toast.makeText(this@SearchActivity, "Address not found on the map", Toast.LENGTH_SHORT).show(); return@launch }
-            finishWith(Hit(h.name + ", " + h.address, place.lat, place.lon))
+            finishWith(Hit(h.name, place.lat, place.lon, if (h.person) Favourites.PERSON else Favourites.FIRM,
+                listOf(h.address, h.phone).filter { it.isNotBlank() }.joinToString(" · ")))
         }
     }
 

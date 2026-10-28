@@ -4,6 +4,7 @@ import android.content.Context
 import btools.router.RoutingContext
 import btools.router.RoutingEngine
 import btools.router.RoutingParamCollector
+import btools.router.TurnHints
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.maplibre.android.geometry.LatLng
@@ -20,7 +21,12 @@ object Router {
         val ascendM: Int,
         val descendM: Int,
         val seconds: Int,
+        /** Turns along the route, in track order, from BRouter's voice hints. */
+        val turns: List<Turn>,
     )
+
+    /** One turn: at which route point, which command (see btools.router.TurnHints), which roundabout exit. */
+    class Turn(val index: Int, val cmd: Int, val exit: Int)
 
     private val assetFiles = listOf("lookups.dat", "trekking.brf", "hiking-mountain.brf")
 
@@ -40,7 +46,7 @@ object Router {
         rc.localFunction = File(profilesDir(ctx), "${mode.profile}.brf").absolutePath
         val maxMb = (Runtime.getRuntime().maxMemory() / (1024 * 1024)).toInt()
         rc.memoryclass = (maxMb / 3).coerceIn(32, 256)
-        rc.turnInstructionMode = 0
+        rc.turnInstructionMode = 2 // any mode above 0 makes BRouter keep the turn hints
         val wps = RoutingParamCollector().readPositions(
             doubleArrayOf(from.longitude, to.longitude), doubleArrayOf(from.latitude, to.latitude))
         val engine = RoutingEngine(null, null, Segments.dir(ctx), wps, rc)
@@ -60,6 +66,9 @@ object Router {
             if (ele[i] > ref) ref = ele[i]
             if (ref - ele[i] >= 10.0) { descend += ref - ele[i]; ref = ele[i] }
         }
-        Result(pts, ele, track.distance, track.ascend, descend.toInt(), track.totalSeconds)
+        val raw = TurnHints.of(track)
+        val turns = (raw.indices step 3).map { Turn(raw[it], raw[it + 1], raw[it + 2]) }
+            .filter { it.index in pts.indices }
+        Result(pts, ele, track.distance, track.ascend, descend.toInt(), track.totalSeconds, turns)
     }
 }

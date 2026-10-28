@@ -24,12 +24,47 @@
                 android:layout_marginStart="8dp" android:text="@string/menu"/>
         </LinearLayout>
 
-        <!-- route summary strip -->
-        <TextView android:id="@+id/routeStrip" android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginTop="72dp" android:layout_marginStart="8dp" android:layout_marginEnd="8dp"
-            android:background="@color/ink" android:textColor="@color/paper" android:textSize="16sp"
-            android:fontFamily="monospace" android:textStyle="bold" android:gravity="center"
-            android:paddingTop="8dp" android:paddingBottom="8dp" android:visibility="gone"/>
+        <!-- strips under the top row: the pin, the route summary, the navigation panel -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:layout_marginTop="72dp" android:layout_marginStart="8dp" android:layout_marginEnd="8dp">
+
+            <LinearLayout android:id="@+id/pinStrip" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:background="@color/ink" android:gravity="center_vertical"
+                android:paddingStart="12dp" android:paddingEnd="6dp" android:paddingTop="6dp" android:paddingBottom="6dp" android:visibility="gone">
+                <TextView android:id="@+id/pinLabel" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                    android:textColor="@color/paper" android:textSize="16sp" android:textStyle="bold" android:maxLines="2" android:ellipsize="end"/>
+                <TextView android:id="@+id/btnSave" style="@style/Btn" android:layout_width="wrap_content" android:layout_height="44dp"
+                    android:minHeight="44dp" android:paddingStart="14dp" android:paddingEnd="18dp" android:layout_marginStart="8dp"
+                    android:background="@drawable/btn_dark" android:textColor="@drawable/btn_dark_text" android:text="@string/save"/>
+            </LinearLayout>
+
+            <TextView android:id="@+id/routeStrip" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:background="@color/ink" android:textColor="@color/paper" android:textSize="16sp"
+                android:fontFamily="monospace" android:textStyle="bold" android:gravity="center"
+                android:paddingTop="8dp" android:paddingBottom="8dp" android:visibility="gone"/>
+
+            <LinearLayout android:id="@+id/navPanel" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:background="@color/ink" android:gravity="center_vertical"
+                android:padding="8dp" android:visibility="gone">
+                <com.freedomfighter.swissbikehike.TurnArrowView android:id="@+id/navArrow"
+                    android:layout_width="112dp" android:layout_height="112dp"/>
+                <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:paddingStart="8dp">
+                    <TextView android:id="@+id/navDist" android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:textColor="@color/paper" android:textSize="46sp" android:textStyle="bold" android:fontFamily="monospace"
+                        android:singleLine="true" android:text="--"/>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <TextView android:id="@+id/navThenLabel" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:textColor="@color/grey" android:textSize="16sp" android:text="@string/then" android:paddingEnd="8dp"/>
+                        <com.freedomfighter.swissbikehike.TurnArrowView android:id="@+id/navThenArrow"
+                            android:layout_width="30dp" android:layout_height="30dp"/>
+                        <TextView android:id="@+id/navThen" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:textColor="@color/grey" android:textSize="16sp" android:fontFamily="monospace" android:paddingStart="8dp"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
 
         <!-- right column: zoom and follow -->
         <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
@@ -55,10 +90,10 @@
         android:orientation="horizontal" android:background="@color/paper" android:padding="6dp">
         <TextView android:id="@+id/btnGo" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
             android:layout_height="56dp" android:text="@string/go" android:enabled="false"/>
+        <TextView android:id="@+id/btnNav" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
+            android:layout_height="56dp" android:text="@string/nav" android:layout_marginStart="6dp" android:enabled="false"/>
         <TextView android:id="@+id/btnRec" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
             android:layout_height="56dp" android:text="@string/rec" android:layout_marginStart="6dp"/>
-        <TextView android:id="@+id/btnPaper" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
-            android:layout_height="56dp" android:text="@string/paper" android:layout_marginStart="6dp"/>
     </LinearLayout>
 
     <!-- data bar -->

@@ -9,8 +9,8 @@
     <string name="clear">CLEAR</string>
     <string name="rec">REC</string>
     <string name="stop">STOP</string>
-    <string name="paper">PAPER</string>
-    <string name="map">MAP</string>
+    <string name="nav">NAV</string>
+    <string name="exit_nav">EXIT</string>
     <string name="find">FIND</string>
     <string name="menu">MENU</string>
     <string name="speed">SPEED km/h</string>
@@ -34,4 +34,19 @@
     <string name="directory_nobody">Nobody listed</string>
     <string name="directory_key_hint">search.ch key (private use)</string>
     <string name="directory_credit">Data: Swisscom Directories AG. A private key allows about a thousand requests a month; each search is kept for a month, no more than forty leave the phone a day.</string>
+    <string name="save">☆ SAVE</string>
+    <string name="saved_star">★ SAVED</string>
+    <string name="favourites">FAVOURITES</string>
+    <string name="import_places">IMPORT</string>
+    <string name="export_places">EXPORT</string>
+    <string name="fav_hint">Filter the favourites</string>
+    <string name="fav_empty">No favourite yet. Put a pin on the map (long press, FIND) and press SAVE, or import a file of places (GPX, KML, GeoJSON, CSV, or lines with coordinates).</string>
+    <string name="fav_added">Saved to the favourites</string>
+    <string name="fav_removed">Removed from the favourites</string>
+    <string name="fav_imported">%1$d places added</string>
+    <string name="fav_none_in_file">No place found in that file</string>
+    <string name="fav_exported">Favourites saved to Documents/Swiss Bike-Hike Map/%1$s</string>
+    <string name="then">then</string>
+    <string name="arrived">ARRIVED</string>
+    <string name="off_route">Off route, rerouting…</string>
 </resources>

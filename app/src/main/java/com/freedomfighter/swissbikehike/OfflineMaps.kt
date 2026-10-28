@@ -1,6 +1,11 @@
 package com.freedomfighter.swissbikehike
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import org.maplibre.android.geometry.LatLngBounds
 import org.maplibre.android.offline.OfflineManager
 import org.maplibre.android.offline.OfflineRegion
@@ -70,6 +75,50 @@ object OfflineMaps {
             override fun onInvalidate() { cont.resume(true) }
             override fun onError(error: String) { cont.resume(false) }
         })
+    }
+
+    // ---- automatic refresh ----
+
+    const val AUTO_DAYS = 7
+
+    fun unmetered(ctx: Context): Boolean {
+        val cm = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val caps = cm.getNetworkCapabilities(cm.activeNetwork) ?: return false
+        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
+    }
+
+    /**
+     * Once a week, on an unmetered connection, every saved area is marked stale and downloaded again
+     * in the background; the current style is seeded again too, so the packs follow the app. The
+     * menu shows how it went. Returns true when a refresh was started.
+     */
+    suspend fun autoRefresh(ctx: Context, styleFile: File): Boolean {
+        val prefs = Prefs(ctx)
+        if (System.currentTimeMillis() - prefs.offlineRefreshed < AUTO_DAYS * 86400_000L) return false
+        if (!unmetered(ctx)) return false
+        val regions = list(ctx)
+        if (regions.isEmpty()) { prefs.offlineRefreshed = System.currentTimeMillis(); return false }
+        if (styleFile.exists()) {
+            val now = System.currentTimeMillis() / 1000
+            manager(ctx).putResourceWithUrl(STYLE_URL, styleFile.readBytes(), now, now + 3650L * 86400, null, false)
+        }
+        var left = regions.size
+        var failed = false
+        prefs.offlineRefreshStatus = "Automatic refresh running…"
+        for (r in regions) {
+            refresh(r)
+            start(r, { done, total, finished ->
+                if (finished) {
+                    left--
+                    if (left == 0) {
+                        if (!failed) prefs.offlineRefreshed = System.currentTimeMillis()
+                        prefs.offlineRefreshStatus = (if (failed) "Automatic refresh incomplete, " else "Automatically refreshed ") +
+                            "${regions.size} area" + (if (regions.size > 1) "s" else "") + " on " + SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())
+                    }
+                } else prefs.offlineRefreshStatus = "Automatic refresh: ${name(r)} $done / $total tiles"
+            }, { msg -> failed = true; prefs.offlineRefreshStatus = "Automatic refresh: $msg" })
+        }
+        return true
     }
 
     suspend fun delete(r: OfflineRegion): Boolean = suspendCoroutine { cont ->

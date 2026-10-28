@@ -3,6 +3,7 @@ package com.freedomfighter.swissbikehike
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
@@ -11,7 +12,11 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.view.View
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -19,9 +24,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import btools.router.TurnHints
 import com.freedomfighter.swissbikehike.databinding.ActivityMapBinding
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.maplibre.android.camera.CameraPosition
@@ -43,23 +48,35 @@ import org.maplibre.geojson.FeatureCollection
 import org.maplibre.geojson.LineString
 import org.maplibre.geojson.Point
 import java.util.Locale
+import kotlin.math.roundToInt
 
 /** The one map screen. */
 class MapActivity : AppCompatActivity(), LocationListener {
-    companion object { const val EXTRA_MODE = "mode" }
+    companion object {
+        const val EXTRA_MODE = "mode"
+        private const val OFF_ROUTE_M = 60.0      // farther than this from the line, three fixes in a row = reroute
+        private const val ARRIVED_M = 25.0
+        private const val NAV_ZOOM = 17.0
+    }
 
     private lateinit var b: ActivityMapBinding
     private lateinit var prefs: Prefs
     private lateinit var mode: Mode
     private var map: MapLibreMap? = null
     private var style: Style? = null
-    private var paper = false
     private var pin: LatLng? = null
+    private var pinName = ""
+    private var pinKind = Favourites.COORDS
+    private var pinDetail = ""
     private var route: Router.Result? = null
     private var routeCum: DoubleArray? = null
     private var lastLocation: Location? = null
-    private var follow = 0 // 0 off, 1 north up, 2 heading up
+    private var follow = 0 // 0 free, 1 centred north up, 2 centred heading up
     private var routing = false
+    private var nav = false
+    private var arrived = false
+    private var offRouteFixes = 0
+    private var buzzedTurn = -1
 
     private val askPermissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         if (hasLocation()) { startLocation(); enableLocationLayer() }
@@ -67,7 +84,9 @@ class MapActivity : AppCompatActivity(), LocationListener {
     private val searchLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
         if (r.resultCode == Activity.RESULT_OK) r.data?.let { d ->
             val p = LatLng(d.getDoubleExtra(SearchActivity.EXTRA_LAT, 0.0), d.getDoubleExtra(SearchActivity.EXTRA_LON, 0.0))
-            setPin(p)
+            if (route != null) clearRoute()
+            setPin(p, d.getStringExtra(SearchActivity.EXTRA_LABEL) ?: Favourites.coordsName(p.latitude, p.longitude),
+                d.getStringExtra(SearchActivity.EXTRA_KIND) ?: Favourites.PLACE, d.getStringExtra(SearchActivity.EXTRA_DETAIL) ?: "")
             map?.animateCamera(CameraUpdateFactory.newLatLngZoom(p, 15.0))
         }
     }
@@ -80,7 +99,6 @@ class MapActivity : AppCompatActivity(), LocationListener {
         super.onCreate(savedInstanceState)
         prefs = Prefs(this)
         mode = Mode.of(intent.getStringExtra(EXTRA_MODE) ?: prefs.mode.name)
-        paper = prefs.paper
         b = ActivityMapBinding.inflate(layoutInflater)
         setContentView(b.root)
         Insets.pad(b.root)
@@ -95,24 +113,24 @@ class MapActivity : AppCompatActivity(), LocationListener {
             map?.let { prefs.lastBounds = it.projection.visibleRegion.latLngBounds }
             menuLauncher.launch(Intent(this, MenuActivity::class.java))
         }
-        b.btnZoomIn.setOnClickListener { map?.animateCamera(CameraUpdateFactory.zoomIn()) }
-        b.btnZoomOut.setOnClickListener { map?.animateCamera(CameraUpdateFactory.zoomOut()) }
-        b.btnFollow.setOnClickListener { cycleFollow() }
+        b.btnZoomIn.setOnClickListener { zoomBy(1.0) }
+        b.btnZoomOut.setOnClickListener { zoomBy(-1.0) }
+        b.btnFollow.setOnClickListener { setFollow((follow + 1) % 3) }
         b.btnGo.setOnClickListener { if (route != null) clearRoute() else go() }
+        b.btnNav.setOnClickListener { if (nav) stopNav() else startNav() }
         b.btnRec.setOnClickListener { toggleRecording() }
-        b.btnPaper.setOnClickListener { paper = !paper; prefs.paper = paper; applyVisibility() }
-        updatePaperButton()
+        b.btnSave.setOnClickListener { toggleFavourite() }
 
         b.map.getMapAsync { m ->
             map = m
             m.uiSettings.apply {
-                isRotateGesturesEnabled = false; isTiltGesturesEnabled = false
+                isRotateGesturesEnabled = true; isTiltGesturesEnabled = false
                 isAttributionEnabled = false; isLogoEnabled = false; isCompassEnabled = true
                 setCompassFadeFacingNorth(true)
             }
             val (target, zoom, bearing) = prefs.camera
             m.cameraPosition = CameraPosition.Builder().target(target).zoom(zoom).bearing(bearing).build()
-            m.addOnMapLongClickListener { p -> setPin(p); true }
+            m.addOnMapLongClickListener { p -> if (route != null) clearRoute(); setPin(p); true }
             loadStyle()
         }
 
@@ -129,7 +147,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
         val m = map ?: return
         lifecycleScope.launch {
             val json = withContext(Dispatchers.Default) {
-                val built = MapStyle.build(this@MapActivity, MapStyle.baseStyle(this@MapActivity))
+                val built = MapStyle.build(MapStyle.baseStyle(this@MapActivity))
                 MapStyle.styleFile(this@MapActivity).writeText(built)
                 built
             }
@@ -154,20 +172,11 @@ class MapActivity : AppCompatActivity(), LocationListener {
     }
 
     private fun applyVisibility() {
-        setVisible(MapStyle.baseLayers, !paper)
-        setVisible(MapStyle.paperLayers, paper)
         setVisible(MapStyle.walkLayers, mode == Mode.WALK)
         setVisible(MapStyle.bikeLayers, mode == Mode.BIKE)
-        updatePaperButton()
     }
 
-    private fun updatePaperButton() {
-        b.btnPaper.text = getString(if (paper) R.string.map else R.string.paper)
-        b.btnPaper.setBackgroundResource(if (paper) R.drawable.btn_active else R.drawable.btn)
-        b.btnPaper.setTextColor(AppCompatResources.getColorStateList(this, if (paper) R.drawable.btn_active_text else R.drawable.btn_text))
-    }
-
-    // ---------- location ----------
+    // ---------- location and camera ----------
 
     private fun hasLocation() =
         ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -192,6 +201,8 @@ class MapActivity : AppCompatActivity(), LocationListener {
                 override fun onCameraTrackingDismissed() { follow = 0; updateFollowButton() }
                 override fun onCameraTrackingChanged(currentMode: Int) {}
             })
+            // A tap on the position dot brings the map back onto it.
+            lc.addOnLocationClickListener { setFollow(if (follow == 0) (if (nav) 2 else 1) else follow) }
         }
         lc.isLocationComponentEnabled = true
         lc.renderMode = RenderMode.COMPASS
@@ -207,33 +218,79 @@ class MapActivity : AppCompatActivity(), LocationListener {
                   else if (loc.hasAltitude()) loc.altitude else Double.NaN
         b.vAlt.text = if (alt.isNaN()) "--" else String.format(Locale.US, "%.0f", alt)
         updateDist()
+        if (nav) updateNav()
     }
 
     @Deprecated("Deprecated in Java") override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
     override fun onProviderEnabled(provider: String) {}
     override fun onProviderDisabled(provider: String) {}
 
-    private fun cycleFollow() {
-        val lc = map?.locationComponent ?: return
+    /**
+     * 0 = free map. 1 = centred on the position, north up. 2 = centred, the way ahead up: by the
+     * GPS course on a bike, by the compass on foot (a walker's course is too noisy).
+     * Tapping the position dot calls this too, so the map recentres on request.
+     */
+    private fun setFollow(f: Int) {
+        val m = map ?: return
+        val lc = m.locationComponent
         if (!lc.isLocationComponentActivated) { Toast.makeText(this, R.string.no_fix, Toast.LENGTH_SHORT).show(); return }
-        follow = (follow + 1) % 3
-        lc.cameraMode = when (follow) { 1 -> CameraMode.TRACKING; 2 -> CameraMode.TRACKING_GPS; else -> CameraMode.NONE }
-        if (follow == 1) map?.animateCamera(CameraUpdateFactory.bearingTo(0.0))
+        val loc = lastLocation
+        if (loc == null) { Toast.makeText(this, R.string.no_fix, Toast.LENGTH_SHORT).show(); return }
+        follow = f
+        lc.forceLocationUpdate(loc)
+        val zoom = if (nav) maxOf(m.cameraPosition.zoom, NAV_ZOOM) else m.cameraPosition.zoom
+        // The component animates to the position itself when tracking starts; an animateCamera of our
+        // own would cancel that transition and the tracking with it. Already tracking = already centred.
+        when (f) {
+            0 -> lc.cameraMode = CameraMode.NONE
+            1 -> lc.setCameraMode(CameraMode.TRACKING, 600L, zoom, 0.0, 0.0, null)
+            else -> lc.setCameraMode(if (mode == Mode.BIKE) CameraMode.TRACKING_GPS else CameraMode.TRACKING_COMPASS, 600L, zoom, null, 0.0, null)
+        }
         updateFollowButton()
     }
 
+    private fun zoomBy(d: Double) {
+        val m = map ?: return
+        val lc = m.locationComponent
+        if (follow > 0 && lc.isLocationComponentActivated) lc.zoomWhileTracking(m.cameraPosition.zoom + d, 300)
+        else m.animateCamera(if (d > 0) CameraUpdateFactory.zoomIn() else CameraUpdateFactory.zoomOut())
+    }
+
     private fun updateFollowButton() {
-        b.btnFollow.text = if (follow == 2) "➤" else "◎"
+        b.btnFollow.text = when (follow) { 2 -> "➤"; 1 -> "◉"; else -> "◎" }
         b.btnFollow.setBackgroundResource(if (follow > 0) R.drawable.btn_active else R.drawable.btn)
         b.btnFollow.setTextColor(AppCompatResources.getColorStateList(this, if (follow > 0) R.drawable.btn_active_text else R.drawable.btn_text))
     }
 
-    // ---------- pin and route ----------
+    // ---------- pin, favourites, route ----------
 
-    private fun setPin(p: LatLng) {
-        pin = p
+    private fun setPin(p: LatLng, name: String = Favourites.coordsName(p.latitude, p.longitude), kind: String = Favourites.COORDS, detail: String = "") {
+        pin = p; pinName = name; pinKind = kind; pinDetail = detail
         drawPin(p)
         b.btnGo.isEnabled = true
+        updatePinStrip()
+    }
+
+    private fun updatePinStrip() {
+        val p = pin
+        if (p == null || nav) { b.pinStrip.visibility = View.GONE; return }
+        b.pinStrip.visibility = View.VISIBLE
+        val saved = Favourites.find(this, p.latitude, p.longitude)
+        b.pinLabel.text = listOf(saved?.name ?: pinName, pinDetail).filter { it.isNotBlank() }.joinToString("\n")
+        b.btnSave.text = getString(if (saved != null) R.string.saved_star else R.string.save)
+        b.btnSave.isActivated = saved != null
+    }
+
+    private fun toggleFavourite() {
+        val p = pin ?: return
+        val saved = Favourites.find(this, p.latitude, p.longitude)
+        if (saved == null) {
+            Favourites.add(this, Fav(pinName, p.latitude, p.longitude, pinKind, pinDetail))
+            Toast.makeText(this, R.string.fav_added, Toast.LENGTH_SHORT).show()
+            updatePinStrip()
+        } else AlertDialog.Builder(this).setMessage("Remove « ${saved.name} » from the favourites?")
+            .setPositiveButton("REMOVE") { _, _ -> Favourites.remove(this, saved); Toast.makeText(this, R.string.fav_removed, Toast.LENGTH_SHORT).show(); updatePinStrip() }
+            .setNegativeButton("CANCEL", null).show()
     }
 
     private fun drawPin(p: LatLng) {
@@ -243,14 +300,18 @@ class MapActivity : AppCompatActivity(), LocationListener {
 
     private fun go() {
         val to = pin ?: return
-        if (routing) return
         if (!Segments.isReady(this)) { askForData(); return }
         val from = lastLocation?.let { LatLng(it.latitude, it.longitude) } ?: run {
             Toast.makeText(this, "No GPS fix: route from the map centre", Toast.LENGTH_SHORT).show()
             map?.cameraPosition?.target
         } ?: return
+        computeRoute(from, to, fit = true)
+    }
+
+    private fun computeRoute(from: LatLng, to: LatLng, fit: Boolean) {
+        if (routing) return
         routing = true
-        status(getString(R.string.routing))
+        status(getString(if (nav) R.string.off_route else R.string.routing))
         lifecycleScope.launch {
             try {
                 val r = Router.route(this@MapActivity, mode, from, to)
@@ -259,12 +320,17 @@ class MapActivity : AppCompatActivity(), LocationListener {
                 drawRoute(r)
                 b.routeStrip.text = String.format(Locale.US, "%s km   ↑%d m   ↓%d m   %s",
                     Fmt.km(r.distanceM.toDouble()), r.ascendM, r.descendM, Fmt.hm(r.seconds))
-                b.routeStrip.visibility = View.VISIBLE
+                b.routeStrip.visibility = if (nav) View.GONE else View.VISIBLE
                 b.btnGo.text = getString(R.string.clear)
+                b.btnNav.isEnabled = true
                 b.lDist.text = getString(R.string.togo)
+                offRouteFixes = 0; buzzedTurn = -1; arrived = false
                 updateDist()
-                val bb = LatLngBounds.Builder().also { bld -> r.points.forEach { bld.include(it) } }.build()
-                map?.animateCamera(CameraUpdateFactory.newLatLngBounds(bb, 80, 360, 80, 120))
+                if (nav) updateNav()
+                if (fit) {
+                    val bb = LatLngBounds.Builder().also { bld -> r.points.forEach { bld.include(it) } }.build()
+                    map?.animateCamera(CameraUpdateFactory.newLatLngBounds(bb, 80, 360, 80, 120))
+                }
             } catch (e: Exception) {
                 Toast.makeText(this@MapActivity, getString(R.string.route_fail) + ": " + e.message, Toast.LENGTH_LONG).show()
             }
@@ -274,13 +340,16 @@ class MapActivity : AppCompatActivity(), LocationListener {
     }
 
     private fun clearRoute() {
+        if (nav) stopNav()
         route = null; routeCum = null; pin = null
         style?.getSourceAs<GeoJsonSource>(MapStyle.SRC_ROUTE)?.setGeoJson(FeatureCollection.fromFeatures(emptyList()))
         style?.getSourceAs<GeoJsonSource>(MapStyle.SRC_PIN)?.setGeoJson(FeatureCollection.fromFeatures(emptyList()))
         b.routeStrip.visibility = View.GONE
         b.btnGo.text = getString(R.string.go)
         b.btnGo.isEnabled = false
+        b.btnNav.isEnabled = false
         b.lDist.text = getString(R.string.dist)
+        updatePinStrip()
         updateDist()
     }
 
@@ -295,14 +364,36 @@ class MapActivity : AppCompatActivity(), LocationListener {
         return cum
     }
 
-    /** Distance still to go along the route, from the nearest route point. */
+    /** Where we are along the route: nearest point index, distance to it, and metres travelled along the line. */
+    private class Along(val index: Int, val offM: Double, val doneM: Double)
+
+    private fun along(here: LatLng): Along? {
+        val r = route ?: return null; val cum = routeCum ?: return null
+        var best = 0; var bestD = Double.MAX_VALUE
+        for (i in r.points.indices) { val d = here.distanceTo(r.points[i]); if (d < bestD) { bestD = d; best = i } }
+        // refine between the nearest point and its neighbours, so the distance to the next turn does not jump
+        var done = cum[best]
+        val k = Math.cos(Math.toRadians(here.latitude)) // metres per degree of longitude, relative to latitude
+        for (j in listOf(best - 1, best + 1)) {
+            if (j !in r.points.indices) continue
+            val a = r.points[minOf(best, j)]; val c = r.points[maxOf(best, j)]
+            val len = a.distanceTo(c); if (len < 1.0) continue
+            val vx = (c.longitude - a.longitude) * k; val vy = c.latitude - a.latitude
+            val wx = (here.longitude - a.longitude) * k; val wy = here.latitude - a.latitude
+            val t = ((wx * vx + wy * vy) / (vx * vx + vy * vy)).coerceIn(0.0, 1.0)
+            val proj = LatLng(a.latitude + t * vy, a.longitude + t * vx / k)
+            val d = here.distanceTo(proj)
+            if (d < bestD) { bestD = d; done = cum[minOf(best, j)] + t * len }
+        }
+        return Along(best, bestD, done)
+    }
+
+    /** Distance still to go along the route. */
     private fun remaining(): Double {
         val r = route ?: return -1.0; val cum = routeCum ?: return -1.0
         val loc = lastLocation ?: return r.distanceM.toDouble()
-        val here = LatLng(loc.latitude, loc.longitude)
-        var best = 0; var bestD = Double.MAX_VALUE
-        for (i in r.points.indices) { val d = here.distanceTo(r.points[i]); if (d < bestD) { bestD = d; best = i } }
-        return cum[cum.size - 1] - cum[best]
+        val a = along(LatLng(loc.latitude, loc.longitude)) ?: return r.distanceM.toDouble()
+        return cum[cum.size - 1] - a.doneM
     }
 
     private fun updateDist() {
@@ -312,6 +403,97 @@ class MapActivity : AppCompatActivity(), LocationListener {
             rec.running -> Fmt.km(rec.distanceM)
             else -> "--"
         }
+    }
+
+    // ---------- navigation ----------
+
+    private fun startNav() {
+        if (route == null) return
+        nav = true; arrived = false; offRouteFixes = 0; buzzedTurn = -1
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        b.navPanel.visibility = View.VISIBLE
+        b.routeStrip.visibility = View.GONE
+        b.pinStrip.visibility = View.GONE
+        b.btnNav.text = getString(R.string.exit_nav)
+        b.btnNav.setBackgroundResource(R.drawable.btn_active)
+        b.btnNav.setTextColor(AppCompatResources.getColorStateList(this, R.drawable.btn_active_text))
+        // The position sits in the lower part of the screen, so most of the map shows the way ahead.
+        map?.setPadding(0, (b.map.height * 0.45).toInt(), 0, 0)
+        follow = 0 // so that the tracking transition below runs even if the map was already following
+        setFollow(2)
+        updateNav()
+    }
+
+    private fun stopNav() {
+        nav = false
+        map?.setPadding(0, 0, 0, 0)
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        b.navPanel.visibility = View.GONE
+        if (route != null) b.routeStrip.visibility = View.VISIBLE
+        b.btnNav.text = getString(R.string.nav)
+        b.btnNav.setBackgroundResource(R.drawable.btn)
+        b.btnNav.setTextColor(AppCompatResources.getColorStateList(this, R.drawable.btn_text))
+        updatePinStrip()
+    }
+
+    /** One pass per fix: where we are, the next turn, off-route and arrival. */
+    private fun updateNav() {
+        val r = route ?: return; val cum = routeCum ?: return
+        val loc = lastLocation ?: return
+        val here = LatLng(loc.latitude, loc.longitude)
+        val a = along(here) ?: return
+        val left = cum[cum.size - 1] - a.doneM
+
+        if (arrived || (left < ARRIVED_M && a.offM < ARRIVED_M * 2)) {
+            if (!arrived) { arrived = true; buzz(longArrayOf(0, 250, 150, 250)) }
+            b.navArrow.set(TurnHints.END); b.navDist.text = getString(R.string.arrived)
+            b.navThenLabel.visibility = View.GONE; b.navThenArrow.visibility = View.GONE; b.navThen.text = ""
+            return
+        }
+
+        if (a.offM > OFF_ROUTE_M) {
+            offRouteFixes++
+            if (offRouteFixes >= 3 && !routing && Segments.isReady(this)) {
+                offRouteFixes = 0
+                buzz(longArrayOf(0, 120, 80, 120, 80, 120))
+                pin?.let { computeRoute(here, it, fit = false) }
+            }
+        } else offRouteFixes = 0
+
+        val turns = r.turns.filter { it.cmd != TurnHints.C && it.cmd != TurnHints.BL }
+        val next = turns.firstOrNull { cum[it.index] - a.doneM > 5.0 }
+        val after = next?.let { n -> turns.firstOrNull { it.index > n.index } }
+        if (next == null) {
+            b.navArrow.set(TurnHints.END); b.navDist.text = navM(left)
+            b.navThenLabel.visibility = View.GONE; b.navThenArrow.visibility = View.GONE; b.navThen.text = ""
+            return
+        }
+        val toTurn = cum[next.index] - a.doneM
+        b.navArrow.set(next.cmd, next.exit)
+        b.navDist.text = navM(toTurn)
+        if (after != null) {
+            b.navThenLabel.visibility = View.VISIBLE; b.navThenArrow.visibility = View.VISIBLE
+            b.navThenArrow.set(after.cmd, after.exit)
+            b.navThen.text = navM(cum[after.index] - cum[next.index])
+        } else {
+            b.navThenLabel.visibility = View.VISIBLE; b.navThenArrow.visibility = View.VISIBLE
+            b.navThenArrow.set(TurnHints.END)
+            b.navThen.text = navM(cum[cum.size - 1] - cum[next.index])
+        }
+        val warn = if (mode == Mode.BIKE) 80.0 else 30.0
+        if (toTurn < warn && buzzedTurn != next.index) { buzzedTurn = next.index; buzz(longArrayOf(0, 300)) }
+    }
+
+    private fun navM(d: Double): String = when {
+        d >= 1000 -> String.format(Locale.US, "%.1f km", d / 1000)
+        d >= 100 -> "${(d / 10).roundToInt() * 10} m"
+        else -> "${d.roundToInt()} m"
+    }
+
+    private fun buzz(pattern: LongArray) {
+        val v = if (Build.VERSION.SDK_INT >= 31) (getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
+                else @Suppress("DEPRECATION") (getSystemService(VIBRATOR_SERVICE) as Vibrator)
+        runCatching { v.vibrate(VibrationEffect.createWaveform(pattern, -1)) }
     }
 
     private fun askForData() {

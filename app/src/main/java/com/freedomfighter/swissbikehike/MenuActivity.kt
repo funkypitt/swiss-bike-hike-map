@@ -14,7 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/** Everything that is not the map: data ages and refreshes, saved areas, the paper file, a GPX to show. */
+/** Everything that is not the map: data ages and refreshes, saved areas, the directory key, a GPX to show. */
 class MenuActivity : AppCompatActivity() {
     companion object { const val RESULT_RESTYLE = 7 }
     private lateinit var b: ActivityMenuBinding
@@ -45,14 +45,10 @@ class MenuActivity : AppCompatActivity() {
         }
         val pm = packageManager.getPackageInfo(packageName, 0)
         b.about.text = "Swiss Bike-Hike Map ${pm.versionName}\n\n" +
-            "Map: swisstopo vector base map, national map 1:25 000, hiking trail network, Veloland and Mountainbikeland routes, closures (© swisstopo, © SchweizMobil).\n" +
+            "Map: swisstopo vector base map, hiking trail network, Veloland and Mountainbikeland routes, closures (© swisstopo, © SchweizMobil).\n" +
             "Routing: BRouter (MIT) on OpenStreetMap data (ODbL), profiles « trekking » and « hiking-mountain ».\n" +
             "Map rendering: MapLibre Native (BSD).\n" +
             "Search: GeoAdmin API; people and firms: search.ch directory (Swisscom Directories AG) with your own key."
-        b.paperInfo.text = MapStyle.paperFile(this).let { f ->
-            if (f.exists()) "Local file in use: ${Fmt.mb(f.length())}, ${date(f.lastModified())}\n(${f.absolutePath})"
-            else "Online from swisstopo (needs a connection unless the area is saved below).\n\nFor a fully offline paper map, build paper.pmtiles with tools/make-paper.py on the computer and copy it to:\n${f.absolutePath}"
-        }
     }
 
     override fun onResume() { super.onResume(); refreshSegments(); refreshAreasInfo() }
@@ -93,7 +89,7 @@ class MenuActivity : AppCompatActivity() {
     private fun refreshAreasInfo() {
         lifecycleScope.launch {
             val regions = OfflineMaps.list(this@MenuActivity)
-            if (regions.isEmpty()) { b.offlineInfo.text = "No saved area. Zoom the map to the area you want, then save it here (zoom 8 to 15, paper map included)."; return@launch }
+            if (regions.isEmpty()) { b.offlineInfo.text = "No saved area. Zoom the map to the area you want, then save it here (zoom 8 to 15)."; return@launch }
             val lines = regions.map { r ->
                 val st = OfflineMaps.status(r)
                 val size = st?.completedResourceSize ?: 0L
@@ -101,7 +97,10 @@ class MenuActivity : AppCompatActivity() {
                 val total = st?.requiredResourceCount ?: 0L
                 "${OfflineMaps.name(r)}  ${Fmt.mb(size)}  " + (if (st?.isComplete == true) "complete" else "$done / $total tiles")
             }
-            b.offlineInfo.text = lines.joinToString("\n")
+            val prefs = Prefs(this@MenuActivity)
+            val auto = prefs.offlineRefreshStatus.ifBlank { "Not refreshed automatically yet" }
+            b.offlineInfo.text = lines.joinToString("\n") + "\n\n" + auto +
+                "\n(every ${OfflineMaps.AUTO_DAYS} days over Wi-Fi, when the app starts)"
         }
     }
 
