@@ -45,14 +45,15 @@ object OfflineMaps {
     fun name(r: OfflineRegion): String = r.metadata?.let { String(it, StandardCharsets.UTF_8) } ?: "area"
 
     /** Creates a pack for the bounds and starts it; progress is reported as completed/required resources. */
-    fun download(ctx: Context, styleFile: File, bounds: LatLngBounds, name: String,
+    fun download(ctx: Context, styleFile: File, bounds: LatLngBounds, name: String, maxZoom: Double = MAX_ZOOM,
+                 onCreated: (OfflineRegion) -> Unit = {},
                  onProgress: (done: Long, total: Long, finished: Boolean) -> Unit, onError: (String) -> Unit) {
         val pixelRatio = ctx.resources.displayMetrics.density
         val now = System.currentTimeMillis() / 1000
         manager(ctx).putResourceWithUrl(STYLE_URL, styleFile.readBytes(), now, now + 3650L * 86400, null, false)
-        val def = OfflineTilePyramidRegionDefinition(STYLE_URL, bounds, MIN_ZOOM, MAX_ZOOM, pixelRatio)
+        val def = OfflineTilePyramidRegionDefinition(STYLE_URL, bounds, MIN_ZOOM, maxZoom, pixelRatio)
         manager(ctx).createOfflineRegion(def, name.toByteArray(StandardCharsets.UTF_8), object : OfflineManager.CreateOfflineRegionCallback {
-            override fun onCreate(offlineRegion: OfflineRegion) { start(offlineRegion, onProgress, onError) }
+            override fun onCreate(offlineRegion: OfflineRegion) { onCreated(offlineRegion); start(offlineRegion, onProgress, onError) }
             override fun onError(error: String) { onError(error) }
         })
     }
@@ -104,7 +105,7 @@ object OfflineMaps {
         }
         var left = regions.size
         var failed = false
-        prefs.offlineRefreshStatus = "Automatic refresh running…"
+        prefs.offlineRefreshStatus = ctx.getString(R.string.auto_refresh_running)
         for (r in regions) {
             refresh(r)
             start(r, { done, total, finished ->
@@ -112,11 +113,11 @@ object OfflineMaps {
                     left--
                     if (left == 0) {
                         if (!failed) prefs.offlineRefreshed = System.currentTimeMillis()
-                        prefs.offlineRefreshStatus = (if (failed) "Automatic refresh incomplete, " else "Automatically refreshed ") +
-                            "${regions.size} area" + (if (regions.size > 1) "s" else "") + " on " + SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())
+                        val when_ = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())
+                        prefs.offlineRefreshStatus = ctx.getString(if (failed) R.string.auto_refresh_incomplete else R.string.auto_refresh_done, regions.size, when_)
                     }
-                } else prefs.offlineRefreshStatus = "Automatic refresh: ${name(r)} $done / $total tiles"
-            }, { msg -> failed = true; prefs.offlineRefreshStatus = "Automatic refresh: $msg" })
+                } else prefs.offlineRefreshStatus = ctx.getString(R.string.auto_refresh_progress, name(r), done, total)
+            }, { msg -> failed = true; prefs.offlineRefreshStatus = ctx.getString(R.string.auto_refresh_error, msg) })
         }
         return true
     }

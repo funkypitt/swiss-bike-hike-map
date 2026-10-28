@@ -2,10 +2,15 @@
 
 A private, single-screen map app for cycling and hiking in Switzerland. Old-school GPS
 interface: pick **BIKE** or **WALK**, see the official trails in the signpost colours,
-long-press to drop a pin, **GO** to route on-device, **NAV** for turn-by-turn guidance with one
-big arrow, **REC** to record a GPX. Pins can be saved as favourites (places, people and firms
-from the directory, bare coordinates) and lists of places imported from GPX, KML/KMZ, GeoJSON,
-CSV or plain text with coordinates (WGS84, LV95, LV03 or degrees-minutes).
+long-press to put stops on the map (each one numbered, the last is the destination), **GO** to
+route on-device through them, **NAV** for turn-by-turn guidance with one big arrow, an elevation
+profile and the time of arrival, **REC** to record a GPX. A GPX track can be followed as it is
+(turns read off its shape). Stops can be saved as favourites (places, people and firms from the
+directory, bare coordinates), shared as text, received from other apps (geo: links, shared text,
+GPX files), and lists of places imported from GPX, KML/KMZ, GeoJSON, CSV or plain text with
+coordinates (WGS84, LV95, LV03 or degrees-minutes). Night map (manual or after sunset), local
+history of navigated trips, whole-country offline pack in one button, six languages
+(en, fr, de, es, pt, ru).
 
 Everything is recycled:
 
@@ -35,6 +40,7 @@ upstream (`brouter/UPSTREAM-COMMIT.txt`); the two profile files and `lookups.dat
 - Routing: `Android/data/com.freedomfighter.swissbikehike/files/brouter/segments4/E5_N45.rd5` and `E10_N45.rd5`
   (about 450 MB), downloaded by the app over Wi-Fi on first **GO**, refreshed from the menu (brouter.de rebuilds them weekly).
 - Favourites: `favourites.json` in the app's private storage; export as GPX waypoints to `Documents/Swiss Bike-Hike Map/`.
+- Navigated trips: `trips/history.json` and one GPX per trip in the app's private storage.
 - Saved areas: MapLibre's own database in the app's private storage.
 - Recorded tracks: `Documents/Swiss Bike-Hike Map/<date>_<mode>.gpx`.
 

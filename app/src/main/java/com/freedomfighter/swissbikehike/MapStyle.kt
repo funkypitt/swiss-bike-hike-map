@@ -56,7 +56,7 @@ object MapStyle {
         if (cache.exists()) cache.readText() else ctx.assets.open("basemap-style.json").bufferedReader().readText()
     }
 
-    fun build(base: String): String {
+    fun build(base: String, night: Boolean = false): String {
         val s = JSONObject(base)
         val sources = s.getJSONObject("sources")
         val baseSrc = sources.keys().asSequence()
@@ -114,8 +114,12 @@ object MapStyle {
         merged.put(line("route-line", SRC_ROUTE, MAGENTA, 6.0, null))
         merged.put(JSONObject().put("id", "pin").put("type", "symbol").put("source", SRC_PIN)
             .put("layout", JSONObject().put("icon-image", IMG_PIN).put("icon-anchor", "bottom")
-                .put("icon-allow-overlap", true).put("icon-ignore-placement", true)))
+                .put("icon-allow-overlap", true).put("icon-ignore-placement", true)
+                .put("text-field", JSONArray().put("get").put("n")).put("text-font", JSONArray().put("Frutiger Neue Medium"))
+                .put("text-size", 16).put("text-offset", JSONArray().put(0).put(-2.9)).put("text-allow-overlap", true).put("text-ignore-placement", true))
+            .put("paint", JSONObject().put("text-color", "#000000").put("text-halo-color", "#FFFFFF").put("text-halo-width", 2)))
         s.put("layers", merged)
+        if (night) Night.darken(s)
         return s.toString()
     }
 

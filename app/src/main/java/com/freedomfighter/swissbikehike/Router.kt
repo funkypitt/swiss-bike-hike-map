@@ -41,14 +41,17 @@ object Router {
         return dir
     }
 
-    suspend fun route(ctx: Context, mode: Mode, from: LatLng, to: LatLng): Result = withContext(Dispatchers.Default) {
+    suspend fun route(ctx: Context, mode: Mode, from: LatLng, to: LatLng): Result = route(ctx, mode, listOf(from, to))
+
+    /** A route through every point in order (start, stops, destination). */
+    suspend fun route(ctx: Context, mode: Mode, via: List<LatLng>): Result = withContext(Dispatchers.Default) {
         val rc = RoutingContext()
         rc.localFunction = File(profilesDir(ctx), "${mode.profile}.brf").absolutePath
         val maxMb = (Runtime.getRuntime().maxMemory() / (1024 * 1024)).toInt()
         rc.memoryclass = (maxMb / 3).coerceIn(32, 256)
         rc.turnInstructionMode = 2 // any mode above 0 makes BRouter keep the turn hints
         val wps = RoutingParamCollector().readPositions(
-            doubleArrayOf(from.longitude, to.longitude), doubleArrayOf(from.latitude, to.latitude))
+            via.map { it.longitude }.toDoubleArray(), via.map { it.latitude }.toDoubleArray())
         val engine = RoutingEngine(null, null, Segments.dir(ctx), wps, rc)
         engine.quite = true
         engine.doRun(90_000)

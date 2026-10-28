@@ -86,7 +86,7 @@ object Segments {
             if ((st[n]?.downloading ?: -1) >= 0) continue
             File(dir(ctx), "$n.rd5.part").delete()
             val req = DownloadManager.Request(Uri.parse("$BASE$n.rd5"))
-                .setTitle("Routing data $n")
+                .setTitle(ctx.getString(R.string.need_data_title) + " " + n)
                 .setDescription("Swiss Bike-Hike Map")
                 .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI)
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)

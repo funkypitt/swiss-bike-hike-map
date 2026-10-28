@@ -41,6 +41,16 @@ class Prefs(ctx: Context) {
         get() = p.getString("offline_refresh_status", "") ?: ""
         set(v) = p.edit().putString("offline_refresh_status", v).apply()
 
+    /** Progress line of the whole-country pack, for the menu. */
+    var countryStatus: String
+        get() = p.getString("country_status", "") ?: ""
+        set(v) = p.edit().putString("country_status", v).apply()
+
+    /** Night map: off, on or auto (after sunset). */
+    var night: String
+        get() = p.getString("night", Night.OFF) ?: Night.OFF
+        set(v) = p.edit().putString("night", v).apply()
+
     fun downloadId(name: String): Long = p.getLong("dl_$name", -1)
     fun setDownloadId(name: String, id: Long) = p.edit().putLong("dl_$name", id).apply()
 }

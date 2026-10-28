@@ -4,30 +4,36 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="vertical" android:padding="16dp">
 
-        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="ROUTING DATA (OpenStreetMap via brouter.de)"/>
+        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/menu_trip"/>
+        <TextView android:id="@+id/btnFollowGpx" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:text="@string/menu_follow_gpx"/>
+        <TextView android:id="@+id/btnSharePos" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_share_position"/>
+        <TextView android:id="@+id/btnNight" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_night_off"/>
+
+        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/menu_trips"/>
+        <TextView android:id="@+id/tripsInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:textColor="@color/grey" android:text="@string/menu_trips_empty"/>
+        <LinearLayout android:id="@+id/tripsList" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"/>
+
+        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/menu_routing"/>
         <TextView android:id="@+id/segInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="15sp" android:fontFamily="monospace" android:lineSpacingExtra="4dp"/>
-        <TextView android:id="@+id/btnSegments" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="DOWNLOAD / UPDATE"/>
+        <TextView android:id="@+id/btnSegments" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_download_update"/>
 
-        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="OFFLINE MAPS (swisstopo)"/>
+        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/menu_offline"/>
         <TextView android:id="@+id/offlineInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="15sp" android:lineSpacingExtra="4dp"/>
-        <TextView android:id="@+id/btnOfflineArea" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="SAVE THE AREA LAST SHOWN"/>
-        <TextView android:id="@+id/btnOfflineRefresh" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="REFRESH SAVED AREAS"/>
-        <TextView android:id="@+id/btnOfflineDelete" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="DELETE SAVED AREAS"/>
+        <TextView android:id="@+id/btnCountry" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_country"/>
+        <TextView android:id="@+id/btnOfflineArea" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_save_area"/>
+        <TextView android:id="@+id/btnOfflineRefresh" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_refresh_areas"/>
+        <TextView android:id="@+id/btnOfflineDelete" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_delete_areas"/>
 
-
-        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="PEOPLE &amp; FIRMS (search.ch)"/>
+        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/menu_people"/>
         <EditText android:id="@+id/dirKey" android:layout_width="match_parent" android:layout_height="56dp"
             android:hint="@string/directory_key_hint" android:textSize="18sp" android:inputType="textVisiblePassword"
             android:background="@drawable/btn" android:paddingStart="14dp" android:paddingEnd="14dp"
             android:textColor="@color/ink" android:textColorHint="@color/grey" android:singleLine="true"/>
-        <TextView android:id="@+id/btnDirSave" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="SAVE THE KEY"/>
-        <TextView android:id="@+id/btnDirOrder" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="ORDER A FREE KEY ON SEARCH.CH"/>
+        <TextView android:id="@+id/btnDirSave" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_save_key"/>
+        <TextView android:id="@+id/btnDirOrder" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_order_key"/>
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="13sp" android:textColor="@color/grey" android:paddingTop="6dp" android:text="@string/directory_credit"/>
 
-        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="TRACKS"/>
-        <TextView android:id="@+id/btnImport" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:text="SHOW A GPX FILE ON THE MAP"/>
-
-        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="ABOUT"/>
+        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/menu_about"/>
         <TextView android:id="@+id/about" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:lineSpacingExtra="4dp"/>
     </LinearLayout>
 </ScrollView>

@@ -80,9 +80,9 @@ class SearchActivity : AppCompatActivity() {
         b.list.setOnItemLongClickListener { _, _, pos, _ ->
             if (tab != Tab.FAVS) return@setOnItemLongClickListener false
             val f = favs.getOrNull(pos) ?: return@setOnItemLongClickListener false
-            AlertDialog.Builder(this).setMessage("Remove « ${f.name} » from the favourites?")
-                .setPositiveButton("REMOVE") { _, _ -> Favourites.remove(this, f); showFavs() }
-                .setNegativeButton("CANCEL", null).show()
+            AlertDialog.Builder(this).setMessage(getString(R.string.fav_remove_q, f.name))
+                .setPositiveButton(R.string.remove) { _, _ -> Favourites.remove(this, f); showFavs() }
+                .setNegativeButton(R.string.cancel, null).show()
             true
         }
         b.btnPlaces.setOnClickListener { setTab(Tab.PLACES) }
@@ -127,7 +127,7 @@ class SearchActivity : AppCompatActivity() {
         clear()
         b.query.hint = getString(when (t) { Tab.PLACES -> R.string.search_hint; Tab.PEOPLE -> R.string.search_people_hint; Tab.FAVS -> R.string.fav_hint })
         b.credit.visibility = if (t == Tab.PEOPLE) View.VISIBLE else View.GONE
-        b.credit.text = if (Directory.enabled(this)) Directory.CREDIT + " · press Search" else getString(R.string.directory_need_key)
+        b.credit.text = if (Directory.enabled(this)) Directory.CREDIT + " · " + getString(R.string.directory_press_search) else getString(R.string.directory_need_key)
         b.favRow.visibility = if (t == Tab.FAVS) View.VISIBLE else View.GONE
         style(b.btnPlaces, t == Tab.PLACES); style(b.btnPeople, t == Tab.PEOPLE); style(b.btnFavs, t == Tab.FAVS)
         if (t == Tab.FAVS) showFavs() else b.query.text?.let { if (it.isNotBlank()) b.query.setText(it.toString()) }
@@ -164,7 +164,7 @@ class SearchActivity : AppCompatActivity() {
         if (all.isEmpty()) { Toast.makeText(this, R.string.fav_empty, Toast.LENGTH_LONG).show(); return }
         val name = "favourites-" + SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()) + ".gpx"
         val uri = Documents.save(this, name, "application/gpx+xml", Favourites.gpx(all).toByteArray())
-        if (uri == null) { Toast.makeText(this, "Could not write the file", Toast.LENGTH_LONG).show(); return }
+        if (uri == null) { Toast.makeText(this, R.string.fav_write_fail, Toast.LENGTH_LONG).show(); return }
         Toast.makeText(this, getString(R.string.fav_exported, name), Toast.LENGTH_LONG).show()
         Documents.share(this, uri, "application/gpx+xml")
     }
@@ -193,7 +193,7 @@ class SearchActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val place = (if (h.street.isNotBlank()) geocode("${h.street} ${h.zip} ${h.city}", "address") else null)
                 ?: geocode("${h.zip} ${h.city}", "zipcode")
-            if (place == null) { Toast.makeText(this@SearchActivity, "Address not found on the map", Toast.LENGTH_SHORT).show(); return@launch }
+            if (place == null) { Toast.makeText(this@SearchActivity, R.string.address_not_found, Toast.LENGTH_SHORT).show(); return@launch }
             finishWith(Hit(h.name, place.lat, place.lon, if (h.person) Favourites.PERSON else Favourites.FIRM,
                 listOf(h.address, h.phone).filter { it.isNotBlank() }.joinToString(" · ")))
         }

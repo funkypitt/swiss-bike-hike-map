@@ -24,7 +24,7 @@
                 android:layout_marginStart="8dp" android:text="@string/menu"/>
         </LinearLayout>
 
-        <!-- strips under the top row: the pin, the route summary, the navigation panel -->
+        <!-- strips under the top row: the stop, the trip summary, the navigation panel, the profile -->
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="vertical" android:layout_marginTop="72dp" android:layout_marginStart="8dp" android:layout_marginEnd="8dp">
 
@@ -33,9 +33,15 @@
                 android:paddingStart="12dp" android:paddingEnd="6dp" android:paddingTop="6dp" android:paddingBottom="6dp" android:visibility="gone">
                 <TextView android:id="@+id/pinLabel" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                     android:textColor="@color/paper" android:textSize="16sp" android:textStyle="bold" android:maxLines="2" android:ellipsize="end"/>
-                <TextView android:id="@+id/btnSave" style="@style/Btn" android:layout_width="wrap_content" android:layout_height="44dp"
-                    android:minHeight="44dp" android:paddingStart="14dp" android:paddingEnd="18dp" android:layout_marginStart="8dp"
-                    android:background="@drawable/btn_dark" android:textColor="@drawable/btn_dark_text" android:text="@string/save"/>
+                <TextView android:id="@+id/btnDrop" style="@style/Btn" android:layout_width="44dp" android:layout_height="44dp"
+                    android:minHeight="44dp" android:minWidth="44dp" android:layout_marginStart="8dp" android:textSize="20sp"
+                    android:background="@drawable/btn_dark" android:textColor="@drawable/btn_dark_text" android:text="✕"/>
+                <TextView android:id="@+id/btnShare" style="@style/Btn" android:layout_width="wrap_content" android:layout_height="44dp"
+                    android:minHeight="44dp" android:paddingStart="12dp" android:paddingEnd="14dp" android:layout_marginStart="8dp" android:textSize="15sp"
+                    android:background="@drawable/btn_dark" android:textColor="@drawable/btn_dark_text" android:text="@string/share"/>
+                <TextView android:id="@+id/btnSave" style="@style/Btn" android:layout_width="44dp" android:layout_height="44dp"
+                    android:minHeight="44dp" android:minWidth="44dp" android:layout_marginStart="8dp" android:textSize="22sp"
+                    android:background="@drawable/btn_dark" android:textColor="@drawable/btn_dark_text" android:text="☆"/>
             </LinearLayout>
 
             <TextView android:id="@+id/routeStrip" android:layout_width="match_parent" android:layout_height="wrap_content"
@@ -64,11 +70,15 @@
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
+
+            <com.freedomfighter.swissbikehike.ProfileView android:id="@+id/profile" android:layout_width="match_parent"
+                android:layout_height="76dp" android:background="@color/ink" android:paddingStart="6dp" android:paddingEnd="6dp"
+                android:visibility="gone"/>
         </LinearLayout>
 
         <!-- right column: zoom and follow -->
         <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:orientation="vertical" android:layout_gravity="end|center_vertical" android:padding="8dp">
+            android:orientation="vertical" android:layout_gravity="end|bottom" android:padding="8dp" android:layout_marginBottom="24dp">
             <TextView android:id="@+id/btnZoomIn" style="@style/BtnGlyph" android:text="+"/>
             <TextView android:id="@+id/btnZoomOut" style="@style/BtnGlyph" android:text="−" android:layout_marginTop="8dp"/>
             <TextView android:id="@+id/btnFollow" style="@style/BtnGlyph" android:text="◎" android:layout_marginTop="24dp"/>
@@ -105,7 +115,7 @@
         </LinearLayout>
         <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
             <TextView android:id="@+id/vAlt" style="@style/DataValue" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="--"/>
-            <TextView style="@style/DataLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/alt"/>
+            <TextView android:id="@+id/lAlt" style="@style/DataLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/alt"/>
         </LinearLayout>
         <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
             <TextView android:id="@+id/vDist" style="@style/DataValue" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="--"/>
