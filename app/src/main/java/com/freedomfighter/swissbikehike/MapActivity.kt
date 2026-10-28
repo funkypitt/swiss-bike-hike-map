@@ -3,7 +3,6 @@ package com.freedomfighter.swissbikehike
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
@@ -12,9 +11,6 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
@@ -49,18 +45,12 @@ import org.maplibre.geojson.FeatureCollection
 import org.maplibre.geojson.LineString
 import org.maplibre.geojson.Point
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
-import kotlin.math.roundToInt
 
 /** The one map screen. */
 class MapActivity : AppCompatActivity(), LocationListener {
     companion object {
         const val EXTRA_MODE = "mode"
-        private const val OFF_ROUTE_M = 60.0      // farther than this from the line, three fixes in a row = reroute
-        private const val ARRIVED_M = 25.0
-        private const val STOP_M = 30.0
         private const val NAV_ZOOM = 17.0
     }
 
@@ -74,18 +64,13 @@ class MapActivity : AppCompatActivity(), LocationListener {
 
     private val stops = ArrayList<Stop>()
     private var trip: Trip? = null
-    private var passed = BooleanArray(0)
 
     private var lastLocation: Location? = null
     private var prevFix: Location? = null
     private var follow = 0 // 0 free, 1 centred north up, 2 centred heading up
     private var routing = false
     private var nav = false
-    private var arrived = false
-    private var offRouteFixes = 0
-    private var buzzedTurn = -1
-    private var navStartedAt = 0L
-    private val navTrack = ArrayList<TrackPoint>()
+    private var navVersion = 0
 
     private val askPermissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         if (hasLocation()) { startLocation(); enableLocationLayer() }
@@ -155,6 +140,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
         if (!hasLocation()) askPermissions.launch(wanted.toTypedArray())
 
         lifecycleScope.launch { RecordService.state.collect { onRecState(it) } }
+        lifecycleScope.launch { NavService.state.collect { onNavState(it) } }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -301,12 +287,6 @@ class MapActivity : AppCompatActivity(), LocationListener {
                   else if (loc.hasAltitude()) loc.altitude else Double.NaN
         if (!nav) b.vAlt.text = if (alt.isNaN()) "--" else String.format(Locale.US, "%.0f", alt)
         updateDist()
-        if (nav) {
-            val last = navTrack.lastOrNull()
-            if (last == null || Location("").apply { latitude = last.lat; longitude = last.lon }.distanceTo(loc) >= 5f)
-                navTrack.add(TrackPoint(loc.latitude, loc.longitude, alt, loc.time))
-            updateNav()
-        }
         checkNight()
     }
 
@@ -432,7 +412,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
     private fun computeRoute(from: LatLng, via: List<Stop>, fit: Boolean) {
         if (routing || via.isEmpty()) return
         routing = true
-        status(getString(if (nav) R.string.off_route else R.string.routing))
+        status(getString(R.string.routing))
         lifecycleScope.launch {
             try {
                 val r = Router.route(this@MapActivity, mode, listOf(from) + via.map { it.at })
@@ -448,21 +428,18 @@ class MapActivity : AppCompatActivity(), LocationListener {
 
     private fun setTrip(t: Trip, fit: Boolean) {
         trip = t
-        passed = BooleanArray(t.stops.size)
         drawTrip(t)
         b.routeStrip.text = String.format(Locale.US, "%s km  ↑%d m  ↓%d m", Fmt.km(t.distanceM.toDouble()), t.ascendM, t.descendM) +
             (if (t.seconds > 0) "  " + Fmt.hm(t.seconds) else "")
         b.routeStrip.visibility = if (nav) View.GONE else View.VISIBLE
         b.profile.set(t)
         b.profile.visibility = if (t.hasElevation) View.VISIBLE else View.GONE
-        b.btnGo.text = getString(R.string.clear)
+        b.btnGo.text = getString(if (nav) R.string.stop_nav else R.string.clear)
         b.btnGo.isEnabled = true
         b.btnNav.isEnabled = true
         b.lDist.text = getString(R.string.togo)
-        offRouteFixes = 0; buzzedTurn = -1; arrived = false
         updateDist()
         updatePinStrip()
-        if (nav) updateNav()
         if (fit) fitTo(t.points)
     }
 
@@ -481,7 +458,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
             val name = track?.name?.ifBlank { null } ?: uri.lastPathSegment?.substringAfterLast('/')?.removeSuffix(".gpx") ?: "GPX"
             val t = track?.let { Trip.fromTrack(it, name) }
             if (t == null) { Toast.makeText(this@MapActivity, R.string.no_track_in_file, Toast.LENGTH_SHORT).show(); return@launch }
-            if (nav) stopNav()
+            if (nav) { stopNav(); exitNavUi() }
             stops.clear(); stops.addAll(t.stops)
             drawStops()
             setTrip(t, fit = true)
@@ -499,7 +476,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
     }
 
     private fun clearTrip() {
-        if (nav) stopNav()
+        if (nav) { stopNav(); exitNavUi() }
         trip = null; stops.clear()
         clearTripDrawing()
         drawStops()
@@ -523,34 +500,10 @@ class MapActivity : AppCompatActivity(), LocationListener {
             ?.setGeoJson(LineString.fromLngLats(t.points.map { Point.fromLngLat(it.longitude, it.latitude) }))
     }
 
-    /** Where we are along the trip: nearest point index, distance to the line, and metres travelled along it. */
-    private class Along(val index: Int, val offM: Double, val doneM: Double)
-
-    private fun along(here: LatLng): Along? {
-        val t = trip ?: return null
-        val best = t.nearest(here)
-        var bestD = here.distanceTo(t.points[best])
-        var done = t.cum[best]
-        val k = Math.cos(Math.toRadians(here.latitude))
-        for (j in listOf(best - 1, best + 1)) {
-            if (j !in t.points.indices) continue
-            val a = t.points[minOf(best, j)]; val c = t.points[maxOf(best, j)]
-            val len = a.distanceTo(c); if (len < 1.0) continue
-            val vx = (c.longitude - a.longitude) * k; val vy = c.latitude - a.latitude
-            val wx = (here.longitude - a.longitude) * k; val wy = here.latitude - a.latitude
-            val tt = ((wx * vx + wy * vy) / (vx * vx + vy * vy)).coerceIn(0.0, 1.0)
-            val proj = LatLng(a.latitude + tt * vy, a.longitude + tt * vx / k)
-            val d = here.distanceTo(proj)
-            if (d < bestD) { bestD = d; done = t.cum[minOf(best, j)] + tt * len }
-        }
-        return Along(best, bestD, done)
-    }
-
     private fun remaining(): Double {
         val t = trip ?: return -1.0
         val loc = lastLocation ?: return t.distanceM.toDouble()
-        val a = along(LatLng(loc.latitude, loc.longitude)) ?: return t.distanceM.toDouble()
-        return t.cum[t.cum.size - 1] - a.doneM
+        return t.cum[t.cum.size - 1] - t.along(LatLng(loc.latitude, loc.longitude)).doneM
     }
 
     private fun updateDist() {
@@ -562,30 +515,71 @@ class MapActivity : AppCompatActivity(), LocationListener {
         }
     }
 
-    // ---------- navigation ----------
+    // ---------- navigation (done by NavService; this screen shows it) ----------
 
     private fun startNav() {
         val t = trip ?: return
-        nav = true; arrived = false; offRouteFixes = 0; buzzedTurn = -1
-        passed = BooleanArray(t.stops.size)
-        navStartedAt = System.currentTimeMillis(); navTrack.clear()
+        if (!hasLocation()) { askPermissions.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)); return }
+        NavService.start(this, t, mode)
+    }
+
+    private fun stopNav() { NavService.stop(this) }
+
+    private fun onNavState(st: NavState) {
+        if (st.running && !nav) enterNavUi(st)
+        if (!st.running && nav) exitNavUi()
+        if (!st.running) { st.kept?.let { if (navVersion != -1) { Toast.makeText(this, getString(R.string.trip_kept, Fmt.km(it.distanceM.toDouble())), Toast.LENGTH_SHORT).show(); navVersion = -1 } }; return }
+        // a reroute replaced the trip
+        if (st.trip != null && st.tripVersion != navVersion) {
+            navVersion = st.tripVersion
+            stops.clear(); stops.addAll(st.trip.stops); drawStops()
+            setTrip(st.trip, fit = false)
+            b.routeStrip.visibility = View.GONE; b.pinStrip.visibility = View.GONE
+        }
+        status(if (st.rerouting) getString(R.string.off_route) else if (st.trip?.fromGpx == true && st.offM > 60) getString(R.string.off_track, NavService.navM(st.offM)) else null)
+        if (st.doneM >= 0) b.profile.progress(st.doneM)
+        if (st.eta.isNotEmpty()) b.vAlt.text = st.eta
+        if (st.leftM >= 0) b.vDist.text = Fmt.km(st.leftM)
+        if (st.arrived) {
+            b.navArrow.set(TurnHints.END); b.navDist.text = getString(R.string.arrived)
+            b.navThenLabel.visibility = View.GONE; b.navThenArrow.visibility = View.GONE; b.navThen.text = ""
+            return
+        }
+        val next = st.next
+        if (next == null) {
+            b.navArrow.set(TurnHints.END); b.navDist.text = if (st.leftM >= 0) NavService.navM(st.leftM) else "--"
+            b.navThenLabel.visibility = View.GONE; b.navThenArrow.visibility = View.GONE; b.navThen.text = ""
+            return
+        }
+        b.navArrow.set(next.cmd, next.exit)
+        b.navDist.text = NavService.navM(st.toTurnM)
+        b.navThenLabel.visibility = View.VISIBLE; b.navThenArrow.visibility = View.VISIBLE
+        if (st.after != null) b.navThenArrow.set(st.after.cmd, st.after.exit) else b.navThenArrow.set(TurnHints.END)
+        b.navThen.text = NavService.navM(st.afterM)
+    }
+
+    private fun enterNavUi(st: NavState) {
+        nav = true
+        navVersion = 0
+        if (trip == null && st.trip != null) { stops.clear(); stops.addAll(st.trip.stops); drawStops(); setTrip(st.trip, fit = false) }
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         b.navPanel.visibility = View.VISIBLE
         b.routeStrip.visibility = View.GONE
         b.pinStrip.visibility = View.GONE
         b.btnGo.text = getString(R.string.stop_nav)
+        b.btnGo.isEnabled = true
         b.btnNav.visibility = View.GONE
         b.lAlt.text = getString(R.string.eta)
         b.vAlt.text = "--:--"
+        b.lDist.text = getString(R.string.togo)
         // The position sits in the lower part of the screen, so most of the map shows the way ahead.
         map?.setPadding(0, (b.map.height * 0.45).toInt(), 0, 0)
         follow = 0 // so that the tracking transition below runs even if the map was already following
         applyPuck()
         setFollow(2)
-        updateNav()
     }
 
-    private fun stopNav() {
+    private fun exitNavUi() {
         nav = false
         applyPuck()
         map?.setPadding(0, 0, 0, 0)
@@ -598,83 +592,6 @@ class MapActivity : AppCompatActivity(), LocationListener {
         lastLocation?.let { onLocationChanged(it) }
         b.profile.progress(-1.0)
         updatePinStrip()
-        // the trip goes into the local history
-        trip?.let { t -> Trips.add(this, navStartedAt, mode, t.name, navTrack.toList())?.let {
-            Toast.makeText(this, getString(R.string.trip_kept, Fmt.km(it.distanceM.toDouble())), Toast.LENGTH_SHORT).show() } }
-        navTrack.clear()
-    }
-
-    /** One pass per fix: where we are, the next turn, stops passed, off-route and arrival. */
-    private fun updateNav() {
-        val t = trip ?: return
-        val loc = lastLocation ?: return
-        val here = LatLng(loc.latitude, loc.longitude)
-        val a = along(here) ?: return
-        val left = t.cum[t.cum.size - 1] - a.doneM
-        b.profile.progress(a.doneM)
-        b.vAlt.text = eta(left, t)
-
-        if (arrived || (left < ARRIVED_M && a.offM < ARRIVED_M * 2)) {
-            if (!arrived) { arrived = true; buzz(longArrayOf(0, 250, 150, 250)) }
-            b.navArrow.set(TurnHints.END); b.navDist.text = getString(R.string.arrived)
-            b.navThenLabel.visibility = View.GONE; b.navThenArrow.visibility = View.GONE; b.navThen.text = ""
-            return
-        }
-
-        // intermediate stops
-        for (s in 0 until t.stops.size - 1) {
-            if (!passed[s] && t.cum[t.stopIdx[s]] <= a.doneM + STOP_M && here.distanceTo(t.stops[s].at) < 80) {
-                passed[s] = true; buzz(longArrayOf(0, 250))
-                Toast.makeText(this, getString(R.string.stop_reached, s + 1, t.stops[s].name), Toast.LENGTH_LONG).show()
-            }
-        }
-
-        if (a.offM > OFF_ROUTE_M) {
-            offRouteFixes++
-            if (t.fromGpx) status(getString(R.string.off_track, navM(a.offM)))
-            else if (offRouteFixes >= 3 && !routing && Segments.isReady(this)) {
-                offRouteFixes = 0
-                buzz(longArrayOf(0, 120, 80, 120, 80, 120))
-                val rest = t.stops.filterIndexed { i, _ -> i == t.stops.size - 1 || !passed[i] }
-                computeRoute(here, rest, fit = false)
-            }
-        } else { offRouteFixes = 0; if (t.fromGpx) status(null) }
-
-        val turns = t.turns.filter { it.cmd != TurnHints.C && it.cmd != TurnHints.BL }
-        val next = turns.firstOrNull { t.cum[it.index] - a.doneM > 5.0 }
-        val after = next?.let { n -> turns.firstOrNull { it.index > n.index } }
-        if (next == null) {
-            b.navArrow.set(TurnHints.END); b.navDist.text = navM(left)
-            b.navThenLabel.visibility = View.GONE; b.navThenArrow.visibility = View.GONE; b.navThen.text = ""
-            return
-        }
-        val toTurn = t.cum[next.index] - a.doneM
-        b.navArrow.set(next.cmd, next.exit)
-        b.navDist.text = navM(toTurn)
-        b.navThenLabel.visibility = View.VISIBLE; b.navThenArrow.visibility = View.VISIBLE
-        if (after != null) { b.navThenArrow.set(after.cmd, after.exit); b.navThen.text = navM(t.cum[after.index] - t.cum[next.index]) }
-        else { b.navThenArrow.set(TurnHints.END); b.navThen.text = navM(t.cum[t.cum.size - 1] - t.cum[next.index]) }
-        val warn = if (mode == Mode.BIKE) 80.0 else 30.0
-        if (toTurn < warn && buzzedTurn != next.index) { buzzedTurn = next.index; buzz(longArrayOf(0, 300)) }
-    }
-
-    /** Time of arrival from the trip's own pace (BRouter's estimate), or a plain pace for a GPX. */
-    private fun eta(leftM: Double, t: Trip): String {
-        val mps = if (t.seconds > 0 && t.distanceM > 0) t.distanceM.toDouble() / t.seconds else if (mode == Mode.BIKE) 4.2 else 1.2
-        val arrival = System.currentTimeMillis() + (leftM / mps * 1000).toLong()
-        return SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(arrival))
-    }
-
-    private fun navM(d: Double): String = when {
-        d >= 1000 -> String.format(Locale.US, "%.1f km", d / 1000)
-        d >= 100 -> "${(d / 10).roundToInt() * 10} m"
-        else -> "${d.roundToInt()} m"
-    }
-
-    private fun buzz(pattern: LongArray) {
-        val v = if (Build.VERSION.SDK_INT >= 31) (getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
-                else @Suppress("DEPRECATION") (getSystemService(VIBRATOR_SERVICE) as Vibrator)
-        runCatching { v.vibrate(VibrationEffect.createWaveform(pattern, -1)) }
     }
 
     private fun askForData() {
@@ -719,7 +636,12 @@ class MapActivity : AppCompatActivity(), LocationListener {
     // ---------- lifecycle ----------
 
     override fun onStart() { super.onStart(); b.map.onStart() }
-    override fun onResume() { super.onResume(); b.map.onResume(); startLocation(); if (map != null) checkNight(force = true) }
+    override fun onResume() {
+        super.onResume(); b.map.onResume(); startLocation()
+        if (map != null) checkNight(force = true)
+        // back from the background during navigation: the map takes the course up again once it is laid out
+        b.root.postDelayed({ if (nav && follow == 0 && map != null) setFollow(2) }, 700)
+    }
     override fun onPause() {
         super.onPause(); b.map.onPause()
         (getSystemService(LOCATION_SERVICE) as LocationManager).removeUpdates(this)

@@ -34,6 +34,28 @@ class Trip(
     val stopIdx: IntArray = IntArray(stops.size) { s -> nearest(stops[s].at) }
     val hasElevation: Boolean get() = ele.any { !it.isNaN() }
 
+    /** Where a position is along the trip: nearest point index, distance to the line, metres travelled along it. */
+    class Along(val index: Int, val offM: Double, val doneM: Double)
+
+    fun along(here: LatLng): Along {
+        val best = nearest(here)
+        var bestD = here.distanceTo(points[best])
+        var done = cum[best]
+        val k = cos(Math.toRadians(here.latitude))
+        for (j in listOf(best - 1, best + 1)) {
+            if (j !in points.indices) continue
+            val a = points[minOf(best, j)]; val c = points[maxOf(best, j)]
+            val len = a.distanceTo(c); if (len < 1.0) continue
+            val vx = (c.longitude - a.longitude) * k; val vy = c.latitude - a.latitude
+            val wx = (here.longitude - a.longitude) * k; val wy = here.latitude - a.latitude
+            val t = ((wx * vx + wy * vy) / (vx * vx + vy * vy)).coerceIn(0.0, 1.0)
+            val proj = LatLng(a.latitude + t * vy, a.longitude + t * vx / k)
+            val d = here.distanceTo(proj)
+            if (d < bestD) { bestD = d; done = cum[minOf(best, j)] + t * len }
+        }
+        return Along(best, bestD, done)
+    }
+
     fun nearest(p: LatLng): Int {
         var best = 0; var bestD = Double.MAX_VALUE
         for (i in points.indices) { val d = p.distanceTo(points[i]); if (d < bestD) { bestD = d; best = i } }

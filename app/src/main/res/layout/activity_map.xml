@@ -12,16 +12,16 @@
         <!-- top row: mode badge left, FIND + MENU right -->
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="horizontal" android:padding="8dp" android:gravity="top">
-            <TextView android:id="@+id/modeBadge" android:layout_width="wrap_content" android:layout_height="56dp"
-                android:minWidth="96dp" android:paddingStart="16dp" android:paddingEnd="16dp"
+            <TextView android:id="@+id/modeBadge" android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp"
+                android:paddingStart="6dp" android:paddingEnd="6dp" android:maxLines="1"
+                android:autoSizeTextType="uniform" android:autoSizeMinTextSize="12sp" android:autoSizeMaxTextSize="20sp"
                 android:gravity="center" android:textSize="20sp" android:textStyle="bold" android:letterSpacing="0.12"
                 android:background="@drawable/badge_walk" android:text="@string/walk"/>
-            <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1"/>
-            <TextView android:id="@+id/btnFind" style="@style/Btn" android:layout_width="wrap_content"
-                android:layout_height="56dp" android:paddingStart="14dp" android:paddingEnd="14dp" android:text="@string/find"/>
-            <TextView android:id="@+id/btnMenu" style="@style/Btn" android:layout_width="wrap_content"
-                android:layout_height="56dp" android:paddingStart="14dp" android:paddingEnd="14dp"
-                android:layout_marginStart="8dp" android:text="@string/menu"/>
+            <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="0.6"/>
+            <TextView android:id="@+id/btnFind" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="56dp" android:text="@string/find"/>
+            <TextView android:id="@+id/btnMenu" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="56dp" android:layout_marginStart="8dp" android:text="@string/menu"/>
         </LinearLayout>
 
         <!-- strips under the top row: the stop, the trip summary, the navigation panel, the profile -->
@@ -36,8 +36,8 @@
                 <TextView android:id="@+id/btnDrop" style="@style/Btn" android:layout_width="44dp" android:layout_height="44dp"
                     android:minHeight="44dp" android:minWidth="44dp" android:layout_marginStart="8dp" android:textSize="20sp"
                     android:background="@drawable/btn_dark" android:textColor="@drawable/btn_dark_text" android:text="✕"/>
-                <TextView android:id="@+id/btnShare" style="@style/Btn" android:layout_width="wrap_content" android:layout_height="44dp"
-                    android:minHeight="44dp" android:paddingStart="12dp" android:paddingEnd="14dp" android:layout_marginStart="8dp" android:textSize="15sp"
+                <TextView android:id="@+id/btnShare" style="@style/Btn" android:layout_width="104dp" android:layout_height="44dp"
+                    android:minHeight="44dp" android:layout_marginStart="8dp" android:autoSizeMaxTextSize="15sp"
                     android:background="@drawable/btn_dark" android:textColor="@drawable/btn_dark_text" android:text="@string/share"/>
                 <TextView android:id="@+id/btnSave" style="@style/Btn" android:layout_width="44dp" android:layout_height="44dp"
                     android:minHeight="44dp" android:minWidth="44dp" android:layout_marginStart="8dp" android:textSize="22sp"

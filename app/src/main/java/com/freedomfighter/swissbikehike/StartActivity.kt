@@ -24,7 +24,8 @@ class StartActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         val rec = RecordService.state.value
-        if (rec.running) open(rec.mode)
+        val nav = NavService.state.value
+        if (nav.running) open(nav.mode) else if (rec.running) open(rec.mode)
     }
 
     private fun open(mode: Mode) {

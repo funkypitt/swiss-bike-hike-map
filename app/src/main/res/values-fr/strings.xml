@@ -120,4 +120,7 @@
     <string name="people_off">Recherche de personnes désactivée</string>
     <string name="menu_about">À PROPOS</string>
     <string name="about_text">Carte : fond vectoriel swisstopo, réseau des chemins de randonnée, itinéraires Veloland et Mountainbikeland, fermetures (© swisstopo, © SuisseMobile).\nItinéraires : BRouter (MIT) sur données OpenStreetMap (ODbL), profils « trekking » et « hiking-mountain ».\nRendu : MapLibre Native (BSD).\nRecherche : API GeoAdmin ; personnes et entreprises : annuaire search.ch (Swisscom Directories AG) avec votre propre clé.</string>
+    <string name="nav_channel">Navigation</string>
+    <string name="nav_starting">Navigation en cours de démarrage…</string>
+    <string name="eta_short">arrivée %1$s</string>
 </resources>

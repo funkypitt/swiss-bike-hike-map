@@ -4,11 +4,11 @@
     android:orientation="vertical" android:background="@color/paper" android:padding="8dp">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
         <TextView android:id="@+id/btnPlaces" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
-            android:layout_height="48dp" android:text="@string/places" android:textSize="15sp"/>
+            android:layout_height="48dp" android:autoSizeMaxTextSize="15sp" android:text="@string/places"/>
         <TextView android:id="@+id/btnPeople" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1.3"
-            android:layout_height="48dp" android:layout_marginStart="6dp" android:text="@string/people" android:textSize="15sp"/>
+            android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="15sp" android:text="@string/people"/>
         <TextView android:id="@+id/btnFavs" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
-            android:layout_height="48dp" android:layout_marginStart="6dp" android:text="@string/favourites" android:textSize="15sp"/>
+            android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="15sp" android:text="@string/favourites"/>
     </LinearLayout>
     <EditText android:id="@+id/query" android:layout_width="match_parent" android:layout_height="56dp"
         android:layout_marginTop="8dp" android:hint="@string/search_hint" android:textSize="20sp" android:inputType="text"
@@ -20,9 +20,9 @@
     <LinearLayout android:id="@+id/favRow" android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="horizontal" android:layout_marginTop="8dp" android:visibility="gone">
         <TextView android:id="@+id/btnImport" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
-            android:layout_height="48dp" android:text="@string/import_places" android:textSize="15sp"/>
+            android:layout_height="48dp" android:text="@string/import_places"/>
         <TextView android:id="@+id/btnExport" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
-            android:layout_height="48dp" android:layout_marginStart="6dp" android:text="@string/export_places" android:textSize="15sp"/>
+            android:layout_height="48dp" android:layout_marginStart="6dp" android:text="@string/export_places"/>
     </LinearLayout>
     <ListView android:id="@+id/list" android:layout_width="match_parent" android:layout_height="match_parent"
         android:layout_marginTop="8dp" android:divider="@color/ink" android:dividerHeight="1dp"/>

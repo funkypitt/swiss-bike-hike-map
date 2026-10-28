@@ -120,4 +120,7 @@
     <string name="people_off">Personensuche aus</string>
     <string name="menu_about">ÜBER</string>
     <string name="about_text">Karte: swisstopo-Vektorgrundkarte, Wanderwegnetz, Veloland- und Mountainbikeland-Routen, Sperrungen (© swisstopo, © SchweizMobil).\nRouting: BRouter (MIT) auf OpenStreetMap-Daten (ODbL), Profile « trekking » und « hiking-mountain ».\nDarstellung: MapLibre Native (BSD).\nSuche: GeoAdmin-API; Personen und Firmen: search.ch-Verzeichnis (Swisscom Directories AG) mit Ihrem eigenen Schlüssel.</string>
+    <string name="nav_channel">Navigation</string>
+    <string name="nav_starting">Navigation startet…</string>
+    <string name="eta_short">Ankunft %1$s</string>
 </resources>

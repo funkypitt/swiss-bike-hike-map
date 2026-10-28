@@ -120,4 +120,7 @@
     <string name="people_off">Búsqueda de personas desactivada</string>
     <string name="menu_about">ACERCA DE</string>
     <string name="about_text">Mapa: mapa base vectorial de swisstopo, red de senderos, rutas Veloland y Mountainbikeland, cierres (© swisstopo, © SchweizMobil).\nRutas: BRouter (MIT) con datos de OpenStreetMap (ODbL), perfiles « trekking » y « hiking-mountain ».\nRenderizado: MapLibre Native (BSD).\nBúsqueda: API GeoAdmin; personas y empresas: directorio search.ch (Swisscom Directories AG) con su propia clave.</string>
+    <string name="nav_channel">Navegación</string>
+    <string name="nav_starting">Iniciando la navegación…</string>
+    <string name="eta_short">llegada %1$s</string>
 </resources>

@@ -4,7 +4,8 @@ A private, single-screen map app for cycling and hiking in Switzerland. Old-scho
 interface: pick **BIKE** or **WALK**, see the official trails in the signpost colours,
 long-press to put stops on the map (each one numbered, the last is the destination), **GO** to
 route on-device through them, **NAV** for turn-by-turn guidance with one big arrow, an elevation
-profile and the time of arrival, **REC** to record a GPX. A GPX track can be followed as it is
+profile and the time of arrival (a foreground service: it goes on with the screen off or another
+app in front, with the next turn in the notification), **REC** to record a GPX. A GPX track can be followed as it is
 (turns read off its shape). Stops can be saved as favourites (places, people and firms from the
 directory, bare coordinates), shared as text, received from other apps (geo: links, shared text,
 GPX files), and lists of places imported from GPX, KML/KMZ, GeoJSON, CSV or plain text with

@@ -22,8 +22,15 @@
         <item name="android:padding">0dp</item>
         <item name="android:stateListAnimator">@null</item>
         <item name="android:textAllCaps">true</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:autoSizeTextType">uniform</item>
+        <item name="android:autoSizeMinTextSize">10sp</item>
+        <item name="android:autoSizeMaxTextSize">17sp</item>
+        <item name="android:paddingStart">6dp</item>
+        <item name="android:paddingEnd">6dp</item>
     </style>
     <style name="BtnGlyph" parent="Btn">
+        <item name="android:autoSizeTextType">none</item>
         <item name="android:textSize">30sp</item>
         <item name="android:letterSpacing">0</item>
         <item name="android:layout_width">56dp</item>

@@ -120,4 +120,7 @@
     <string name="people_off">Поиск людей выключен</string>
     <string name="menu_about">О ПРОГРАММЕ</string>
     <string name="about_text">Карта: векторная базовая карта swisstopo, сеть пешеходных троп, маршруты Veloland и Mountainbikeland, закрытия (© swisstopo, © SchweizMobil).\nМаршруты: BRouter (MIT) на данных OpenStreetMap (ODbL), профили « trekking » и « hiking-mountain ».\nОтрисовка: MapLibre Native (BSD).\nПоиск: API GeoAdmin; люди и фирмы: справочник search.ch (Swisscom Directories AG) с вашим собственным ключом.</string>
+    <string name="nav_channel">Навигация</string>
+    <string name="nav_starting">Запуск навигации…</string>
+    <string name="eta_short">прибытие %1$s</string>
 </resources>

@@ -67,6 +67,7 @@
             android:name=".RecordService"
             android:exported="false"
             android:foregroundServiceType="location" />
+        <service android:name=".NavService" android:foregroundServiceType="location" android:exported="false" />
         <service android:name=".OfflineService" android:foregroundServiceType="dataSync" android:exported="false" />
     </application>
 </manifest>
