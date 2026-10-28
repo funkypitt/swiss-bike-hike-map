@@ -16,7 +16,11 @@ android {
     }
 
     buildTypes {
-        release { isMinifyEnabled = false }
+        release {
+            isMinifyEnabled = false
+            // the phone is arm64; the other MapLibre native libraries would triple the APK
+            ndk { abiFilters += listOf("arm64-v8a") }
+        }
     }
     buildFeatures { viewBinding = true; buildConfig = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }

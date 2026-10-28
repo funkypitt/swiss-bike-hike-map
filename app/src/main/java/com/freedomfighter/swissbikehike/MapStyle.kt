@@ -82,12 +82,15 @@ object MapStyle {
         val old = s.getJSONArray("layers")
         val layers = JSONArray()
         baseLayers.clear()
+        // Insert our layers where the label block starts: above every road and building fill,
+        // below the names. (The style's first symbol layer, landcover_pt, comes before the roads.)
+        val anchors = listOf("housenumber", "contour_line_pt", "transportation_label", "place_other")
         var firstSymbol = -1
         for (i in 0 until old.length()) {
             val l = old.getJSONObject(i)
             val id = l.getString("id")
+            if (firstSymbol < 0 && id in anchors) firstSymbol = layers.length()
             if (id in clutter) continue
-            if (firstSymbol < 0 && l.getString("type") == "symbol") firstSymbol = layers.length()
             if (id != "background") baseLayers.add(id)
             layers.put(l)
         }

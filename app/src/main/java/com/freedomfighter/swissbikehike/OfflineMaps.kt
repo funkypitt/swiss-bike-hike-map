@@ -16,6 +16,8 @@ import kotlin.coroutines.suspendCoroutine
 object OfflineMaps {
     const val MIN_ZOOM = 8.0
     const val MAX_ZOOM = 15.0
+    /** The downloader only takes http(s) style URLs: the style is seeded into its database under this one. */
+    const val STYLE_URL = "https://swiss-bike-hike.invalid/style.json"
 
     fun manager(ctx: Context): OfflineManager = OfflineManager.getInstance(ctx).also {
         it.setOfflineMapboxTileCountLimit(2_000_000)
@@ -41,7 +43,9 @@ object OfflineMaps {
     fun download(ctx: Context, styleFile: File, bounds: LatLngBounds, name: String,
                  onProgress: (done: Long, total: Long, finished: Boolean) -> Unit, onError: (String) -> Unit) {
         val pixelRatio = ctx.resources.displayMetrics.density
-        val def = OfflineTilePyramidRegionDefinition("file://${styleFile.absolutePath}", bounds, MIN_ZOOM, MAX_ZOOM, pixelRatio)
+        val now = System.currentTimeMillis() / 1000
+        manager(ctx).putResourceWithUrl(STYLE_URL, styleFile.readBytes(), now, now + 3650L * 86400, null, false)
+        val def = OfflineTilePyramidRegionDefinition(STYLE_URL, bounds, MIN_ZOOM, MAX_ZOOM, pixelRatio)
         manager(ctx).createOfflineRegion(def, name.toByteArray(StandardCharsets.UTF_8), object : OfflineManager.CreateOfflineRegionCallback {
             override fun onCreate(offlineRegion: OfflineRegion) { start(offlineRegion, onProgress, onError) }
             override fun onError(error: String) { onError(error) }
