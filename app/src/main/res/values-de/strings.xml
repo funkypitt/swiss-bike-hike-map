@@ -83,16 +83,9 @@
     <string name="seg_up_to_date">aktuell</string>
     <string name="menu_offline">OFFLINE-KARTEN (swisstopo)</string>
     <string name="menu_country">GANZE SCHWEIZ SPEICHERN</string>
-    <string name="menu_country_cancel">SCHWEIZ-DOWNLOAD ABBRECHEN</string>
     <string name="country_confirm">Das ganze Land, Zoom 8 bis 14: etwa 2,5 GB, einige Stunden. Telefon am Strom lassen; der Download läuft im Hintergrund mit einer Benachrichtigung weiter.</string>
     <string name="country_not_wifi">Sie sind nicht im WLAN.</string>
-    <string name="country_title">Schweiz wird gespeichert</string>
     <string name="country_channel">Offline-Karten-Download</string>
-    <string name="country_starting">Schweiz: startet…</string>
-    <string name="country_progress">Schweiz: %1$d %% (%2$d / %3$d Kacheln)</string>
-    <string name="country_done">Schweiz gespeichert, ganzes Land</string>
-    <string name="country_cancelled">Schweiz-Download abgebrochen</string>
-    <string name="country_error">Schweiz: %1$s</string>
     <string name="menu_save_area">ANGEZEIGTEN AUSSCHNITT SPEICHERN</string>
     <string name="menu_refresh_areas">GESPEICHERTE AUSSCHNITTE AUFFRISCHEN</string>
     <string name="menu_delete_areas">GESPEICHERTE AUSSCHNITTE LÖSCHEN</string>
@@ -123,4 +116,15 @@
     <string name="nav_channel">Navigation</string>
     <string name="nav_starting">Navigation startet…</string>
     <string name="eta_short">Ankunft %1$s</string>
+    <string name="packs_title">Karten werden gespeichert</string>
+    <string name="packs_starting">Kartendownload startet…</string>
+    <string name="packs_waiting">Kartendownload wartet auf WLAN (geht von selbst weiter)</string>
+    <string name="packs_paused">Kartendownload pausiert; FORTSETZEN drücken</string>
+    <string name="packs_done">Alle gespeicherten Ausschnitte sind vollständig</string>
+    <string name="packs_incomplete">Einige Ausschnitte sind unvollständig: FORTSETZEN drücken</string>
+    <string name="packs_progress">%1$s: %2$d %% (%3$d / %4$d Kacheln)</string>
+    <string name="packs_error">%1$s: gestoppt (%2$s), neuer Versuch später</string>
+    <string name="menu_resume_packs">KARTENDOWNLOAD FORTSETZEN</string>
+    <string name="menu_pause_packs">KARTENDOWNLOAD PAUSIEREN</string>
+    <string name="pause">PAUSE</string>
 </resources>

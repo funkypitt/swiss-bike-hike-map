@@ -16,6 +16,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.work.WorkInfo
 import com.freedomfighter.swissbikehike.databinding.ActivityMenuBinding
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -45,7 +46,8 @@ class MenuActivity : AppCompatActivity() {
             updateNightButton()
         }
         b.btnSegments.setOnClickListener { Segments.download(this, Segments.names); refreshSegments(); Toast.makeText(this, R.string.downloading_wifi, Toast.LENGTH_SHORT).show() }
-        b.btnCountry.setOnClickListener { if (OfflineService.running) cancelCountry() else saveCountry() }
+        b.btnCountry.setOnClickListener { saveCountry() }
+        b.btnPacks.setOnClickListener { if (PackWorker.state(this)?.isFinished == false) { PackWorker.pause(this); prefs.packStatus = getString(R.string.packs_paused) } else PackWorker.enqueue(this); lifecycleScope.launch { kotlinx.coroutines.delay(600); refreshAreasInfo() } }
         b.btnOfflineArea.setOnClickListener { saveArea() }
         b.btnOfflineRefresh.setOnClickListener { refreshAreas() }
         b.btnOfflineDelete.setOnClickListener { deleteAreas() }
@@ -60,7 +62,12 @@ class MenuActivity : AppCompatActivity() {
         updateNightButton()
     }
 
-    override fun onResume() { super.onResume(); refreshSegments(); refreshAreasInfo(); refreshTrips() }
+    private var ticking = false
+    override fun onResume() {
+        super.onResume(); refreshSegments(); refreshAreasInfo(); refreshTrips()
+        if (!ticking) { ticking = true; lifecycleScope.launch { while (ticking) { kotlinx.coroutines.delay(3000); if (lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) refreshAreasInfo() } } }
+    }
+    override fun onPause() { super.onPause(); ticking = false }
 
     private fun date(t: Long) = if (t <= 0) "?" else SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(t))
 
@@ -135,19 +142,28 @@ class MenuActivity : AppCompatActivity() {
     private fun refreshAreasInfo() {
         lifecycleScope.launch {
             val regions = OfflineMaps.list(this@MenuActivity)
+            var missing = false
             val lines = regions.map { r ->
                 val st = OfflineMaps.status(r)
                 val size = st?.completedResourceSize ?: 0L
                 val done = st?.completedResourceCount ?: 0L
                 val total = st?.requiredResourceCount ?: 0L
+                if (st?.isComplete == false) missing = true
                 "${OfflineMaps.name(r)}  ${Fmt.mb(size)}  " + (if (st?.isComplete == true) getString(R.string.area_complete) else getString(R.string.area_tiles, done, total))
             }
+            val job = PackWorker.state(this@MenuActivity)
+            val jobLine = when (job) {
+                WorkInfo.State.RUNNING -> prefs.packStatus.ifBlank { getString(R.string.packs_starting) }
+                WorkInfo.State.ENQUEUED, WorkInfo.State.BLOCKED -> getString(R.string.packs_waiting)
+                else -> if (missing) getString(R.string.packs_incomplete) else prefs.packStatus
+            }
             val auto = prefs.offlineRefreshStatus.ifBlank { getString(R.string.auto_refresh_never) }
-            val country = prefs.countryStatus
             b.offlineInfo.text = (if (lines.isEmpty()) getString(R.string.no_saved_area) else lines.joinToString("\n")) +
-                (if (country.isNotBlank()) "\n\n$country" else "") +
+                (if (jobLine.isNotBlank()) "\n\n$jobLine" else "") +
                 "\n\n" + auto + "\n" + getString(R.string.auto_refresh_rule, OfflineMaps.AUTO_DAYS)
-            b.btnCountry.text = getString(if (OfflineService.running) R.string.menu_country_cancel else R.string.menu_country)
+            val active = job == WorkInfo.State.RUNNING || job == WorkInfo.State.ENQUEUED || job == WorkInfo.State.BLOCKED
+            b.btnPacks.visibility = if (active || missing) View.VISIBLE else View.GONE
+            b.btnPacks.text = getString(if (active) R.string.menu_pause_packs else R.string.menu_resume_packs)
         }
     }
 
@@ -157,14 +173,15 @@ class MenuActivity : AppCompatActivity() {
         val wifi = OfflineMaps.unmetered(this)
         AlertDialog.Builder(this).setTitle(R.string.menu_country)
             .setMessage(getString(R.string.country_confirm) + if (!wifi) "\n\n" + getString(R.string.country_not_wifi) else "")
-            .setPositiveButton(R.string.download) { _, _ -> OfflineService.start(this); b.btnCountry.text = getString(R.string.menu_country_cancel); b.offlineInfo.text = getString(R.string.country_starting) }
+            .setPositiveButton(R.string.download) { _, _ ->
+                lifecycleScope.launch {
+                    if (OfflineMaps.list(this@MenuActivity).none { OfflineMaps.name(it) == OfflineMaps.COUNTRY_NAME })
+                        OfflineMaps.create(this@MenuActivity, styleFile, OfflineMaps.COUNTRY, OfflineMaps.COUNTRY_NAME, OfflineMaps.COUNTRY_MAX_ZOOM)
+                    else PackWorker.enqueue(this@MenuActivity)
+                    refreshAreasInfo()
+                }
+            }
             .setNegativeButton(R.string.cancel, null).show()
-    }
-
-    private fun cancelCountry() {
-        OfflineService.cancel(this)
-        b.btnCountry.text = getString(R.string.menu_country)
-        lifecycleScope.launch { kotlinx.coroutines.delay(800); refreshAreasInfo() }
     }
 
     private fun saveArea() {
@@ -172,25 +189,15 @@ class MenuActivity : AppCompatActivity() {
         val styleFile = MapStyle.styleFile(this)
         if (!styleFile.exists()) { Toast.makeText(this, R.string.open_map_first, Toast.LENGTH_SHORT).show(); return }
         val name = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())
-        b.offlineInfo.text = getString(R.string.area_saving, name, 0L, 0L)
-        OfflineMaps.download(this, styleFile, bounds, name,
-            onProgress = { done, total, finished ->
-                runOnUiThread { b.offlineInfo.text = if (finished) getString(R.string.area_saved, name, done) else getString(R.string.area_saving, name, done, total)
-                    if (finished) refreshAreasInfo() }
-            },
-            onError = { msg -> runOnUiThread { b.offlineInfo.text = getString(R.string.error_x, msg) } })
+        lifecycleScope.launch { OfflineMaps.create(this@MenuActivity, styleFile, bounds, name); refreshAreasInfo() }
     }
 
     private fun refreshAreas() {
         lifecycleScope.launch {
             val regions = OfflineMaps.list(this@MenuActivity)
-            for (r in regions) {
-                OfflineMaps.refresh(r)
-                OfflineMaps.start(r, { done, total, finished ->
-                    runOnUiThread { b.offlineInfo.text = if (finished) getString(R.string.area_refreshed, OfflineMaps.name(r)) else getString(R.string.area_refreshing, OfflineMaps.name(r), done, total) }
-                }, { msg -> runOnUiThread { b.offlineInfo.text = getString(R.string.error_x, msg) } })
-            }
-            if (regions.isEmpty()) b.offlineInfo.text = getString(R.string.no_saved_area)
+            for (r in regions) OfflineMaps.refresh(r)
+            if (regions.isNotEmpty()) PackWorker.enqueue(this@MenuActivity)
+            refreshAreasInfo()
         }
     }
 
@@ -199,7 +206,8 @@ class MenuActivity : AppCompatActivity() {
             .setPositiveButton(R.string.delete) { _, _ ->
                 lifecycleScope.launch {
                     for (r in OfflineMaps.list(this@MenuActivity)) OfflineMaps.delete(r)
-                    prefs.countryStatus = ""
+                    PackWorker.pause(this@MenuActivity)
+                    prefs.packStatus = ""
                     refreshAreasInfo()
                 }
             }.setNegativeButton(R.string.cancel, null).show()

@@ -41,10 +41,10 @@ class Prefs(ctx: Context) {
         get() = p.getString("offline_refresh_status", "") ?: ""
         set(v) = p.edit().putString("offline_refresh_status", v).apply()
 
-    /** Progress line of the whole-country pack, for the menu. */
-    var countryStatus: String
-        get() = p.getString("country_status", "") ?: ""
-        set(v) = p.edit().putString("country_status", v).apply()
+    /** Last line written by the pack job, for the menu. */
+    var packStatus: String
+        get() = p.getString("pack_status", "") ?: ""
+        set(v) = p.edit().putString("pack_status", v).apply()
 
     /** Night map: off, on or auto (after sunset). */
     var night: String

@@ -83,16 +83,9 @@
     <string name="seg_up_to_date">à jour</string>
     <string name="menu_offline">CARTES HORS LIGNE (swisstopo)</string>
     <string name="menu_country">ENREGISTRER TOUTE LA SUISSE</string>
-    <string name="menu_country_cancel">ANNULER LE TÉLÉCHARGEMENT DE LA SUISSE</string>
     <string name="country_confirm">Tout le pays, zoom 8 à 14 : environ 2,5 Go, quelques heures. Gardez le téléphone branché ; le téléchargement continue en arrière-plan avec une notification.</string>
     <string name="country_not_wifi">Vous n\'êtes pas en Wi-Fi.</string>
-    <string name="country_title">Enregistrement de la Suisse</string>
     <string name="country_channel">Téléchargement de carte hors ligne</string>
-    <string name="country_starting">Suisse : démarrage…</string>
-    <string name="country_progress">Suisse : %1$d %% (%2$d / %3$d tuiles)</string>
-    <string name="country_done">Suisse enregistrée, tout le pays</string>
-    <string name="country_cancelled">Téléchargement de la Suisse annulé</string>
-    <string name="country_error">Suisse : %1$s</string>
     <string name="menu_save_area">ENREGISTRER LA ZONE AFFICHÉE</string>
     <string name="menu_refresh_areas">RAFRAÎCHIR LES ZONES ENREGISTRÉES</string>
     <string name="menu_delete_areas">SUPPRIMER LES ZONES ENREGISTRÉES</string>
@@ -123,4 +116,15 @@
     <string name="nav_channel">Navigation</string>
     <string name="nav_starting">Navigation en cours de démarrage…</string>
     <string name="eta_short">arrivée %1$s</string>
+    <string name="packs_title">Enregistrement des cartes</string>
+    <string name="packs_starting">Téléchargement des cartes : démarrage…</string>
+    <string name="packs_waiting">Téléchargement des cartes en attente du Wi-Fi (il reprend tout seul)</string>
+    <string name="packs_paused">Téléchargement des cartes en pause ; appuyez sur REPRENDRE</string>
+    <string name="packs_done">Toutes les zones enregistrées sont complètes</string>
+    <string name="packs_incomplete">Des zones sont incomplètes : appuyez sur REPRENDRE</string>
+    <string name="packs_progress">%1$s : %2$d %% (%3$d / %4$d tuiles)</string>
+    <string name="packs_error">%1$s : arrêté (%2$s), nouvel essai plus tard</string>
+    <string name="menu_resume_packs">REPRENDRE LE TÉLÉCHARGEMENT DES CARTES</string>
+    <string name="menu_pause_packs">METTRE EN PAUSE LE TÉLÉCHARGEMENT</string>
+    <string name="pause">PAUSE</string>
 </resources>

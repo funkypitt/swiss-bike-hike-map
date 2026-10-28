@@ -83,16 +83,9 @@
     <string name="seg_up_to_date">актуально</string>
     <string name="menu_offline">ОФЛАЙН-КАРТЫ (swisstopo)</string>
     <string name="menu_country">СОХРАНИТЬ ВСЮ ШВЕЙЦАРИЮ</string>
-    <string name="menu_country_cancel">ОТМЕНИТЬ ЗАГРУЗКУ ШВЕЙЦАРИИ</string>
     <string name="country_confirm">Вся страна, зум 8–14: около 2,5 ГБ, несколько часов. Держите телефон на зарядке; загрузка продолжается в фоне с уведомлением.</string>
     <string name="country_not_wifi">Вы не в Wi-Fi.</string>
-    <string name="country_title">Сохранение Швейцарии</string>
     <string name="country_channel">Загрузка офлайн-карты</string>
-    <string name="country_starting">Швейцария: запуск…</string>
-    <string name="country_progress">Швейцария: %1$d %% (%2$d / %3$d тайлов)</string>
-    <string name="country_done">Швейцария сохранена, вся страна</string>
-    <string name="country_cancelled">Загрузка Швейцарии отменена</string>
-    <string name="country_error">Швейцария: %1$s</string>
     <string name="menu_save_area">СОХРАНИТЬ ПОКАЗАННУЮ ОБЛАСТЬ</string>
     <string name="menu_refresh_areas">ОБНОВИТЬ СОХРАНЁННЫЕ ОБЛАСТИ</string>
     <string name="menu_delete_areas">УДАЛИТЬ СОХРАНЁННЫЕ ОБЛАСТИ</string>
@@ -123,4 +116,15 @@
     <string name="nav_channel">Навигация</string>
     <string name="nav_starting">Запуск навигации…</string>
     <string name="eta_short">прибытие %1$s</string>
+    <string name="packs_title">Сохранение карт</string>
+    <string name="packs_starting">Загрузка карт: запуск…</string>
+    <string name="packs_waiting">Загрузка карт ждёт Wi-Fi (продолжится сама)</string>
+    <string name="packs_paused">Загрузка карт на паузе; нажмите ПРОДОЛЖИТЬ</string>
+    <string name="packs_done">Все сохранённые области полные</string>
+    <string name="packs_incomplete">Некоторые области неполные: нажмите ПРОДОЛЖИТЬ</string>
+    <string name="packs_progress">%1$s: %2$d %% (%3$d / %4$d тайлов)</string>
+    <string name="packs_error">%1$s: остановлено (%2$s), повтор позже</string>
+    <string name="menu_resume_packs">ПРОДОЛЖИТЬ ЗАГРУЗКУ КАРТ</string>
+    <string name="menu_pause_packs">ПРИОСТАНОВИТЬ ЗАГРУЗКУ КАРТ</string>
+    <string name="pause">ПАУЗА</string>
 </resources>

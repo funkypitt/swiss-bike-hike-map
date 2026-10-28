@@ -90,16 +90,9 @@
     <string name="seg_up_to_date">up to date</string>
     <string name="menu_offline">OFFLINE MAPS (swisstopo)</string>
     <string name="menu_country">SAVE ALL OF SWITZERLAND</string>
-    <string name="menu_country_cancel">CANCEL THE SWITZERLAND DOWNLOAD</string>
     <string name="country_confirm">The whole country, zoom 8 to 14: about 2.5 GB, a few hours. Keep the phone plugged in; the download goes on in the background with a notification.</string>
     <string name="country_not_wifi">You are not on Wi-Fi.</string>
-    <string name="country_title">Saving Switzerland</string>
     <string name="country_channel">Offline map download</string>
-    <string name="country_starting">Switzerland: starting…</string>
-    <string name="country_progress">Switzerland: %1$d %% (%2$d / %3$d tiles)</string>
-    <string name="country_done">Switzerland saved, whole country</string>
-    <string name="country_cancelled">Switzerland download cancelled</string>
-    <string name="country_error">Switzerland: %1$s</string>
     <string name="menu_save_area">SAVE THE AREA LAST SHOWN</string>
     <string name="menu_refresh_areas">REFRESH SAVED AREAS</string>
     <string name="menu_delete_areas">DELETE SAVED AREAS</string>
@@ -130,4 +123,15 @@
     <string name="nav_channel">Navigation</string>
     <string name="nav_starting">Navigation starting…</string>
     <string name="eta_short">arrival %1$s</string>
+    <string name="packs_title">Saving maps</string>
+    <string name="packs_starting">Map download starting…</string>
+    <string name="packs_waiting">Map download waiting for Wi-Fi (it resumes by itself)</string>
+    <string name="packs_paused">Map download paused; press RESUME to go on</string>
+    <string name="packs_done">Every saved area is complete</string>
+    <string name="packs_incomplete">Some areas are incomplete: press RESUME</string>
+    <string name="packs_progress">%1$s: %2$d %% (%3$d / %4$d tiles)</string>
+    <string name="packs_error">%1$s: stopped (%2$s), retrying later</string>
+    <string name="menu_resume_packs">RESUME THE MAP DOWNLOAD</string>
+    <string name="menu_pause_packs">PAUSE THE MAP DOWNLOAD</string>
+    <string name="pause">PAUSE</string>
 </resources>

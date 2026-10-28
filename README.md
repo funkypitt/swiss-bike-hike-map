@@ -1,58 +1,59 @@
 # Swiss Bike-Hike Map
 
-A private, single-screen map app for cycling and hiking in Switzerland. Old-school GPS
-interface: pick **BIKE** or **WALK**, see the official trails in the signpost colours,
-long-press to put stops on the map (each one numbered, the last is the destination), **GO** to
-route on-device through them, **NAV** for turn-by-turn guidance with one big arrow, an elevation
-profile and the time of arrival (a foreground service: it goes on with the screen off or another
-app in front, with the next turn in the notification), **REC** to record a GPX. A GPX track can be followed as it is
-(turns read off its shape). Stops can be saved as favourites (places, people and firms from the
-directory, bare coordinates), shared as text, received from other apps (geo: links, shared text,
-GPX files), and lists of places imported from GPX, KML/KMZ, GeoJSON, CSV or plain text with
-coordinates (WGS84, LV95, LV03 or degrees-minutes). Night map (manual or after sunset), local
-history of navigated trips, whole-country offline pack in one button, six languages
-(en, fr, de, es, pt, ru).
+A map for cycling and hiking in Switzerland, in the spirit of the old GPS boxes: one screen,
+big buttons, the official hiking trails and cycling routes in their signpost colours on the
+swisstopo map. Routing runs on the phone, with turn-by-turn guidance that goes on with the
+screen off. No account, no tracking.
 
-Everything is recycled:
+## Key points
 
-| Part | Source |
-|---|---|
-| Map rendering | [MapLibre Native](https://maplibre.org) (BSD) |
-| Base map | swisstopo vector tiles and style, clutter layers removed (`MapStyle.kt`) |
-| Official hiking trails | the `sac_scale` attribute of swisstopo's vector tiles: yellow / white-red-white / white-blue-white |
-| Official cycling routes | swisstopo WMTS overlays Veloland (blue) and Mountainbikeland (orange) |
-| Closures and detours | swisstopo WMS overlays, online only |
-| Routing | [BRouter](https://github.com/abrensch/brouter) (MIT) embedded as the `brouter` module, OpenStreetMap data from brouter.de (profiles `trekking` and `hiking-mountain`) |
-| Turn instructions | BRouter's own voice hints (`turnInstructionMode`), read through `brouter/.../TurnHints.java` |
-| Search | GeoAdmin search API; people and firms through the search.ch directory with the person's own key |
-| Offline | MapLibre offline packs for the area on screen, zoom 8 to 15, refreshed automatically once a week over Wi-Fi |
+* **BIKE or WALK**, chosen on the first screen; the map then shows the official network of that
+  mode: yellow / white-red-white / white-blue-white hiking trails, blue Veloland and orange
+  mountain-bike routes, closures and detours (© swisstopo, © SchweizMobil).
+* **Stops**: a long press, a search result or a place shared by another app puts a numbered stop
+  on the map; **GO** routes through all of them on the phone (BRouter on OpenStreetMap data,
+  about 450 MB fetched once over Wi-Fi), with distance, climb, descent, time and an elevation
+  profile.
+* **NAV**: one big arrow, the distance to the turn, the next one, the time of arrival; a
+  vibration before each turn; a new route when you leave the line; the trip goes on in a
+  notification with the screen off or another app in front, and is kept in a local history.
+* **GPX**: follow a track as it is (turns read off its shape), or record your own.
+* **FIND**: places and addresses (GeoAdmin), typed coordinates (WGS84, LV95, LV03), people and
+  firms from the search.ch directory with your own free key, and your favourites, which you can
+  import and export (GPX, KML, GeoJSON, CSV).
+* **Offline**: save the area on screen or the whole country in one button (about 2.5 GB); the
+  download survives the app being closed and the phone restarting, waits for Wi-Fi, and the
+  saved areas refresh themselves once a week.
+* **Night map** by hand or after sunset; share a place or your position as text; six languages
+  (en, fr, de, es, pt, ru).
+* Permissions: location, notifications (guidance and downloads), vibration; the network serves
+  only the map tiles, the routing data and the searches you ask for.
 
-Data © swisstopo, © SchweizMobil, © OpenStreetMap contributors.
+Data and sizes, the shape of the code and what was measured: [docs/NOTES.md](docs/NOTES.md).
+
+## Install
+
+- **F-Droid** (recommended, updates arrive by themselves): add the repository from [gallaz.ch/apps](https://gallaz.ch/apps/#fdroid), or the address `https://funkypitt.github.io/fdroid-repo/repo` in F-Droid.
+- **Obtainium**: add `https://github.com/funkypitt/swiss-bike-hike-map` in Obtainium.
+- **APK**: attached to the [latest release](../../releases/latest). No automatic updates.
+
+All three deliver the same file, with the same signature. Android 9 or newer, arm64.
 
 ## Build
 
-    ./gradlew assembleDebug        # or assembleRelease, then sign
+```
+./gradlew assembleRelease
+```
 
-`local.properties` must point at an Android SDK. The `brouter` module is plain Java copied from
-upstream (`brouter/UPSTREAM-COMMIT.txt`); the two profile files and `lookups.dat` are in `app/src/main/assets/brouter`.
+`local.properties` must point at an Android SDK. The `brouter` module is BRouter's routing core
+(MIT) copied from upstream, see `brouter/UPSTREAM-COMMIT.txt`; the profiles and `lookups.dat`
+are in `app/src/main/assets/brouter`.
 
-## Data on the phone
+## Credits
 
-- Routing: `Android/data/com.freedomfighter.swissbikehike/files/brouter/segments4/E5_N45.rd5` and `E10_N45.rd5`
-  (about 450 MB), downloaded by the app over Wi-Fi on first **GO**, refreshed from the menu (brouter.de rebuilds them weekly).
-- Favourites: `favourites.json` in the app's private storage; export as GPX waypoints to `Documents/Swiss Bike-Hike Map/`.
-- Navigated trips: `trips/history.json` and one GPX per trip in the app's private storage.
-- Saved areas: MapLibre's own database in the app's private storage.
-- Recorded tracks: `Documents/Swiss Bike-Hike Map/<date>_<mode>.gpx`.
-
-## Weight of a full offline Switzerland (sampled 2026-10-28, bounding box of the country)
-
-| Layer | Zoom | Size |
-|---|---|---|
-| Routing, both modes | | 450 MB |
-| Vector base map | 6 to 14 | about 1.0 GB |
-| Hillshade (relief tiles used by the style) | 6 to 14 | about 1.4 GB |
-
-(The 1:25 000 paper map, dropped in 0.3.0, would have added 3.6 GB at zoom 15 or 11 GB at zoom 16.)
-
-The box includes a good share of France, Italy, Germany and Austria; Switzerland alone is roughly half.
+Map: swisstopo vector base map and style, hiking trail network, Veloland and Mountainbikeland
+routes, closures — © swisstopo, © SchweizMobil, free open government data.
+Routing: [BRouter](https://github.com/abrensch/brouter) (MIT) on OpenStreetMap data (ODbL),
+segments from brouter.de. Rendering: [MapLibre Native](https://maplibre.org) (BSD).
+Search: GeoAdmin API; people and firms: search.ch directory (Swisscom Directories AG) with the
+user's own key.

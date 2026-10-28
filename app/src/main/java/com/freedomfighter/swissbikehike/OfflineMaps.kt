@@ -23,6 +23,9 @@ object OfflineMaps {
     const val MAX_ZOOM = 15.0
     /** The downloader only takes http(s) style URLs: the style is seeded into its database under this one. */
     const val STYLE_URL = "https://swiss-bike-hike.invalid/style.json"
+    val COUNTRY: LatLngBounds = LatLngBounds.from(47.81, 10.50, 45.81, 5.95)
+    const val COUNTRY_NAME = "Switzerland"
+    const val COUNTRY_MAX_ZOOM = 14.0
 
     fun manager(ctx: Context): OfflineManager = OfflineManager.getInstance(ctx).also {
         it.setOfflineMapboxTileCountLimit(2_000_000)
@@ -44,19 +47,27 @@ object OfflineMaps {
 
     fun name(r: OfflineRegion): String = r.metadata?.let { String(it, StandardCharsets.UTF_8) } ?: "area"
 
-    /** Creates a pack for the bounds and starts it; progress is reported as completed/required resources. */
-    fun download(ctx: Context, styleFile: File, bounds: LatLngBounds, name: String, maxZoom: Double = MAX_ZOOM,
-                 onCreated: (OfflineRegion) -> Unit = {},
-                 onProgress: (done: Long, total: Long, finished: Boolean) -> Unit, onError: (String) -> Unit) {
+    /** Creates a pack for the bounds (nothing downloaded yet) and hands it to the pack job. */
+    suspend fun create(ctx: Context, styleFile: File, bounds: LatLngBounds, name: String, maxZoom: Double = MAX_ZOOM): OfflineRegion? {
         val pixelRatio = ctx.resources.displayMetrics.density
         val now = System.currentTimeMillis() / 1000
         manager(ctx).putResourceWithUrl(STYLE_URL, styleFile.readBytes(), now, now + 3650L * 86400, null, false)
         val def = OfflineTilePyramidRegionDefinition(STYLE_URL, bounds, MIN_ZOOM, maxZoom, pixelRatio)
-        manager(ctx).createOfflineRegion(def, name.toByteArray(StandardCharsets.UTF_8), object : OfflineManager.CreateOfflineRegionCallback {
-            override fun onCreate(offlineRegion: OfflineRegion) { onCreated(offlineRegion); start(offlineRegion, onProgress, onError) }
-            override fun onError(error: String) { onError(error) }
-        })
+        val region = suspendCoroutine<OfflineRegion?> { cont ->
+            manager(ctx).createOfflineRegion(def, name.toByteArray(StandardCharsets.UTF_8), object : OfflineManager.CreateOfflineRegionCallback {
+                override fun onCreate(offlineRegion: OfflineRegion) { cont.resume(offlineRegion) }
+                override fun onError(error: String) { cont.resume(null) }
+            })
+        }
+        if (region != null) PackWorker.enqueue(ctx)
+        return region
     }
+
+    /** Packs that still miss tiles (interrupted, or marked stale by a refresh). */
+    suspend fun incomplete(ctx: Context): List<OfflineRegion> = list(ctx).filter { status(it)?.isComplete == false }
+
+    /** Called at every launch: whatever was left unfinished goes on, once Wi-Fi is there. */
+    suspend fun resumeIfNeeded(ctx: Context) { if (incomplete(ctx).isNotEmpty()) PackWorker.enqueue(ctx) }
 
     fun start(r: OfflineRegion, onProgress: (Long, Long, Boolean) -> Unit, onError: (String) -> Unit) {
         r.setObserver(object : OfflineRegion.OfflineRegionObserver {
@@ -98,27 +109,15 @@ object OfflineMaps {
         if (System.currentTimeMillis() - prefs.offlineRefreshed < AUTO_DAYS * 86400_000L) return false
         if (!unmetered(ctx)) return false
         val regions = list(ctx)
-        if (regions.isEmpty()) { prefs.offlineRefreshed = System.currentTimeMillis(); return false }
+        prefs.offlineRefreshed = System.currentTimeMillis()
+        if (regions.isEmpty()) return false
         if (styleFile.exists()) {
             val now = System.currentTimeMillis() / 1000
             manager(ctx).putResourceWithUrl(STYLE_URL, styleFile.readBytes(), now, now + 3650L * 86400, null, false)
         }
-        var left = regions.size
-        var failed = false
-        prefs.offlineRefreshStatus = ctx.getString(R.string.auto_refresh_running)
-        for (r in regions) {
-            refresh(r)
-            start(r, { done, total, finished ->
-                if (finished) {
-                    left--
-                    if (left == 0) {
-                        if (!failed) prefs.offlineRefreshed = System.currentTimeMillis()
-                        val when_ = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())
-                        prefs.offlineRefreshStatus = ctx.getString(if (failed) R.string.auto_refresh_incomplete else R.string.auto_refresh_done, regions.size, when_)
-                    }
-                } else prefs.offlineRefreshStatus = ctx.getString(R.string.auto_refresh_progress, name(r), done, total)
-            }, { msg -> failed = true; prefs.offlineRefreshStatus = ctx.getString(R.string.auto_refresh_error, msg) })
-        }
+        for (r in regions) refresh(r)
+        prefs.offlineRefreshStatus = ctx.getString(R.string.auto_refresh_done, regions.size, SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date()))
+        PackWorker.enqueue(ctx)
         return true
     }
 

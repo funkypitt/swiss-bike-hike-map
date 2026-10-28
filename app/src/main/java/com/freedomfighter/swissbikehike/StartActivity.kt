@@ -18,7 +18,10 @@ class StartActivity : AppCompatActivity() {
         b.walkBlock.setOnClickListener { open(Mode.WALK) }
         b.footer.text = getString(R.string.attribution) + " · " + BuildConfig.VERSION_NAME
         // Saved areas refresh themselves once a week over Wi-Fi, from the launch of the app.
-        if (savedInstanceState == null) lifecycleScope.launch { OfflineMaps.autoRefresh(applicationContext, MapStyle.styleFile(this@StartActivity)) }
+        if (savedInstanceState == null) lifecycleScope.launch {
+            OfflineMaps.autoRefresh(applicationContext, MapStyle.styleFile(this@StartActivity))
+            OfflineMaps.resumeIfNeeded(applicationContext)
+        }
     }
 
     override fun onResume() {

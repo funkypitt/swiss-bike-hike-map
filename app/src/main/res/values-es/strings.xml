@@ -83,16 +83,9 @@
     <string name="seg_up_to_date">al día</string>
     <string name="menu_offline">MAPAS SIN CONEXIÓN (swisstopo)</string>
     <string name="menu_country">GUARDAR TODA SUIZA</string>
-    <string name="menu_country_cancel">CANCELAR LA DESCARGA DE SUIZA</string>
     <string name="country_confirm">Todo el país, zoom 8 a 14: unos 2,5 GB, varias horas. Mantenga el teléfono enchufado; la descarga sigue en segundo plano con una notificación.</string>
     <string name="country_not_wifi">No está en Wi-Fi.</string>
-    <string name="country_title">Guardando Suiza</string>
     <string name="country_channel">Descarga de mapa sin conexión</string>
-    <string name="country_starting">Suiza: empezando…</string>
-    <string name="country_progress">Suiza: %1$d %% (%2$d / %3$d teselas)</string>
-    <string name="country_done">Suiza guardada, todo el país</string>
-    <string name="country_cancelled">Descarga de Suiza cancelada</string>
-    <string name="country_error">Suiza: %1$s</string>
     <string name="menu_save_area">GUARDAR LA ZONA MOSTRADA</string>
     <string name="menu_refresh_areas">ACTUALIZAR LAS ZONAS GUARDADAS</string>
     <string name="menu_delete_areas">ELIMINAR LAS ZONAS GUARDADAS</string>
@@ -123,4 +116,15 @@
     <string name="nav_channel">Navegación</string>
     <string name="nav_starting">Iniciando la navegación…</string>
     <string name="eta_short">llegada %1$s</string>
+    <string name="packs_title">Guardando mapas</string>
+    <string name="packs_starting">Descarga de mapas: empezando…</string>
+    <string name="packs_waiting">Descarga de mapas a la espera de Wi-Fi (se reanuda sola)</string>
+    <string name="packs_paused">Descarga de mapas en pausa; pulse REANUDAR</string>
+    <string name="packs_done">Todas las zonas guardadas están completas</string>
+    <string name="packs_incomplete">Hay zonas incompletas: pulse REANUDAR</string>
+    <string name="packs_progress">%1$s: %2$d %% (%3$d / %4$d teselas)</string>
+    <string name="packs_error">%1$s: detenida (%2$s), se reintentará más tarde</string>
+    <string name="menu_resume_packs">REANUDAR LA DESCARGA DE MAPAS</string>
+    <string name="menu_pause_packs">PAUSAR LA DESCARGA DE MAPAS</string>
+    <string name="pause">PAUSA</string>
 </resources>
