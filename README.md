@@ -1,5 +1,7 @@
 # Swiss Bike-Hike Map
 
+![Swiss Bike-Hike Map](docs/banner.png)
+
 A map for cycling and hiking in Switzerland, in the spirit of the old GPS boxes: one screen,
 big buttons, the official hiking trails and cycling routes in their signpost colours on the
 swisstopo map. Routing runs on the phone, with turn-by-turn guidance that goes on with the
@@ -57,3 +59,7 @@ Routing: [BRouter](https://github.com/abrensch/brouter) (MIT) on OpenStreetMap d
 segments from brouter.de. Rendering: [MapLibre Native](https://maplibre.org) (BSD).
 Search: GeoAdmin API; people and firms: search.ch directory (Swisscom Directories AG) with the
 user's own key.
+
+## Screenshots
+
+<p><img src="docs/screenshot-1.png" width="240" alt="Start screen"> <img src="docs/screenshot-2.png" width="240" alt="Two stops and the elevation profile"> <img src="docs/screenshot-3.png" width="240" alt="Navigation at night"></p>
