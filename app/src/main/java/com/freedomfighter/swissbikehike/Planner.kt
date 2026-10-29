@@ -116,7 +116,7 @@ object Planner {
     suspend fun departures(ctx: Context, stop: TStop): List<Departure> {
         var liveError: String? = null
         if (online(ctx)) {
-            val r = runCatching { TransitOnline.departures(TransitOnline.Station(stop.id, stop.name, stop.at, 0.0)) }
+            val r = runCatching { TransitOnline.departures(TransitOnline.Station(stop.id, stop.name, stop.at, 0.0), 40) }
             val found = r.getOrDefault(emptyList())
             liveError = r.exceptionOrNull()?.let { it.message ?: it.javaClass.simpleName }
             if (found.isNotEmpty()) return found.map { Departure(it.time, it.kind, it.line, it.headsign, it.platform, it.delayMin, true) }
@@ -124,7 +124,7 @@ object Planner {
         val pack = Timetable.open(ctx) ?: throw (if (liveError != null) Exception(ctx.getString(R.string.live_failed, liveError)) else NoTimetable())
         if (liveError != null) notice = ctx.getString(R.string.live_failed_offline_used, liveError)
         val idx = stop.id.toIntOrNull()?.let { pack.stopByDidok(it) }?.takeIf { it >= 0 } ?: pack.nearest(stop.at, 150.0, 1).firstOrNull()?.first ?: return emptyList()
-        return withContext(Dispatchers.Default) { pack.departures(idx, System.currentTimeMillis()) }.map { Departure(it.time, it.kind, it.line, it.headsign, it.platform, 0, false) }
+        return withContext(Dispatchers.Default) { pack.departures(idx, System.currentTimeMillis(), 40) }.map { Departure(it.time, it.kind, it.line, it.headsign, it.platform, 0, false) }
     }
 
     /** Stops by name, online or from the pack. */

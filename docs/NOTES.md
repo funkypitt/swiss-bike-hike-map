@@ -105,3 +105,16 @@ Hiking: `hiking_routes_preference` 0.20 → 0.6 (ways outside a hiking relation 
 `SAC_scale_limit` 3 → 4 with `SAC_K2` 0.8 (alpine trails allowed but dear). Bike: non-route ways
 +0.25 instead of +0.05 (0.4 changed nothing on the samples), main roads without a cycle lane dearer
 (primary 4, secondary 2.2, tertiary 1.6). The Veloland routes themselves keep cost 1.
+
+## Route planner (0.6.3)
+
+`RouteActivity` is the form (from / to / departure date and time), `Itineraries.kt` the model
+(`Itinerary` = mode, from, to, depart, a `Trip` or a `Journey`), its JSON files in
+`files/itineraries/`, and its text rendering (steps, summary, the share text). The form lives in
+`RouteActivity.form` while the map is used to pick a point (`picking` in MapActivity, the next
+long press returns to the planner); SHOW and GO hand the itinerary over through
+`RouteActivity.handover`, the map draws it and GO starts the navigation. A tap on a stop dot of the
+transit map queries the `pt-stops` layer (`station_id` = DiDok number) and opens the departures,
+grouped by line and direction with the next departure of each. Layout lesson: horizontal
+`LinearLayout`s need `baselineAligned="false"`, or buttons with different text sizes are shifted
+down to a common baseline (the badge's missing bottom border, the planner's shifted buttons).

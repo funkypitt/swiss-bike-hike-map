@@ -28,6 +28,10 @@ the app was called Swiss Bike-Hike Map; the package name has not changed.)
 * **NAV**: one big arrow, the distance to the turn, the next one, the time of arrival; a
   vibration before each turn; a new route when you leave the line; the trip goes on in a
   notification with the screen off or another app in front, and is kept in a local history.
+* **PLAN**, on every map: a start (your position, a search, a point on the map), a destination,
+  a date and a time; the itinerary in detail (turns and stops, or trains and buses with
+  platforms), to share as text, keep in the app, show on the map, or follow at once with GO.
+  On the transit map a tap on any stop dot lists its lines with their next departure.
 * **GPX**: follow a track as it is (turns read off its shape), or record your own.
 * **FIND**: places and addresses (GeoAdmin), typed coordinates (WGS84, LV95, LV03), people and
   firms from the search.ch directory with your own free key, public-transport stops, and your

@@ -11,12 +11,14 @@
 
         <!-- top row: mode badge left, FIND + MENU right -->
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="horizontal" android:padding="8dp" android:gravity="top">
-            <TextView android:id="@+id/modeBadge" android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp"
-                android:paddingStart="6dp" android:paddingEnd="6dp" android:maxLines="1"
-                android:autoSizeTextType="uniform" android:autoSizeMinTextSize="12sp" android:autoSizeMaxTextSize="20sp"
-                android:gravity="center" android:textSize="20sp" android:textStyle="bold" android:letterSpacing="0.12"
-                android:background="@drawable/badge_walk" android:text="@string/walk"/>
+            android:orientation="horizontal" android:baselineAligned="false" android:padding="8dp" android:gravity="top">
+            <FrameLayout android:id="@+id/modeBadge" android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp"
+                android:background="@drawable/badge_walk" android:clickable="true" android:focusable="true">
+                <TextView android:id="@+id/modeBadgeText" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_gravity="center" android:paddingStart="8dp" android:paddingEnd="8dp" android:maxLines="1"
+                    android:includeFontPadding="false" android:autoSizeTextType="uniform" android:autoSizeMinTextSize="11sp" android:autoSizeMaxTextSize="20sp"
+                    android:gravity="center" android:textSize="20sp" android:textStyle="bold" android:letterSpacing="0.12" android:text="@string/walk"/>
+            </FrameLayout>
             <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="0.6"/>
             <TextView android:id="@+id/btnFind" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
                 android:layout_height="56dp" android:text="@string/find"/>
@@ -29,7 +31,7 @@
             android:orientation="vertical" android:layout_marginTop="72dp" android:layout_marginStart="8dp" android:layout_marginEnd="8dp">
 
             <LinearLayout android:id="@+id/pinStrip" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:orientation="horizontal" android:background="@color/ink" android:gravity="center_vertical"
+                android:orientation="horizontal" android:baselineAligned="false" android:background="@color/ink" android:gravity="center_vertical"
                 android:paddingStart="12dp" android:paddingEnd="6dp" android:paddingTop="6dp" android:paddingBottom="6dp" android:visibility="gone">
                 <TextView android:id="@+id/pinLabel" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                     android:textColor="@color/paper" android:textSize="16sp" android:textStyle="bold" android:maxLines="2" android:ellipsize="end"/>
@@ -53,7 +55,7 @@
                 android:paddingTop="8dp" android:paddingBottom="8dp" android:visibility="gone"/>
 
             <LinearLayout android:id="@+id/navPanel" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:orientation="horizontal" android:background="@color/ink" android:gravity="center_vertical"
+                android:orientation="horizontal" android:baselineAligned="false" android:background="@color/ink" android:gravity="center_vertical"
                 android:padding="8dp" android:visibility="gone">
                 <com.freedomfighter.swissbikehike.TurnArrowView android:id="@+id/navArrow"
                     android:layout_width="112dp" android:layout_height="112dp"/>
@@ -62,7 +64,7 @@
                     <TextView android:id="@+id/navDist" android:layout_width="match_parent" android:layout_height="wrap_content"
                         android:textColor="@color/paper" android:textSize="46sp" android:textStyle="bold" android:fontFamily="monospace"
                         android:singleLine="true" android:text="--"/>
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal"
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false"
                         android:gravity="center_vertical">
                         <TextView android:id="@+id/navThenLabel" android:layout_width="wrap_content" android:layout_height="wrap_content"
                             android:textColor="@color/grey" android:textSize="16sp" android:text="@string/then" android:paddingEnd="8dp"/>
@@ -112,9 +114,11 @@
 
     <!-- action row -->
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="horizontal" android:background="@color/paper" android:padding="6dp">
+        android:orientation="horizontal" android:baselineAligned="false" android:background="@color/paper" android:padding="6dp">
+        <TextView android:id="@+id/btnPlan" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1.1"
+            android:layout_height="56dp" android:text="@string/route_plan"/>
         <TextView android:id="@+id/btnGo" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
-            android:layout_height="56dp" android:text="@string/go" android:enabled="false"/>
+            android:layout_height="56dp" android:layout_marginStart="6dp" android:text="@string/go" android:enabled="false"/>
         <TextView android:id="@+id/btnNav" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
             android:layout_height="56dp" android:text="@string/nav" android:layout_marginStart="6dp" android:enabled="false"/>
         <TextView android:id="@+id/btnRec" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
@@ -123,7 +127,7 @@
 
     <!-- data bar -->
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="horizontal" android:background="@color/ink" android:paddingTop="6dp" android:paddingBottom="8dp">
+        android:orientation="horizontal" android:baselineAligned="false" android:background="@color/ink" android:paddingTop="6dp" android:paddingBottom="8dp">
         <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
             <TextView android:id="@+id/vSpeed" style="@style/DataValue" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="--"/>
             <TextView style="@style/DataLabel" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/speed"/>

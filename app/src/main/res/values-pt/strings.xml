@@ -204,4 +204,31 @@
     <string name="search_no_answer">Sem resposta do servidor de pesquisa; verifique a ligação</string>
     <string name="all_routing_state">Dados de rotas: %1$s</string>
     <string name="all_timetable_state">Horário: %1$s</string>
+    <string name="set_destination">DESTINO</string>
+
+    <!-- route planner -->
+    <string name="route_plan">ROTA</string>
+    <string name="route_from">DE</string>
+    <string name="route_to">PARA</string>
+    <string name="route_to_hint">Escolha um destino</string>
+    <string name="route_on_map">NO MAPA</string>
+    <string name="route_here">AQUI</string>
+    <string name="route_when">PARTIDA</string>
+    <string name="route_now">AGORA</string>
+    <string name="route_compute">CALCULAR A ROTA</string>
+    <string name="route_result">ROTA</string>
+    <string name="route_save">GUARDAR</string>
+    <string name="route_saved_ok">GUARDADA</string>
+    <string name="route_show">VER</string>
+    <string name="route_saved">ROTAS GUARDADAS</string>
+    <string name="route_saved_empty">As rotas guardadas com GUARDAR aparecem aqui, para este mapa. Toque numa para a rever, mantenha para a apagar.</string>
+    <string name="route_remove_q">Apagar « %1$s »?</string>
+    <string name="route_need_to">Escolha primeiro um destino</string>
+    <string name="route_no_position">Ainda sem posição GPS: escolha um início com PROCURAR ou NO MAPA</string>
+    <string name="route_pick_from">Toque longo no mapa: o INÍCIO</string>
+    <string name="route_pick_to">Toque longo no mapa: o DESTINO</string>
+    <string name="route_data_menu">MENU › ATUALIZAR TUDO O QUE É OFFLINE descarrega-os.</string>
+    <string name="step_walk">a pé %1$s (%2$s)</string>
+    <string name="step_straight">%1$s</string>
+    <string name="minutes_n">%1$d min</string>
 </resources>

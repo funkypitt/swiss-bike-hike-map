@@ -204,4 +204,31 @@
     <string name="search_no_answer">Нет ответа от сервера поиска; проверьте связь</string>
     <string name="all_routing_state">Данные маршрутов: %1$s</string>
     <string name="all_timetable_state">Расписание: %1$s</string>
+    <string name="set_destination">ЦЕЛЬ</string>
+
+    <!-- route planner -->
+    <string name="route_plan">МАРШРУТ</string>
+    <string name="route_from">ОТКУДА</string>
+    <string name="route_to">КУДА</string>
+    <string name="route_to_hint">Выберите цель</string>
+    <string name="route_on_map">НА КАРТЕ</string>
+    <string name="route_here">ЗДЕСЬ</string>
+    <string name="route_when">ОТПРАВЛЕНИЕ</string>
+    <string name="route_now">СЕЙЧАС</string>
+    <string name="route_compute">ПОСТРОИТЬ МАРШРУТ</string>
+    <string name="route_result">МАРШРУТ</string>
+    <string name="route_save">СОХРАНИТЬ</string>
+    <string name="route_saved_ok">СОХРАНЁН</string>
+    <string name="route_show">ПОКАЗАТЬ</string>
+    <string name="route_saved">СОХРАНЁННЫЕ МАРШРУТЫ</string>
+    <string name="route_saved_empty">Маршруты, сохранённые кнопкой СОХРАНИТЬ, появляются здесь, для этой карты. Коснитесь, чтобы открыть; удерживайте, чтобы удалить.</string>
+    <string name="route_remove_q">Удалить « %1$s »?</string>
+    <string name="route_need_to">Сначала выберите цель</string>
+    <string name="route_no_position">Позиции GPS ещё нет: выберите старт через ПОИСК или НА КАРТЕ</string>
+    <string name="route_pick_from">Долгое нажатие на карту: СТАРТ</string>
+    <string name="route_pick_to">Долгое нажатие на карту: ЦЕЛЬ</string>
+    <string name="route_data_menu">МЕНЮ › ОБНОВИТЬ ВСЕ ОФЛАЙН-ДАННЫЕ загрузит их.</string>
+    <string name="step_walk">пешком %1$s (%2$s)</string>
+    <string name="step_straight">%1$s</string>
+    <string name="minutes_n">%1$d мин</string>
 </resources>

@@ -211,4 +211,31 @@
     <string name="search_no_answer">No answer from the search server; check the connection</string>
     <string name="all_routing_state">Routing data: %1$s</string>
     <string name="all_timetable_state">Timetable: %1$s</string>
+    <string name="set_destination">DESTINATION</string>
+
+    <!-- route planner -->
+    <string name="route_plan">PLAN</string>
+    <string name="route_from">FROM</string>
+    <string name="route_to">TO</string>
+    <string name="route_to_hint">Choose a destination</string>
+    <string name="route_on_map">ON THE MAP</string>
+    <string name="route_here">HERE</string>
+    <string name="route_when">DEPARTURE</string>
+    <string name="route_now">NOW</string>
+    <string name="route_compute">COMPUTE THE ITINERARY</string>
+    <string name="route_result">ITINERARY</string>
+    <string name="route_save">KEEP</string>
+    <string name="route_saved_ok">KEPT</string>
+    <string name="route_show">SHOW</string>
+    <string name="route_saved">KEPT ITINERARIES</string>
+    <string name="route_saved_empty">Itineraries kept with KEEP appear here, for this map. Tap one to see it again, hold to remove it.</string>
+    <string name="route_remove_q">Remove « %1$s »?</string>
+    <string name="route_need_to">Choose a destination first</string>
+    <string name="route_no_position">No GPS position yet: choose a start with FIND or ON THE MAP</string>
+    <string name="route_pick_from">Press long on the map: the START</string>
+    <string name="route_pick_to">Press long on the map: the DESTINATION</string>
+    <string name="route_data_menu">MENU › UPDATE ALL OFFLINE DATA fetches it.</string>
+    <string name="step_walk">walk %1$s (%2$s)</string>
+    <string name="step_straight">%1$s</string>
+    <string name="minutes_n">%1$d min</string>
 </resources>

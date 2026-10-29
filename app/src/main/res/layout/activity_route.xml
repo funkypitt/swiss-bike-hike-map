@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/paper">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="12dp">
+
+        <TextView android:id="@+id/modeLine" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textSize="13sp" android:textStyle="bold" android:letterSpacing="0.12" android:paddingBottom="6dp"/>
+
+        <!-- FROM -->
+        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingTop="6dp" android:text="@string/route_from"/>
+        <TextView android:id="@+id/fromValue" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textSize="18sp" android:textStyle="bold" android:paddingBottom="6dp" android:text="@string/my_position"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false">
+            <TextView android:id="@+id/fromSearch" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:autoSizeMaxTextSize="14sp" android:text="@string/find"/>
+            <TextView android:id="@+id/fromMap" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:text="@string/route_on_map"/>
+            <TextView android:id="@+id/fromHere" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:text="@string/route_here"/>
+        </LinearLayout>
+
+        <!-- TO -->
+        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/route_to"/>
+        <TextView android:id="@+id/toValue" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textSize="18sp" android:textStyle="bold" android:paddingBottom="6dp" android:textColor="@color/grey" android:text="@string/route_to_hint"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false">
+            <TextView android:id="@+id/toSearch" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:autoSizeMaxTextSize="14sp" android:text="@string/find"/>
+            <TextView android:id="@+id/toMap" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:text="@string/route_on_map"/>
+            <TextView android:id="@+id/swap" style="@style/Btn" android:layout_width="56dp" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeTextType="none" android:textSize="22sp" android:letterSpacing="0" android:text="⇅"/>
+        </LinearLayout>
+
+        <!-- WHEN -->
+        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/route_when"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false">
+            <TextView android:id="@+id/dateBtn" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1.3" android:layout_height="48dp" android:autoSizeMaxTextSize="14sp" android:textAllCaps="false"/>
+            <TextView android:id="@+id/timeBtn" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp"/>
+            <TextView android:id="@+id/nowBtn" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:text="@string/route_now"/>
+        </LinearLayout>
+
+        <TextView android:id="@+id/compute" style="@style/Btn" android:layout_width="match_parent" android:layout_height="60dp" android:layout_marginTop="14dp"
+            android:background="@drawable/btn_active" android:textColor="@drawable/btn_active_text" android:text="@string/route_compute"/>
+        <TextView android:id="@+id/status" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="15sp" android:paddingTop="8dp" android:visibility="gone"/>
+
+        <!-- RESULT -->
+        <LinearLayout android:id="@+id/result" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+            <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/route_result"/>
+            <LinearLayout android:id="@+id/choices" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"/>
+            <TextView android:id="@+id/summary" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="17sp" android:textStyle="bold" android:fontFamily="monospace" android:paddingTop="6dp" android:paddingBottom="6dp"/>
+            <TextView android:id="@+id/steps" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="15sp" android:fontFamily="monospace" android:lineSpacingExtra="4dp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginTop="12dp">
+                <TextView android:id="@+id/share" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp" android:text="@string/share"/>
+                <TextView android:id="@+id/save" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp" android:layout_marginStart="6dp" android:text="@string/route_save"/>
+                <TextView android:id="@+id/show" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp" android:layout_marginStart="6dp" android:text="@string/route_show"/>
+            </LinearLayout>
+            <TextView android:id="@+id/go" style="@style/Btn" android:layout_width="match_parent" android:layout_height="60dp" android:layout_marginTop="8dp"
+                android:background="@drawable/btn_active" android:textColor="@drawable/btn_active_text" android:text="@string/go"/>
+        </LinearLayout>
+
+        <!-- SAVED -->
+        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/route_saved"/>
+        <TextView android:id="@+id/savedInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:textColor="@color/grey" android:text="@string/route_saved_empty"/>
+        <LinearLayout android:id="@+id/savedList" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"/>
+    </LinearLayout>
+</ScrollView>

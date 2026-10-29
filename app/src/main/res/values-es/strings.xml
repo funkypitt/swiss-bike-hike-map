@@ -204,4 +204,31 @@
     <string name="search_no_answer">Sin respuesta del servidor de búsqueda; compruebe la conexión</string>
     <string name="all_routing_state">Datos de rutas: %1$s</string>
     <string name="all_timetable_state">Horario: %1$s</string>
+    <string name="set_destination">DESTINO</string>
+
+    <!-- route planner -->
+    <string name="route_plan">RUTA</string>
+    <string name="route_from">DESDE</string>
+    <string name="route_to">HASTA</string>
+    <string name="route_to_hint">Elija un destino</string>
+    <string name="route_on_map">EN EL MAPA</string>
+    <string name="route_here">AQUÍ</string>
+    <string name="route_when">SALIDA</string>
+    <string name="route_now">AHORA</string>
+    <string name="route_compute">CALCULAR LA RUTA</string>
+    <string name="route_result">RUTA</string>
+    <string name="route_save">GUARDAR</string>
+    <string name="route_saved_ok">GUARDADA</string>
+    <string name="route_show">VER</string>
+    <string name="route_saved">RUTAS GUARDADAS</string>
+    <string name="route_saved_empty">Las rutas guardadas con GUARDAR aparecen aquí, para este mapa. Toque una para verla de nuevo, mantenga para borrarla.</string>
+    <string name="route_remove_q">¿Borrar « %1$s »?</string>
+    <string name="route_need_to">Elija primero un destino</string>
+    <string name="route_no_position">Aún sin posición GPS: elija un inicio con BUSCAR o EN EL MAPA</string>
+    <string name="route_pick_from">Pulsación larga en el mapa: el INICIO</string>
+    <string name="route_pick_to">Pulsación larga en el mapa: el DESTINO</string>
+    <string name="route_data_menu">MENÚ › ACTUALIZAR TODO LO SIN CONEXIÓN los descarga.</string>
+    <string name="step_walk">a pie %1$s (%2$s)</string>
+    <string name="step_straight">%1$s</string>
+    <string name="minutes_n">%1$d min</string>
 </resources>

@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.RectF
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -84,6 +85,38 @@ class MapActivity : AppCompatActivity(), LocationListener {
             map?.animateCamera(CameraUpdateFactory.newLatLngZoom(p, 15.0))
         }
     }
+    /** Which point the planner asked for on the map: "from", "to", or null. */
+    private var picking: String? = null
+    private val routeLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
+        when (r.resultCode) {
+            RouteActivity.RESULT_PICK -> {
+                picking = r.data?.getStringExtra(RouteActivity.EXTRA_PICK)
+                status(getString(if (picking == "from") R.string.route_pick_from else R.string.route_pick_to))
+            }
+            RouteActivity.RESULT_SHOW, RouteActivity.RESULT_GO -> RouteActivity.handover?.let { it0 ->
+                RouteActivity.handover = null
+                loadItinerary(it0)
+                if (r.resultCode == RouteActivity.RESULT_GO) startNav()
+            }
+        }
+    }
+
+    private fun openPlanner() {
+        val f = RouteActivity.form ?: RouteForm().also { RouteActivity.form = it }
+        if (f.to == null) stops.lastOrNull()?.let { f.to = it }
+        val i = Intent(this, RouteActivity::class.java).putExtra(RouteActivity.EXTRA_MODE, mode.name)
+        lastLocation?.let { i.putExtra(RouteActivity.EXTRA_LAT, it.latitude).putExtra(RouteActivity.EXTRA_LON, it.longitude) }
+        routeLauncher.launch(i)
+    }
+
+    /** A planned itinerary onto the map: its destination as the stop, its route or journey drawn. */
+    private fun loadItinerary(it: Itinerary) {
+        if (nav) { stopNav(); exitNavUi() }
+        stops.clear(); stops.add(it.to); drawStops()
+        it.trip?.let { t -> setTrip(t, fit = true) }
+        it.journey?.let { j -> setJourney(j, fit = true) }
+    }
+
     private val menuLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
         when (r.resultCode) {
             Activity.RESULT_OK -> r.data?.data?.let { followGpx(it) }
@@ -102,9 +135,9 @@ class MapActivity : AppCompatActivity(), LocationListener {
         Insets.pad(b.root)
         b.map.onCreate(savedInstanceState)
 
-        b.modeBadge.text = getString(when (mode) { Mode.BIKE -> R.string.bike; Mode.WALK -> R.string.walk; Mode.TRANSIT -> R.string.transit_short })
+        b.modeBadgeText.text = getString(when (mode) { Mode.BIKE -> R.string.bike; Mode.WALK -> R.string.walk; Mode.TRANSIT -> R.string.transit_short })
         b.modeBadge.setBackgroundResource(when (mode) { Mode.BIKE -> R.drawable.badge_bike; Mode.WALK -> R.drawable.badge_walk; Mode.TRANSIT -> R.drawable.badge_transit })
-        b.modeBadge.setTextColor(ContextCompat.getColor(this, if (mode == Mode.WALK) R.color.ink else R.color.paper))
+        b.modeBadgeText.setTextColor(ContextCompat.getColor(this, if (mode == Mode.WALK) R.color.ink else R.color.paper))
         b.modeBadge.setOnClickListener { finish() }
         b.btnFind.setOnClickListener { searchLauncher.launch(Intent(this, SearchActivity::class.java)) }
         b.btnMenu.setOnClickListener {
@@ -114,7 +147,8 @@ class MapActivity : AppCompatActivity(), LocationListener {
         b.btnZoomIn.setOnClickListener { zoomBy(1.0) }
         b.btnZoomOut.setOnClickListener { zoomBy(-1.0) }
         b.btnFollow.setOnClickListener { setFollow((follow + 1) % 3) }
-        b.btnGo.setOnClickListener { if (nav) stopNav() else if (trip != null) clearTrip() else go() }
+        b.btnPlan.setOnClickListener { openPlanner() }
+        b.btnGo.setOnClickListener { if (nav) stopNav() else if (trip != null || journey != null) clearTrip() else go() }
         b.btnNav.setOnClickListener { startNav() }
         b.btnRec.setOnClickListener { toggleRecording() }
         b.btnSave.setOnClickListener { toggleFavourite() }
@@ -131,7 +165,30 @@ class MapActivity : AppCompatActivity(), LocationListener {
             }
             val (target, zoom, bearing) = prefs.camera
             m.cameraPosition = CameraPosition.Builder().target(target).zoom(zoom).bearing(bearing).build()
-            m.addOnMapLongClickListener { p -> if (!nav) addStop(Stop(p, Favourites.coordsName(p.latitude, p.longitude))); true }
+            m.addOnMapLongClickListener { p ->
+                if (nav) return@addOnMapLongClickListener true
+                val pick = picking
+                if (pick != null) {
+                    // the planner asked for this point: back to it with the point in place
+                    picking = null; status(null)
+                    val f = RouteActivity.form ?: RouteForm().also { RouteActivity.form = it }
+                    val s = Stop(p, Favourites.coordsName(p.latitude, p.longitude))
+                    if (pick == "from") f.from = s else { f.to = s; f.result = null }
+                    openPlanner()
+                } else addStop(Stop(p, Favourites.coordsName(p.latitude, p.longitude)))
+                true
+            }
+            // a tap on a stop dot of the transit map: its departures, line by line
+            m.addOnMapClickListener { p ->
+                if (mode != Mode.TRANSIT) return@addOnMapClickListener false
+                val pt = m.projection.toScreenLocation(p)
+                val r = 28f * resources.displayMetrics.density
+                val f = m.queryRenderedFeatures(RectF(pt.x - r, pt.y - r, pt.x + r, pt.y + r), "pt-stops").firstOrNull() ?: return@addOnMapClickListener false
+                val g = f.geometry() as? Point ?: return@addOnMapClickListener false
+                val id = f.getProperty("station_id")?.asString ?: ""
+                showDepartures(Stop(LatLng(g.latitude(), g.longitude()), f.getStringProperty("name") ?: "", Favourites.STOP, id))
+                true
+            }
             night = wantNight()
             loadStyle()
             handleIntent(intent)
@@ -394,12 +451,17 @@ class MapActivity : AppCompatActivity(), LocationListener {
             found.onFailure { e -> if (e is Planner.NoTimetable) askForTimetable() else Toast.makeText(this@MapActivity, e.message ?: "?", Toast.LENGTH_LONG).show() }
             found.onSuccess { list ->
                 if (list.isEmpty()) { Toast.makeText(this@MapActivity, R.string.no_departures, Toast.LENGTH_SHORT).show(); return@onSuccess }
-                val lines = list.map { d ->
+                // one row per line and direction, with its next departure
+                val next = LinkedHashMap<String, Planner.Departure>()
+                for (d in list.sortedBy { it.time }) next.putIfAbsent(d.line + "→" + d.headsign, d)
+                val lines = next.values.map { d ->
                     Journey.clock(d.time) + (if (d.delayMin > 0) " +${d.delayMin}" else "") + "   " + kindLabel(d.kind, d.line) + "  → " + d.headsign +
                         (if (d.platform.isNotBlank()) "   " + getString(R.string.nav_platform, d.platform) else "")
                 }
-                AlertDialog.Builder(this@MapActivity).setTitle(getString(R.string.departures_title, s.name))
-                    .setItems(lines.toTypedArray(), null).setPositiveButton(android.R.string.ok, null).show()
+                val dlg = AlertDialog.Builder(this@MapActivity).setTitle(getString(R.string.departures_title, s.name))
+                    .setItems(lines.toTypedArray(), null).setPositiveButton(android.R.string.ok, null)
+                if (!nav && stops.none { it.at.distanceTo(s.at) < 20 }) dlg.setNeutralButton(R.string.set_destination) { _, _ -> addStop(s); map?.animateCamera(CameraUpdateFactory.newLatLngZoom(s.at, maxOf(map?.cameraPosition?.zoom ?: 15.0, 15.0))) }
+                dlg.show()
             }
         }
     }
@@ -756,6 +818,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
         b.btnGo.text = getString(R.string.stop_nav)
         b.btnGo.isEnabled = true
         b.btnNav.visibility = View.GONE
+        b.btnPlan.visibility = View.GONE
         b.lAlt.text = getString(R.string.eta)
         b.vAlt.text = "--:--"
         b.lDist.text = getString(R.string.togo)
@@ -776,6 +839,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
         if (trip != null || journey != null) b.routeStrip.visibility = View.VISIBLE
         b.btnGo.text = getString(if (trip != null || journey != null) R.string.clear else R.string.go)
         b.btnNav.visibility = View.VISIBLE
+        b.btnPlan.visibility = View.VISIBLE
         b.lAlt.text = getString(R.string.alt)
         lastLocation?.let { onLocationChanged(it) }
         b.profile.progress(-1.0)

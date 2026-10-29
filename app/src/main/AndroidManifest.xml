@@ -59,6 +59,7 @@
         </activity>
         <activity android:name=".SearchActivity" android:windowSoftInputMode="stateVisible|adjustResize" />
         <activity android:name=".MenuActivity" />
+        <activity android:name=".RouteActivity" />
 
         <receiver android:name=".SegmentReceiver" android:exported="true">
             <intent-filter><action android:name="android.intent.action.DOWNLOAD_COMPLETE"/></intent-filter>
