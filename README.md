@@ -87,4 +87,4 @@ Transport, converted by this repository.
 
 ## Screenshots
 
-<p><img src="docs/screenshot-1.png" width="240" alt="Start screen"> <img src="docs/screenshot-2.png" width="240" alt="Two stops and the elevation profile"> <img src="docs/screenshot-3.png" width="240" alt="Navigation at night"></p>
+<p><img src="docs/screenshot-1.png" width="240" alt="Start screen: bike, walk, public transport"> <img src="docs/screenshot-2.png" width="240" alt="Two stops and the elevation profile"> <img src="docs/screenshot-3.png" width="240" alt="Navigation at night"> <img src="docs/screenshot-4.png" width="240" alt="The transit map: railways, metro and stops"> <img src="docs/screenshot-5.png" width="240" alt="Public-transport guidance"></p>
