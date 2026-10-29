@@ -114,7 +114,7 @@
     <string name="people_on">People search on</string>
     <string name="people_off">People search off</string>
     <string name="menu_about">ABOUT</string>
-    <string name="about_text">Map: swisstopo vector base map, hiking trail network, Veloland and Mountainbikeland routes, closures (© swisstopo, © SchweizMobil).\nRouting: BRouter (MIT) on OpenStreetMap data (ODbL), profiles « trekking » and « hiking-mountain ».\nPublic transport: timetable of transport.opendata.ch (Opendata.ch) when connected; offline, the official Swiss timetable (opentransportdata.swiss, GTFS) packed weekly by the app\'s repository.\nMap rendering: MapLibre Native (BSD).\nSearch: GeoAdmin API; people and firms: search.ch directory (Swisscom Directories AG) with your own key.</string>
+    <string name="about_text">Map: swisstopo vector base map, hiking trail network, Veloland and Mountainbikeland routes, closures (© swisstopo, © SchweizMobil).\nRouting: BRouter (MIT) on OpenStreetMap data (ODbL), profiles « trekking » and « hiking-mountain ».\nPublic transport: timetable of transport.opendata.ch (Opendata.ch) when connected; offline, the official Swiss timetable (opentransportdata.swiss, GTFS) packed weekly by the app\'s repository.\nMap rendering: MapLibre Native (BSD).\nSearch: GeoAdmin API; people and firms: search.ch directory (Swisscom Directories AG) with your own key.\nThe transit map sends your position to transport.opendata.ch to find the stops around you; nothing else leaves the phone.</string>
     <string name="nav_channel">Navigation</string>
     <string name="nav_starting">Navigation starting…</string>
     <string name="eta_short">arrival %1$s</string>
@@ -238,4 +238,6 @@
     <string name="step_walk">walk %1$s (%2$s)</string>
     <string name="step_straight">%1$s</string>
     <string name="minutes_n">%1$d min</string>
+    <string name="dl_unpacking">unpacking…</string>
+    <string name="transit_multi_hint">Public transport: the journey goes through your stops in order; only the first leg offers a choice of times.</string>
 </resources>

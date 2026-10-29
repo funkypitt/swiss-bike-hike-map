@@ -117,11 +117,10 @@ class NavService : Service(), LocationListener {
     private var lastNotified = 0L
     // public transport
     private var journey: Journey? = null
-    private var legIdx = 0
-    private var passedStops = 0
-    private var buzzedLeg = -1
-    private var changeNext = false
+    private var guide: TransitGuide? = null
+    private var lastStep: TransitGuide.Step? = null
     private var replanning = false
+    private var run = 0                      // bumped at every (re)start, so a late replan answer is dropped
     private var ticker: Job? = null
     private var lastFix: Location? = null
 
@@ -131,52 +130,70 @@ class NavService : Service(), LocationListener {
         when (intent?.action) {
             ACTION_START -> {
                 val p = pending; pending = null; val j = pendingJourney; pendingJourney = null
-                if (state.value.running) {}
-                else if (p != null) begin(p.first, p.second)
+                // a new trip while one runs: switch in place (the old one goes to the history), never stop and restart
+                if (state.value.running && (p != null || j != null)) keepTrack()
+                if (p != null) begin(p.first, p.second)
                 else if (j != null) beginTransit(j)
-                else stopSelf()
+                else if (!state.value.running) stopSelf()
             }
             ACTION_STOP -> finish()
+            // restarted by the system with nothing to do: static state is gone, so is the point
+            null -> if (!state.value.running) stopSelf()
         }
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
+    private var foregroundUp = false
+    private var listening = false
+
     private fun beginTransit(j: Journey) {
-        journey = j; legIdx = 0; passedStops = 0; buzzedLeg = -1; changeNext = false
-        mode = Mode.TRANSIT; version = 1
-        startedAt = System.currentTimeMillis(); track.clear(); prevFix = null; arrived = false
+        journey = j; guide = TransitGuide(j); lastStep = null; run++
+        mode = Mode.TRANSIT; version++
+        startedAt = System.currentTimeMillis(); track.clear(); prevFix = null; arrived = false; replanning = false
         foreground(j.destination.name.ifBlank { getString(R.string.nav) })
         state.value = NavState(true, mode, null, version, journey = j)
-        listen()
+        listen(1000L)
         // the instructions depend on the clock as much as on the position
-        ticker = scope.launch { while (true) { delay(10_000); if (state.value.running && journey != null) stepTransit(lastFix) } }
-        stepTransit(null)
+        ticker?.cancel()
+        ticker = scope.launch { while (true) { delay(10_000); if (state.value.running && journey != null) stepTransit(freshFix()) } }
+        stepTransit(freshFix())
     }
 
     private fun foreground(title: String) {
         val nm = getSystemService(NotificationManager::class.java)
         nm.createNotificationChannel(NotificationChannel(CHANNEL, getString(R.string.nav_channel), NotificationManager.IMPORTANCE_LOW))
         val notif = notification(getString(R.string.nav_starting), title)
-        if (Build.VERSION.SDK_INT >= 29) startForeground(NOTIF_ID, notif, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION) else startForeground(NOTIF_ID, notif)
-        wakeLock = (getSystemService(POWER_SERVICE) as PowerManager)
-            .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "sbh:nav").also { it.acquire(12 * 3600_000L) }
+        if (!foregroundUp) {
+            if (Build.VERSION.SDK_INT >= 29) startForeground(NOTIF_ID, notif, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION) else startForeground(NOTIF_ID, notif)
+            foregroundUp = true
+            wakeLock = (getSystemService(POWER_SERVICE) as PowerManager)
+                .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "sbh:nav").also { it.acquire(12 * 3600_000L) }
+        } else nm.notify(NOTIF_ID, notif)
     }
 
-    private fun listen() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            val lm = getSystemService(LOCATION_SERVICE) as LocationManager
-            lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)?.let { onLocationChanged(it) }
-            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 0f, this)
-        }
+    private var listenInterval = 0L
+    /** GPS updates at the given pace; re-requested when the pace changes (slower on board a train). */
+    private fun listen(intervalMs: Long) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return
+        if (listening && listenInterval == intervalMs) return
+        val lm = getSystemService(LOCATION_SERVICE) as LocationManager
+        val first = !listening
+        if (listening) lm.removeUpdates(this)
+        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, intervalMs, 0f, this)
+        listening = true; listenInterval = intervalMs   // noted before the first fix is fed: the guidance calls listen() again
+        if (first) lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)?.let { onLocationChanged(it) }
     }
+
+    /** The last fix, only if it is recent enough to mean something (a minute). */
+    private fun freshFix(): Location? = lastFix?.takeIf { System.currentTimeMillis() - it.time < 60_000L }
 
     private fun begin(t: Trip, m: Mode) {
-        trip = t; mode = m; version = 1; journey = null
+        trip = t; mode = m; version++; journey = null; guide = null; ticker?.cancel(); ticker = null
         passed = BooleanArray(t.stops.size); arrived = false; offRouteFixes = 0; buzzedTurn = -1
         startedAt = System.currentTimeMillis(); track.clear(); prevFix = null
         foreground(t.name)
         state.value = NavState(true, mode, trip, version)
-        listen()
+        listen(1000L)
     }
 
     private fun notification(text: String, title: String? = null): Notification {
@@ -242,102 +259,88 @@ class NavService : Service(), LocationListener {
         return d
     }
 
-    /** One pass, on a fix or on the clock: which leg we are on, what to do now, when to get off. */
+    /** One pass, on a fix or on the clock: the guide says the step, this says it in words and buzzes on changes. */
     private fun stepTransit(loc: Location?) {
-        val j = journey ?: return
+        val j = journey ?: return; val g = guide ?: return
+        if (replanning) return
         val now = System.currentTimeMillis()
         val here = loc?.let { LatLng(it.latitude, it.longitude) }
-        var guard = 0
-        while (guard++ < 3) {
-            if (legIdx >= j.legs.size) {
+        val st = g.step(here, now)
+        val prev = lastStep; lastStep = st
+        val changed = prev == null || prev::class != st::class || prev.leg != st.leg
+        when (st) {
+            is TransitGuide.Step.Arrived -> {
                 if (!arrived) { arrived = true; buzz(longArrayOf(0, 250, 150, 250)) }
                 state.value = NavState(true, mode, null, version, loc, 0.0, 0.0, arrived = true, eta = Journey.clock(j.arr), journey = j,
-                    guide = Guide(getString(R.string.arrived), j.destination.name, Journey.WALK, legIdx, false))
+                    guide = Guide(getString(R.string.arrived), j.destination.name, Journey.WALK, st.leg, false))
                 notify(getString(R.string.arrived))
-                return
             }
-            val leg = j.legs[legIdx]
-            val last = legIdx == j.legs.size - 1
-            val next = j.legs.getOrNull(legIdx + 1)
-            if (!leg.ride) {
-                val d = here?.distanceTo(leg.to.at)
-                val doneByPlace = d != null && d < 35
-                val doneByClock = here == null && now >= leg.arr
-                if (!last && (doneByPlace || doneByClock)) { legIdx++; passedStops = 0; continue }
-                if (last && (doneByPlace || (d == null && now >= leg.arr))) { legIdx++; continue }
-                // the ride ahead left without us: plan again from here
-                if (next != null && next.ride && now > next.dep + 120_000 && (d == null || d > 35) && !replanning) { replan(here, now); return }
-                val target = if (last) j.destination.name.ifBlank { "◎" } else leg.to.name
-                val title = (if (changeNext) getString(R.string.nav_change) + "  ·  " else "") + getString(R.string.nav_walk_to, target)
-                val detail = (if (d != null) navM(d) + "  ·  " else "") + (if (last) getString(R.string.eta_short, Journey.clock(leg.arr)) else nextRideText(legIdx + 1))
-                publishTransit(loc, here, Guide(title, detail, Journey.WALK, legIdx, false), j)
-                return
+            is TransitGuide.Step.Walk -> {
+                listen(1000L)
+                val leg = j.legs[st.leg]
+                val target = if (st.last) j.destination.name.ifBlank { "◎" } else leg.to.name
+                val title = (if (st.change) getString(R.string.nav_change) + "  ·  " else "") + getString(R.string.nav_walk_to, target)
+                val detail = (if (st.distM != null) navM(st.distM) + "  ·  " else "") + (if (st.last) getString(R.string.eta_short, Journey.clock(leg.arr)) else nextRideText(st.leg + 1))
+                if (changed && st.change) buzz(longArrayOf(0, 250, 150, 250))
+                publishTransit(loc, here, st.leg, Guide(title, detail, Journey.WALK, st.leg, false), j)
             }
-            // a ride
-            val dFrom = here?.distanceTo(leg.from.at)
-            val dTo = here?.distanceTo(leg.to.at)
-            val boarding = now < leg.dep + 30_000 && (dFrom == null || dFrom < 250) && passedStops == 0
-            if (boarding) {
-                if (now > leg.dep + 180_000 && dFrom != null && dFrom < 80 && !replanning) { replan(here, now); return }
-                val title = (if (changeNext) getString(R.string.nav_change) + "  ·  " else "") + getString(R.string.nav_board, label(leg))
+            is TransitGuide.Step.Board -> {
+                listen(1000L)
+                val leg = j.legs[st.leg]
+                val title = (if (st.change) getString(R.string.nav_change) + "  ·  " else "") + getString(R.string.nav_board, label(leg))
                 val detail = getString(R.string.nav_towards, leg.headsign) + "  ·  " + getString(R.string.nav_leaves, Journey.clock(leg.dep)) + " (" + minutesTo(leg.dep) + ")" +
                     platform(leg.platDep) + "\n" + getString(R.string.nav_get_off_at, leg.to.name) + "  ·  " + Journey.clock(leg.arr)
-                if (buzzedLeg != legIdx && now >= leg.dep - 120_000) { buzzedLeg = legIdx; buzz(longArrayOf(0, 300)) }
-                publishTransit(loc, here, Guide(title, detail, leg.kind, legIdx, now >= leg.dep - 120_000), j)
-                return
+                if (st.soon && (changed || (prev as? TransitGuide.Step.Board)?.soon == false)) buzz(longArrayOf(0, 300))
+                publishTransit(loc, here, st.leg, Guide(title, detail, leg.kind, st.leg, st.soon), j)
             }
-            // on board: count the stops passed by position (monotonic), fall back on the clock
-            if (here != null) {
-                for (k in passedStops until leg.stops.size) if (here.distanceTo(leg.stops[k].first.at) < 150) passedStops = k + 1
+            is TransitGuide.Step.Ride -> {
+                listen(5000L)   // on board, the position matters less than the clock
+                val leg = j.legs[st.leg]
+                val title = getString(R.string.nav_ride, label(leg)) + " " + getString(R.string.nav_towards, leg.headsign)
+                val detail = getString(R.string.nav_get_off_at, leg.to.name) + "  ·  " + Journey.clock(leg.arr) + platform(leg.platArr) + "  ·  " +
+                    (if (st.stopsLeft == 1) getString(R.string.nav_stop_left) else getString(R.string.nav_stops_left, st.stopsLeft))
+                publishTransit(loc, here, st.leg, Guide(title, detail, leg.kind, st.leg, false), j)
             }
-            val byClock = leg.stops.count { it.second <= now }
-            val passed = maxOf(passedStops, if (here == null) byClock else 0)
-            val left = leg.stops.size - passed
-            val legDone = (dTo != null && dTo < 60 && now >= leg.arr - 120_000) || (dTo != null && dTo < 200 && now >= leg.arr + 60_000) || (here == null && now >= leg.arr + 30_000)
-            if (legDone) { legIdx++; passedStops = 0; changeNext = next != null && (next.ride || j.legs.getOrNull(legIdx + 1)?.ride == true); if (changeNext) buzz(longArrayOf(0, 250, 150, 250)); continue }
-            val getOff = left <= 1 || (dTo != null && dTo < 400) || now >= leg.arr - 60_000
-            if (getOff) {
-                if (buzzedLeg != legIdx + 1000) { buzzedLeg = legIdx + 1000; buzz(longArrayOf(0, 500, 200, 500)) }
-                val title = getString(R.string.nav_get_off, leg.to.name)
-                val after = if (next == null) getString(R.string.arrived) else if (next.ride) getString(R.string.nav_change) + ": " + nextRideText(legIdx + 1) else nextRideText(legIdx + 1).ifBlank { getString(R.string.nav_walk_to, j.destination.name.ifBlank { "◎" }) }
-                publishTransit(loc, here, Guide(title, Journey.clock(leg.arr) + platform(leg.platArr) + "\n" + after, leg.kind, legIdx, true), j)
-                return
+            is TransitGuide.Step.GetOff -> {
+                listen(1000L)
+                val leg = j.legs[st.leg]; val next = j.legs.getOrNull(st.leg + 1)
+                if (changed) buzz(longArrayOf(0, 500, 200, 500))
+                val after = if (next == null) getString(R.string.arrived) else if (next.ride) getString(R.string.nav_change) + ": " + nextRideText(st.leg + 1)
+                    else nextRideText(st.leg + 1).ifBlank { getString(R.string.nav_walk_to, j.destination.name.ifBlank { "◎" }) }
+                publishTransit(loc, here, st.leg, Guide(getString(R.string.nav_get_off, leg.to.name), Journey.clock(leg.arr) + platform(leg.platArr) + "\n" + after, leg.kind, st.leg, true), j)
             }
-            val title = getString(R.string.nav_ride, label(leg)) + " " + getString(R.string.nav_towards, leg.headsign)
-            val detail = getString(R.string.nav_get_off_at, leg.to.name) + "  ·  " + Journey.clock(leg.arr) + platform(leg.platArr) + "  ·  " +
-                (if (left == 1) getString(R.string.nav_stop_left) else getString(R.string.nav_stops_left, left))
-            publishTransit(loc, here, Guide(title, detail, leg.kind, legIdx, false), j)
-            return
+            is TransitGuide.Step.Missed -> replan(here, now)
         }
     }
 
-    private fun publishTransit(loc: Location?, here: LatLng?, g: Guide, j: Journey) {
+    private fun publishTransit(loc: Location?, here: LatLng?, legIdx: Int, g: Guide, j: Journey) {
         state.value = NavState(true, mode, null, version, loc, -1.0, remainingM(legIdx, here), arrived = false, rerouting = replanning,
             eta = Journey.clock(j.arr), journey = j, guide = g)
         notify(g.title + "  ·  " + g.detail.replace("\n", "  ·  "))
     }
 
-    /** The journey went wrong (a ride missed): the next journeys from here, the first one taken. */
+    /** The ride left without us: the next journeys from here, the first one taken; without one, the board stays and we try again in a minute. */
     private fun replan(here: LatLng?, now: Long) {
         val j = journey ?: return
-        val from = here ?: return
+        val from = here ?: lastFix?.let { LatLng(it.latitude, it.longitude) } ?: return
+        if (replanning) return
         replanning = true
+        val myRun = run
         state.value = NavState(true, mode, null, version, lastFix, rerouting = true, eta = Journey.clock(j.arr), journey = j,
-            guide = Guide(getString(R.string.nav_missed), "", Journey.WALK, legIdx, true))
+            guide = Guide(getString(R.string.nav_missed), "", Journey.WALK, guide?.legIdx ?: 0, true))
         notify(getString(R.string.nav_missed))
+        buzz(longArrayOf(0, 120, 80, 120, 80, 120))
         scope.launch {
             val found = runCatching { Planner.plan(this@NavService, from, j.destination.at, now, 1) }.getOrDefault(emptyList())
+            if (myRun != run || !state.value.running) return@launch   // stopped or replaced meanwhile
             replanning = false
             val n = found.firstOrNull()
-            if (n != null) { journey = n; legIdx = 0; passedStops = 0; buzzedLeg = -1; changeNext = false; version++; stepTransit(lastFix) }
+            if (n != null) { journey = n; guide?.restart(n); lastStep = null; version++; stepTransit(freshFix()) }
             else {
-                // nothing better known: say so, then go on with what follows the missed ride
-                legIdx = minOf(legIdx + 1, j.legs.size)
                 state.value = NavState(true, mode, null, version, lastFix, eta = Journey.clock(j.arr), journey = j,
-                    guide = Guide(getString(R.string.nav_replan_failed), nextRideText(legIdx), Journey.WALK, legIdx, true))
+                    guide = Guide(getString(R.string.nav_replan_failed), nextRideText(guide?.legIdx ?: 0), Journey.WALK, guide?.legIdx ?: 0, true))
                 notify(getString(R.string.nav_replan_failed))
-                buzz(longArrayOf(0, 120, 80, 120, 80, 120))
-                scope.launch { delay(15_000); if (state.value.running) stepTransit(lastFix) }
+                delay(60_000); if (myRun == run && state.value.running) stepTransit(freshFix())
             }
         }
     }
@@ -430,16 +433,23 @@ class NavService : Service(), LocationListener {
     override fun onProviderEnabled(provider: String) {}
     override fun onProviderDisabled(provider: String) {}
 
+    /** The trip so far goes into the history (when switching to another, or stopping). */
+    private fun keepTrack(): TripRecord? {
+        val dest = journey?.destination?.name ?: if (::trip.isInitialized) trip.name else ""
+        return Trips.add(this, startedAt, mode, dest, track.toList())
+    }
+
     private fun finish() {
         if (!state.value.running) { stopSelf(); return }
+        run++
         ticker?.cancel(); ticker = null
-        (getSystemService(LOCATION_SERVICE) as LocationManager).removeUpdates(this)
+        if (listening) (getSystemService(LOCATION_SERVICE) as LocationManager).removeUpdates(this)
+        listening = false
         wakeLock?.let { if (it.isHeld) it.release() }
-        val dest = journey?.destination?.name ?: if (::trip.isInitialized) trip.name else ""
-        val kept = Trips.add(this, startedAt, mode, dest, track.toList())
-        journey = null
+        val kept = keepTrack()
+        journey = null; guide = null; lastStep = null; replanning = false
         state.value = NavState(false, mode, null, 0, kept = kept)
-        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopForeground(STOP_FOREGROUND_REMOVE); foregroundUp = false
         stopSelf()
     }
 

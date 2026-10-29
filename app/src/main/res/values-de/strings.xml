@@ -107,7 +107,7 @@
     <string name="people_on">Personensuche ein</string>
     <string name="people_off">Personensuche aus</string>
     <string name="menu_about">ÜBER</string>
-    <string name="about_text">Karte: swisstopo-Vektorgrundkarte, Wanderwegnetz, Veloland- und Mountainbikeland-Routen, Sperrungen (© swisstopo, © SchweizMobil).\nRouting: BRouter (MIT) auf OpenStreetMap-Daten (ODbL), Profile « trekking » und « hiking-mountain ».\nÖffentlicher Verkehr: Fahrplan von transport.opendata.ch (Opendata.ch) online; offline der offizielle Schweizer Fahrplan (opentransportdata.swiss, GTFS), wöchentlich vom Repository der App gepackt.\nDarstellung: MapLibre Native (BSD).\nSuche: GeoAdmin-API; Personen und Firmen: search.ch-Verzeichnis (Swisscom Directories AG) mit Ihrem eigenen Schlüssel.</string>
+    <string name="about_text">Karte: swisstopo-Vektorgrundkarte, Wanderwegnetz, Veloland- und Mountainbikeland-Routen, Sperrungen (© swisstopo, © SchweizMobil).\nRouting: BRouter (MIT) auf OpenStreetMap-Daten (ODbL), Profile « trekking » und « hiking-mountain ».\nÖffentlicher Verkehr: Fahrplan von transport.opendata.ch (Opendata.ch) online; offline der offizielle Schweizer Fahrplan (opentransportdata.swiss, GTFS), wöchentlich vom Repository der App gepackt.\nDarstellung: MapLibre Native (BSD).\nSuche: GeoAdmin-API; Personen und Firmen: search.ch-Verzeichnis (Swisscom Directories AG) mit Ihrem eigenen Schlüssel.\nDie ÖV-Karte sendet Ihre Position an transport.opendata.ch, um die Haltestellen in der Nähe zu finden; sonst verlässt nichts das Telefon.</string>
     <string name="nav_channel">Navigation</string>
     <string name="nav_starting">Navigation startet…</string>
     <string name="eta_short">Ankunft %1$s</string>
@@ -231,4 +231,6 @@
     <string name="step_walk">zu Fuss %1$s (%2$s)</string>
     <string name="step_straight">%1$s</string>
     <string name="minutes_n">%1$d Min.</string>
+    <string name="dl_unpacking">wird entpackt…</string>
+    <string name="transit_multi_hint">Öffentlicher Verkehr: die Verbindung führt der Reihe nach über Ihre Zwischenziele; nur der erste Abschnitt bietet eine Auswahl an Zeiten.</string>
 </resources>

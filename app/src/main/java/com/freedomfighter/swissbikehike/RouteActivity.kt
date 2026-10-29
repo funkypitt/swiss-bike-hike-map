@@ -30,8 +30,9 @@ class RouteActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_MODE = "mode"; const val EXTRA_LAT = "lat"; const val EXTRA_LON = "lon"; const val EXTRA_PICK = "pick"
         const val RESULT_PICK = 21; const val RESULT_SHOW = 22; const val RESULT_GO = 23
-        /** What the form holds, kept while the map is used to pick a point. */
+        /** What the form holds, kept while the map is used to pick a point; one map's form at a time. */
         var form: RouteForm? = null
+        var formMode: Mode? = null
         /** The itinerary handed to the map when SHOW or GO is pressed. */
         var handover: Itinerary? = null
     }
@@ -41,6 +42,13 @@ class RouteActivity : AppCompatActivity() {
     private var here: LatLng? = null
     private var f = RouteForm()
     private var computing = false
+    /** True only on the way to the map to pick a point: then the form must survive. */
+    private var keepForm = false
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (!keepForm && !isChangingConfigurations) { form = null; formMode = null }
+    }
     private var choices: List<Journey> = emptyList()
 
     private val searchFrom = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r -> picked(r)?.let { f.from = it; render() } }
@@ -61,14 +69,16 @@ class RouteActivity : AppCompatActivity() {
         Insets.pad(b.root)
         mode = Mode.of(intent.getStringExtra(EXTRA_MODE))
         if (intent.hasExtra(EXTRA_LAT)) here = LatLng(intent.getDoubleExtra(EXTRA_LAT, 0.0), intent.getDoubleExtra(EXTRA_LON, 0.0))
-        f = form ?: RouteForm()
-        if (f.depart == 0L) f.depart = System.currentTimeMillis()
+        f = (if (formMode == mode) form else null) ?: RouteForm()
+        formMode = mode
+        // a departure left in the past (the form was kept for a map pick) means "now"
+        if (f.depart < System.currentTimeMillis() - 120_000L) { f.depart = System.currentTimeMillis(); if (f.result?.journey != null) f.result = null }
         form = f
         b.modeLine.text = getString(when (mode) { Mode.BIKE -> R.string.bike; Mode.WALK -> R.string.walk; Mode.TRANSIT -> R.string.transit })
         b.fromSearch.setOnClickListener { searchFrom.launch(Intent(this, SearchActivity::class.java)) }
         b.toSearch.setOnClickListener { searchTo.launch(Intent(this, SearchActivity::class.java)) }
-        b.fromMap.setOnClickListener { setResult(RESULT_PICK, Intent().putExtra(EXTRA_PICK, "from")); finish() }
-        b.toMap.setOnClickListener { setResult(RESULT_PICK, Intent().putExtra(EXTRA_PICK, "to")); finish() }
+        b.fromMap.setOnClickListener { keepForm = true; setResult(RESULT_PICK, Intent().putExtra(EXTRA_PICK, "from")); finish() }
+        b.toMap.setOnClickListener { keepForm = true; setResult(RESULT_PICK, Intent().putExtra(EXTRA_PICK, "to")); finish() }
         b.fromHere.setOnClickListener { f.from = null; f.result = null; render() }
         b.swap.setOnClickListener {
             val from = f.from ?: here?.let { Stop(it, getString(R.string.my_position)) }
@@ -117,7 +127,7 @@ class RouteActivity : AppCompatActivity() {
             val chosen = f.result?.journey === j
             v.setBackgroundResource(if (chosen) R.drawable.btn_active else R.drawable.btn)
             v.setTextColor(ContextCompat.getColor(this, if (chosen) R.color.paper else R.color.ink))
-            v.setOnClickListener { f.result = f.result?.let { r -> Itinerary(r.mode, r.from, r.to, r.depart, null, j) }; render() }
+            v.setOnClickListener { f.result = f.result?.let { r -> Itinerary(r.mode, r.from, r.to, j.dep, null, j) }; render() }
             val lp = android.widget.LinearLayout.LayoutParams(android.widget.LinearLayout.LayoutParams.MATCH_PARENT, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT)
             lp.topMargin = 8
             b.choices.addView(v, lp)

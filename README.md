@@ -44,8 +44,10 @@ the app was called Swiss Bike-Hike Map; the package name has not changed.)
   timetable) when you decide.
 * **Night map** by hand or after sunset; share a place or your position as text; six languages
   (en, fr, de, es, pt, ru).
-* Permissions: location, notifications (guidance and downloads), vibration; the network serves
-  only the map tiles, the routing data and the searches you ask for.
+* Permissions: location, notifications (guidance and downloads), vibration. What leaves the phone:
+  map tile requests, the downloads you ask for, the searches you type, and, on the transit map,
+  your position sent to transport.opendata.ch to find the stops around you. No account, no
+  tracking.
 
 Data and sizes, the shape of the code and what was measured: [docs/NOTES.md](docs/NOTES.md).
 

@@ -30,12 +30,14 @@ object Timetable {
     @Volatile private var cached: Transit? = null
     @Volatile private var cachedStamp = 0L
 
-    fun isReady(ctx: Context): Boolean { finalize(ctx); return file(ctx).exists() }
+    @Volatile var unpacking = false; private set
+    fun isReady(ctx: Context): Boolean { finalize(ctx); return file(ctx).exists() && !unpacking }
 
     /** The pack, opened once and kept; reopened after an update. */
     fun open(ctx: Context): Transit? {
+        finalize(ctx)
         val f = file(ctx)
-        if (!f.exists()) return null
+        if (!f.exists() || unpacking) return null
         val c = cached
         if (c != null && cachedStamp == f.lastModified()) return c
         return runCatching { Transit.open(f) }.getOrNull()?.also { cached = it; cachedStamp = f.lastModified() }
@@ -68,12 +70,18 @@ object Timetable {
     /** Why the last download or unpacking failed, blank when it did not. */
     fun failure(ctx: Context): String = Prefs(ctx).failure(KEY)
 
-    /** Starts the download (Wi-Fi only) unless one is running. */
+    /** Starts the download (Wi-Fi only) unless one is running; the pack's description is fetched first, kept aside until the pack is in. */
     fun download(ctx: Context) {
         if (downloading(ctx) >= 0) return
         val dm = ctx.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         part(ctx).delete()
         Prefs(ctx).setFailure(KEY, "")
+        Thread { runCatching {
+            val cn = URL("$BASE$NAME.json").openConnection() as HttpURLConnection
+            cn.connectTimeout = 8000; cn.readTimeout = 8000
+            val text = cn.inputStream.bufferedReader().readText(); cn.disconnect()
+            if (text.contains("\"feed\"")) File(dir(ctx), "$NAME.json.new").writeText(text)
+        } }.start()
         val req = DownloadManager.Request(Uri.parse("$BASE$NAME.gz"))
             .setTitle(ctx.getString(R.string.menu_timetable))
             .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI)
@@ -82,7 +90,28 @@ object Timetable {
         Prefs(ctx).setDownloadId(KEY, dm.enqueue(req))
     }
 
-    /** Unpacks a finished download into place and fetches its description. Safe to call often. */
+    /** Unpacks the downloaded .gz on a worker thread (65 MB, a few seconds), checks it, puts it and its description in place. */
+    @Synchronized private fun unpack(ctx: Context) {
+        if (unpacking) return
+        unpacking = true
+        Thread {
+            val app = ctx.applicationContext
+            val prefs = Prefs(app)
+            val p = part(app); val tmp = File(dir(app), "$NAME.tmp")
+            val ok = runCatching {
+                GZIPInputStream(p.inputStream().buffered()).use { i -> tmp.outputStream().buffered().use { o -> i.copyTo(o) } }
+                Transit.open(tmp).nStops > 0
+            }.getOrDefault(false)
+            if (ok) {
+                file(app).delete(); tmp.renameTo(file(app)); cached = null
+                File(dir(app), "$NAME.json.new").let { if (it.exists()) { meta(app).delete(); it.renameTo(meta(app)) } }
+            } else prefs.setFailure(KEY, app.getString(R.string.dl_bad_pack))
+            tmp.delete(); p.delete()
+            unpacking = false
+        }.start()
+    }
+
+    /** Hands a finished download to the unpacking, notes a failed one. Cheap when nothing is pending; safe to call often. */
     fun finalize(ctx: Context) {
         val prefs = Prefs(ctx)
         val id = prefs.downloadId(KEY); if (id < 0) return
@@ -92,21 +121,7 @@ object Timetable {
             when (c.getInt(c.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))) {
                 DownloadManager.STATUS_SUCCESSFUL -> {
                     prefs.setDownloadId(KEY, -1)
-                    val p = part(ctx); if (!p.exists()) return
-                    val tmp = File(dir(ctx), "$NAME.tmp")
-                    val ok = runCatching {
-                        GZIPInputStream(p.inputStream().buffered()).use { i -> tmp.outputStream().buffered().use { o -> i.copyTo(o) } }
-                        Transit.open(tmp).nStops > 0
-                    }.getOrDefault(false)
-                    if (ok) { file(ctx).delete(); tmp.renameTo(file(ctx)); cached = null }
-                    else prefs.setFailure(KEY, ctx.getString(R.string.dl_bad_pack))
-                    tmp.delete(); p.delete()
-                    if (ok) Thread { runCatching {
-                        val cn = URL("$BASE$NAME.json").openConnection() as HttpURLConnection
-                        cn.connectTimeout = 8000; cn.readTimeout = 8000
-                        val text = cn.inputStream.bufferedReader().readText(); cn.disconnect()
-                        if (text.contains("\"feed\"")) meta(ctx).writeText(text)
-                    } }.start()
+                    if (part(ctx).exists()) unpack(ctx)
                 }
                 DownloadManager.STATUS_FAILED -> {
                     val reason = c.getInt(c.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON))

@@ -188,8 +188,8 @@ def main():
         if pi is None:
             pi = len(pattern_rows); patterns[pk] = pi; pattern_rows.append(pk)
         t0 = seq[0][2]
-        arr = tuple(a - t0 for _, a, _, s in seq if s in stop_station)
-        dep = tuple(d - t0 for _, _, d, s in seq if s in stop_station)
+        arr = tuple(max(0, a - t0) for _, a, _, s in seq if s in stop_station)
+        dep = tuple(max(0, d - t0) for _, _, d, s in seq if s in stop_station)
         plat = tuple(S(platform_of.get(s, "")) for _, _, _, s in seq if s in stop_station)
         if not any(plat): plat = ()
         fk = (pi, arr, dep, plat)

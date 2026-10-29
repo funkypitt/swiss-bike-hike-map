@@ -8,8 +8,6 @@ import org.maplibre.android.geometry.LatLng
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 
 /**
@@ -63,13 +61,15 @@ object TransitOnline {
             .sortedBy { it.distanceM }.take(limit)
     }
 
-    private val iso = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US)
-    private fun time(s: String?): Long = if (s.isNullOrBlank() || s == "null") 0L else runCatching { iso.parse(s)?.time ?: 0L }.getOrDefault(0L)
+    private val isoFmt = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ", Locale.US)
+    /** The API's "2026-10-29T07:48:00+0100"; a formatter instance is thread-safe, unlike SimpleDateFormat. */
+    private fun time(s: String?): Long = if (s.isNullOrBlank() || s == "null") 0L else runCatching { java.time.OffsetDateTime.parse(s, isoFmt).toInstant().toEpochMilli() }.getOrDefault(0L)
 
     /** Journeys between two stops, leaving at or after the given time. */
     suspend fun connections(from: Station, to: Station, depart: Long, limit: Int = 4): List<Journey> = withContext(Dispatchers.IO) {
-        val d = Date(depart)
-        val date = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(d); val time = SimpleDateFormat("HH:mm", Locale.US).format(d)
+        // the API reads the date and time as Swiss local time, whatever the phone's zone
+        val z = java.time.Instant.ofEpochMilli(depart).atZone(Transit.ZONE)
+        val date = z.toLocalDate().toString(); val time = String.format(Locale.US, "%02d:%02d", z.hour, z.minute)
         val q = "connections?from=" + enc(from.id.ifBlank { from.name }) + "&to=" + enc(to.id.ifBlank { to.name }) +
             "&date=$date&time=$time&limit=$limit"
         val arr = get(q).optJSONArray("connections") ?: JSONArray()

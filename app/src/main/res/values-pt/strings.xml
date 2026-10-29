@@ -107,7 +107,7 @@
     <string name="people_on">Procura de pessoas ativada</string>
     <string name="people_off">Procura de pessoas desativada</string>
     <string name="menu_about">SOBRE</string>
-    <string name="about_text">Mapa: mapa base vetorial swisstopo, rede de trilhos pedestres, rotas Veloland e Mountainbikeland, encerramentos (© swisstopo, © SchweizMobil).\nRotas: BRouter (MIT) com dados OpenStreetMap (ODbL), perfis « trekking » e « hiking-mountain ».\nTransportes públicos: horários de transport.opendata.ch (Opendata.ch) em linha; sem ligação, o horário oficial suíço (opentransportdata.swiss, GTFS) empacotado semanalmente pelo repositório da app.\nRenderização: MapLibre Native (BSD).\nProcura: API GeoAdmin; pessoas e empresas: lista search.ch (Swisscom Directories AG) com a sua própria chave.</string>
+    <string name="about_text">Mapa: mapa base vetorial swisstopo, rede de trilhos pedestres, rotas Veloland e Mountainbikeland, encerramentos (© swisstopo, © SchweizMobil).\nRotas: BRouter (MIT) com dados OpenStreetMap (ODbL), perfis « trekking » e « hiking-mountain ».\nTransportes públicos: horários de transport.opendata.ch (Opendata.ch) em linha; sem ligação, o horário oficial suíço (opentransportdata.swiss, GTFS) empacotado semanalmente pelo repositório da app.\nRenderização: MapLibre Native (BSD).\nProcura: API GeoAdmin; pessoas e empresas: lista search.ch (Swisscom Directories AG) com a sua própria chave.\nO mapa de transportes públicos envia a sua posição a transport.opendata.ch para encontrar as paragens próximas; nada mais sai do telemóvel.</string>
     <string name="nav_channel">Navegação</string>
     <string name="nav_starting">A iniciar a navegação…</string>
     <string name="eta_short">chegada %1$s</string>
@@ -231,4 +231,6 @@
     <string name="step_walk">a pé %1$s (%2$s)</string>
     <string name="step_straight">%1$s</string>
     <string name="minutes_n">%1$d min</string>
+    <string name="dl_unpacking">a descompactar…</string>
+    <string name="transit_multi_hint">Transportes públicos: a viagem passa pelas suas etapas por ordem; só o primeiro troço oferece uma escolha de horários.</string>
 </resources>

@@ -108,6 +108,6 @@ object Segments {
 
 class SegmentReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == DownloadManager.ACTION_DOWNLOAD_COMPLETE) Segments.finalizeDownloads(context)
+        if (intent.action == DownloadManager.ACTION_DOWNLOAD_COMPLETE) { Segments.finalizeDownloads(context); Timetable.finalize(context) }
     }
 }

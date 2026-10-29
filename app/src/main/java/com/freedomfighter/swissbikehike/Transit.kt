@@ -185,7 +185,9 @@ class Transit private constructor(private val b: ByteBuffer) {
     private fun dayOf(t: Long): Pair<Int, Int> {
         val z = Instant.ofEpochMilli(t).atZone(ZONE)
         val day = ChronoUnit.DAYS.between(feedStart, z.toLocalDate()).toInt()
-        return Pair(day, z.hour * 60 + z.minute)
+        // minutes since the day's midnight as an elapsed time, so the two DST days do not shift the trips
+        val minutes = java.time.Duration.between(z.toLocalDate().atStartOfDay(ZONE), z).toMinutes().toInt()
+        return Pair(day, minutes)
     }
 
     private fun epoch(day: Int, minutes: Int): Long =
@@ -205,7 +207,7 @@ class Transit private constructor(private val b: ByteBuffer) {
             for (t in first until first + cnt) {
                 val at = profAt(tripProfile(t))
                 val dep = tripStart(t) + profDep(at, pos)
-                for (dd in 0..1) {
+                for (dd in -1..1) {
                     val m = dep - 1440 * dd
                     if (m < minutes || m > minutes + 180 || !runs(tripBitmap(t), day - dd)) continue
                     out.add(Departure(epoch(day, m), kind, line, tripHeadsign(t), profPlat(at, pos), tripNumber(t)))
@@ -235,7 +237,8 @@ class Transit private constructor(private val b: ByteBuffer) {
         var tries = 0
         while (out.size < count && tries < count + 3) {
             tries++
-            val found = planOnce(from, to, origins, dests, t) ?: break
+            // not later than twelve hours after the asked time: the next day's first train is not "the next departure"
+            val found = (planOnce(from, to, origins, dests, t) ?: break).filter { j -> (j.firstRide?.dep ?: j.dep) <= depart + 12 * 3600_000L }
             val best = found.minByOrNull { it.arr } ?: break
             for (j in found) {
                 // the same vehicles reached a few minutes later are the same journey: keep the later start
@@ -259,6 +262,7 @@ class Transit private constructor(private val b: ByteBuffer) {
         val (day, startMin) = dayOf(depart)
         val arr = Array(ROUNDS + 1) { IntArray(nStops) { INF } }
         val best = IntArray(nStops) { INF }
+        val bestVia = ByteArray(nStops)                       // how best[] was reached: 1 ride, 2 foot, 3 origin
         val viaType = Array(ROUNDS + 1) { ByteArray(nStops) }        // 1 ride, 2 foot, 3 origin
         val viaFrom = Array(ROUNDS + 1) { IntArray(nStops) }
         val viaTrip = Array(ROUNDS + 1) { IntArray(nStops) }
@@ -268,7 +272,7 @@ class Transit private constructor(private val b: ByteBuffer) {
         var marked = HashSet<Int>()
         for ((s, d) in origins) {
             val m = startMin + (walkSeconds(d) + 59) / 60
-            arr[0][s] = m; best[s] = m; viaType[0][s] = 3; marked.add(s)
+            arr[0][s] = m; best[s] = m; bestVia[s] = 3; viaType[0][s] = 3; marked.add(s)
         }
         var bound = INF
         val destWalk = HashMap<Int, Int>().also { for ((s, d) in dests) it[s] = (walkSeconds(d) + 59) / 60 }
@@ -287,7 +291,7 @@ class Transit private constructor(private val b: ByteBuffer) {
                     if (trip >= 0) {
                         val a = tripStart0 + profArr(tripAt, i) - 1440 * tripDay
                         if (a < best[s] && a < bound) {
-                            arr[k][s] = a; best[s] = a; newly.add(s)
+                            arr[k][s] = a; best[s] = a; bestVia[s] = 1; newly.add(s)
                             viaType[k][s] = 1; viaFrom[k][s] = patStop(p, boardPos); viaTrip[k][s] = trip
                             viaBoard[k][s] = boardPos; viaAlight[k][s] = i; viaDay[k][s] = tripDay.toByte()
                             destWalk[s]?.let { w -> if (a + w < bound) bound = a + w }
@@ -296,7 +300,8 @@ class Transit private constructor(private val b: ByteBuffer) {
                     // board an earlier trip here if the previous round reached this stop in time
                     val reached = arr[k - 1][s]
                     if (reached < INF && i < n - 1) {
-                        val ready = if (viaType[k - 1][s].toInt() == 1) reached + changeMin(s) else reached
+                        // a label set by a ride in any earlier round still needs the change time
+                        val ready = if (bestVia[s].toInt() == 1 && arr[k - 1][s] == best[s]) reached + changeMin(s) else if (viaType[k - 1][s].toInt() == 1) reached + changeMin(s) else reached
                         val cur = if (trip >= 0) tripStart0 + profDep(tripAt, i) - 1440 * tripDay else INF
                         if (ready < cur) {
                             val e = earliestTrip(p, i, ready, day)
@@ -315,7 +320,7 @@ class Transit private constructor(private val b: ByteBuffer) {
                 footpaths(s) { j, sec ->
                     val t = a + (sec + 59) / 60
                     if (t < best[j] && t < bound) {
-                        arr[k][j] = t; best[j] = t; byFoot.add(j)
+                        arr[k][j] = t; best[j] = t; bestVia[j] = 2; byFoot.add(j)
                         viaType[k][j] = 2; viaFrom[k][j] = s; viaBoard[k][j] = sec
                         destWalk[j]?.let { w -> if (t + w < bound) bound = t + w }
                     }
@@ -362,6 +367,9 @@ class Transit private constructor(private val b: ByteBuffer) {
             if (dep >= after && dep < bestDep && runs(bm, day)) { bestDep = dep; bestTrip = t; bestOff = 0 }
             val y = dep - 1440
             if (y >= after && y < bestDep && runs(bm, day - 1)) { bestDep = y; bestTrip = t; bestOff = 1 }
+            // tomorrow's early services, for a journey that runs past midnight
+            val n = dep + 1440
+            if (n >= after && n < bestDep && runs(bm, day + 1)) { bestDep = n; bestTrip = t; bestOff = -1 }
         }
         return if (bestTrip < 0) null else Found(bestTrip, bestDep, bestOff)
     }

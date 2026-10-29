@@ -107,7 +107,7 @@
     <string name="people_on">Recherche de personnes activée</string>
     <string name="people_off">Recherche de personnes désactivée</string>
     <string name="menu_about">À PROPOS</string>
-    <string name="about_text">Carte : fond vectoriel swisstopo, réseau des chemins de randonnée, itinéraires Veloland et Mountainbikeland, fermetures (© swisstopo, © SuisseMobile).\nItinéraires : BRouter (MIT) sur données OpenStreetMap (ODbL), profils « trekking » et « hiking-mountain ».\nTransports publics : horaires de transport.opendata.ch (Opendata.ch) en ligne ; hors ligne, l\'horaire officiel suisse (opentransportdata.swiss, GTFS) empaqueté chaque semaine par le dépôt de l\'app.\nRendu : MapLibre Native (BSD).\nRecherche : API GeoAdmin ; personnes et entreprises : annuaire search.ch (Swisscom Directories AG) avec votre propre clé.</string>
+    <string name="about_text">Carte : fond vectoriel swisstopo, réseau des chemins de randonnée, itinéraires Veloland et Mountainbikeland, fermetures (© swisstopo, © SuisseMobile).\nItinéraires : BRouter (MIT) sur données OpenStreetMap (ODbL), profils « trekking » et « hiking-mountain ».\nTransports publics : horaires de transport.opendata.ch (Opendata.ch) en ligne ; hors ligne, l\'horaire officiel suisse (opentransportdata.swiss, GTFS) empaqueté chaque semaine par le dépôt de l\'app.\nRendu : MapLibre Native (BSD).\nRecherche : API GeoAdmin ; personnes et entreprises : annuaire search.ch (Swisscom Directories AG) avec votre propre clé.\nLa carte transports publics envoie votre position à transport.opendata.ch pour trouver les arrêts voisins ; rien d\'autre ne quitte le téléphone.</string>
     <string name="nav_channel">Navigation</string>
     <string name="nav_starting">Navigation en cours de démarrage…</string>
     <string name="eta_short">arrivée %1$s</string>
@@ -231,4 +231,6 @@
     <string name="step_walk">à pied %1$s (%2$s)</string>
     <string name="step_straight">%1$s</string>
     <string name="minutes_n">%1$d min</string>
+    <string name="dl_unpacking">décompression…</string>
+    <string name="transit_multi_hint">Transports publics : le trajet passe par vos étapes dans l\'ordre ; seule la première étape offre un choix d\'horaires.</string>
 </resources>

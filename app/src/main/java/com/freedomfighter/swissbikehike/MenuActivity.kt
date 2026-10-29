@@ -155,6 +155,7 @@ class MenuActivity : AppCompatActivity() {
         val l = Timetable.local(this)
         val fail = Timetable.failure(this)
         timetableState = when {
+            Timetable.unpacking -> getString(R.string.dl_unpacking)
             Timetable.waitingWifi(this) -> getString(R.string.dl_waiting_wifi)
             pct >= 0 -> getString(R.string.timetable_downloading, pct)
             fail.isNotBlank() -> getString(R.string.dl_failed, fail)
@@ -173,11 +174,11 @@ class MenuActivity : AppCompatActivity() {
             val tail = when {
                 r == null -> "\n" + getString(R.string.server_unreachable)
                 l == null -> "\n" + getString(R.string.timetable_newer, r.feed + " · " + Fmt.mb(r.bytes))
-                r.feed > l.feed || r.built > l.built -> "\n" + getString(R.string.timetable_newer, r.feed + " · " + r.built)
+                r.feed > l.feed || (l.built.isNotBlank() && r.built > l.built) -> "\n" + getString(R.string.timetable_newer, r.feed + " · " + r.built)
                 else -> "\n" + getString(R.string.timetable_up_to_date)
             }
             b.timetableInfo.text = base + "\n" + getString(R.string.timetable_hint) + tail
-            timetableNewer = r != null && (l == null || r.feed > l.feed || r.built > l.built)
+            timetableNewer = r != null && (l == null || r.feed > l.feed || (l.built.isNotBlank() && r.built > l.built))
             updateAllInfo()
         }
     }

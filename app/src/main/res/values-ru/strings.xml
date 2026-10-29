@@ -107,7 +107,7 @@
     <string name="people_on">Поиск людей включён</string>
     <string name="people_off">Поиск людей выключен</string>
     <string name="menu_about">О ПРОГРАММЕ</string>
-    <string name="about_text">Карта: векторная базовая карта swisstopo, сеть пешеходных троп, маршруты Veloland и Mountainbikeland, закрытия (© swisstopo, © SchweizMobil).\nМаршруты: BRouter (MIT) на данных OpenStreetMap (ODbL), профили « trekking » и « hiking-mountain ».\nОбщественный транспорт: расписание transport.opendata.ch (Opendata.ch) онлайн; офлайн — официальное швейцарское расписание (opentransportdata.swiss, GTFS), еженедельно упакованное репозиторием приложения.\nОтрисовка: MapLibre Native (BSD).\nПоиск: API GeoAdmin; люди и фирмы: справочник search.ch (Swisscom Directories AG) с вашим собственным ключом.</string>
+    <string name="about_text">Карта: векторная базовая карта swisstopo, сеть пешеходных троп, маршруты Veloland и Mountainbikeland, закрытия (© swisstopo, © SchweizMobil).\nМаршруты: BRouter (MIT) на данных OpenStreetMap (ODbL), профили « trekking » и « hiking-mountain ».\nОбщественный транспорт: расписание transport.opendata.ch (Opendata.ch) онлайн; офлайн — официальное швейцарское расписание (opentransportdata.swiss, GTFS), еженедельно упакованное репозиторием приложения.\nОтрисовка: MapLibre Native (BSD).\nПоиск: API GeoAdmin; люди и фирмы: справочник search.ch (Swisscom Directories AG) с вашим собственным ключом.\nКарта транспорта отправляет вашу позицию на transport.opendata.ch, чтобы найти ближайшие остановки; больше ничего не покидает телефон.</string>
     <string name="nav_channel">Навигация</string>
     <string name="nav_starting">Запуск навигации…</string>
     <string name="eta_short">прибытие %1$s</string>
@@ -231,4 +231,6 @@
     <string name="step_walk">пешком %1$s (%2$s)</string>
     <string name="step_straight">%1$s</string>
     <string name="minutes_n">%1$d мин</string>
+    <string name="dl_unpacking">распаковка…</string>
+    <string name="transit_multi_hint">Общественный транспорт: поездка проходит через ваши пункты по порядку; выбор времени есть только для первого отрезка.</string>
 </resources>

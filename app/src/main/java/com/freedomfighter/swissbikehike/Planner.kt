@@ -42,7 +42,7 @@ object Planner {
                 if (liveError != null) notice = ctx.getString(R.string.live_failed_offline_used, liveError)
             }
         }
-        return routeWalks(ctx, journeys)
+        return routeWalks(ctx, journeys, depart)
     }
 
     /**
@@ -53,6 +53,7 @@ object Planner {
     private suspend fun planOnline(from: LatLng, to: LatLng, depart: Long, count: Int): List<Journey> {
         val o = TransitOnline.nearest(from); val d = TransitOnline.nearest(to)
         if (o.isEmpty() || d.isEmpty()) return emptyList()
+        var pairError: String? = null
         fun picks(l: List<TransitOnline.Station>): List<TransitOnline.Station> {
             val near = l.first()
             val station = l.firstOrNull { !it.name.contains(',') && it.distanceM <= 1500 }
@@ -62,7 +63,9 @@ object Planner {
         for (a in picks(o)) for (b in picks(d)) {
             if (a.id == b.id) continue
             val wIn = Transit.walkSeconds(a.distanceM) * 1000L
-            val found = runCatching { TransitOnline.connections(a, b, depart + wIn, count) }.getOrDefault(emptyList())
+            val r = runCatching { TransitOnline.connections(a, b, depart + wIn, count) }
+            r.exceptionOrNull()?.let { if (pairError == null) pairError = it.message ?: it.javaClass.simpleName }
+            val found = r.getOrDefault(emptyList())
             for (j in found) {
                 val first = j.legs.first(); val last = j.legs.last()
                 val legs = ArrayList<Leg>()
@@ -79,6 +82,7 @@ object Planner {
             val key = j.legs.filter { it.ride }.joinToString("|") { it.line + "@" + it.dep }
             if (!best.containsKey(key)) best[key] = j
         }
+        if (best.isEmpty() && pairError != null) throw Exception(pairError)
         return dominated(best.values).take(count)
     }
 
@@ -92,9 +96,11 @@ object Planner {
     }
 
     /** Walk legs get a real path (and length) from the hiking router when its data is on the phone. */
-    private suspend fun routeWalks(ctx: Context, journeys: List<Journey>): List<Journey> {
+    private suspend fun routeWalks(ctx: Context, journeys: List<Journey>, depart: Long): List<Journey> {
         if (!Segments.isReady(ctx)) return journeys
+        val keep = ArrayList<Journey>()
         for (j in journeys) {
+            var late = false
             for ((i, leg) in j.legs.withIndex()) {
                 if (leg.ride) continue
                 val d = leg.from.at.distanceTo(leg.to.at)
@@ -103,17 +109,32 @@ object Planner {
                 leg.path = r.points
                 // the first walk starts when it must to catch the first ride; the last ends when it ends
                 val sec = maxOf(r.seconds, Transit.walkSeconds(r.distanceM.toDouble()))
-                if (i == 0) j.legs[0].let { l -> l.path = r.points; l.setTimes(l.arr - sec * 1000L, l.arr) }
-                else if (i == j.legs.size - 1) leg.setTimes(leg.dep, leg.dep + sec * 1000L)
+                if (i == j.legs.size - 1) leg.setTimes(leg.dep, leg.dep + sec * 1000L)
+                else if (i == 0) {
+                    // the real walk is longer than the estimate that chose the ride: it would start in the past
+                    if (leg.arr - sec * 1000L < depart - 60_000L) late = true
+                    leg.setTimes(leg.arr - sec * 1000L, leg.arr)
+                }
             }
+            if (!late) keep.add(j)
         }
-        return journeys
+        return keep
     }
 
     class Departure(val time: Long, val kind: Int, val line: String, val headsign: String, val platform: String, val delayMin: Int, val realtime: Boolean)
 
-    /** The next departures at a stop, online when possible. */
+    private val boardCache = HashMap<String, Pair<Long, List<Departure>>>()
+
+    /** The next departures at a stop, online when possible; one answer per stop is kept 30 s (the API limits the rate). */
     suspend fun departures(ctx: Context, stop: TStop): List<Departure> {
+        val key = stop.id.ifBlank { stop.name }
+        synchronized(boardCache) { boardCache[key]?.let { (t, l) -> if (System.currentTimeMillis() - t < 30_000) return l } }
+        val fresh = departuresFresh(ctx, stop)
+        synchronized(boardCache) { boardCache[key] = Pair(System.currentTimeMillis(), fresh) }
+        return fresh
+    }
+
+    private suspend fun departuresFresh(ctx: Context, stop: TStop): List<Departure> {
         var liveError: String? = null
         if (online(ctx)) {
             val r = runCatching { TransitOnline.departures(TransitOnline.Station(stop.id, stop.name, stop.at, 0.0), 40) }
