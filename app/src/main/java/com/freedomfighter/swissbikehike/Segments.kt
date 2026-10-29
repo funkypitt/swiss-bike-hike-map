@@ -87,7 +87,7 @@ object Segments {
             File(dir(ctx), "$n.rd5.part").delete()
             val req = DownloadManager.Request(Uri.parse("$BASE$n.rd5"))
                 .setTitle(ctx.getString(R.string.need_data_title) + " " + n)
-                .setDescription("Swiss Bike-Hike Map")
+                .setDescription(ctx.getString(R.string.app_name))
                 .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI)
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                 .setDestinationInExternalFilesDir(ctx, null, "brouter/segments4/$n.rd5.part")

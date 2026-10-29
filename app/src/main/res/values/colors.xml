@@ -5,4 +5,5 @@
     <color name="bike_red">#E30613</color>
     <color name="walk_yellow">#FFD500</color>
     <color name="route_magenta">#E6007E</color>
+    <color name="transit_green">#1B7F3B</color>
 </resources>

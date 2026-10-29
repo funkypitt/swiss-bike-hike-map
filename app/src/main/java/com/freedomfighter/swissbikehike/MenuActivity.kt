@@ -46,6 +46,7 @@ class MenuActivity : AppCompatActivity() {
             updateNightButton()
         }
         b.btnSegments.setOnClickListener { Segments.download(this, Segments.names); refreshSegments(); Toast.makeText(this, R.string.downloading_wifi, Toast.LENGTH_SHORT).show() }
+        b.btnTimetable.setOnClickListener { Timetable.download(this); refreshTimetable(); Toast.makeText(this, R.string.downloading_wifi, Toast.LENGTH_SHORT).show() }
         b.btnCountry.setOnClickListener { saveCountry() }
         b.btnPacks.setOnClickListener { if (PackWorker.state(this)?.isFinished == false) { PackWorker.pause(this); prefs.packStatus = getString(R.string.packs_paused) } else PackWorker.enqueue(this); lifecycleScope.launch { kotlinx.coroutines.delay(600); refreshAreasInfo() } }
         b.btnOfflineArea.setOnClickListener { saveArea() }
@@ -58,14 +59,14 @@ class MenuActivity : AppCompatActivity() {
         }
         b.btnDirOrder.setOnClickListener { runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(Directory.ORDER_URL))) } }
         val pm = packageManager.getPackageInfo(packageName, 0)
-        b.about.text = "Swiss Bike-Hike Map ${pm.versionName}\n\n" + getString(R.string.about_text)
+        b.about.text = getString(R.string.app_name) + " ${pm.versionName}\n\n" + getString(R.string.about_text)
         updateNightButton()
     }
 
     private var ticking = false
     override fun onResume() {
-        super.onResume(); refreshSegments(); refreshAreasInfo(); refreshTrips()
-        if (!ticking) { ticking = true; lifecycleScope.launch { while (ticking) { kotlinx.coroutines.delay(3000); if (lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) refreshAreasInfo() } } }
+        super.onResume(); refreshSegments(); refreshAreasInfo(); refreshTrips(); refreshTimetable()
+        if (!ticking) { ticking = true; lifecycleScope.launch { while (ticking) { kotlinx.coroutines.delay(3000); if (lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) { refreshAreasInfo(); if (Timetable.downloading(this@MenuActivity) >= 0) refreshTimetable(false) } } } }
     }
     override fun onPause() { super.onPause(); ticking = false }
 
@@ -134,6 +135,30 @@ class MenuActivity : AppCompatActivity() {
                 "${s.name}  $tail"
             }
             b.segInfo.text = lines.joinToString("\n")
+        }
+    }
+
+    // ---- public-transport timetable ----
+
+    private fun refreshTimetable(askServer: Boolean = true) {
+        val pct = Timetable.downloading(this)
+        val l = Timetable.local(this)
+        val base = when {
+            pct >= 0 -> getString(R.string.timetable_downloading, pct)
+            l == null -> getString(R.string.timetable_missing)
+            else -> getString(R.string.timetable_info, l.feed, Fmt.mb(l.bytes), l.built)
+        }
+        b.timetableInfo.text = base + "\n" + getString(R.string.timetable_rule, Timetable.AUTO_DAYS) + (if (askServer) "\n" + getString(R.string.timetable_checking) else "")
+        if (!askServer) return
+        lifecycleScope.launch {
+            val r = Timetable.remote()
+            val tail = when {
+                r == null -> ""
+                l == null -> "\n" + getString(R.string.timetable_newer, r.feed + " · " + Fmt.mb(r.bytes))
+                r.feed > l.feed || r.built > l.built -> "\n" + getString(R.string.timetable_newer, r.feed + " · " + r.built)
+                else -> "\n" + getString(R.string.timetable_up_to_date)
+            }
+            b.timetableInfo.text = base + "\n" + getString(R.string.timetable_rule, Timetable.AUTO_DAYS) + tail
         }
     }
 

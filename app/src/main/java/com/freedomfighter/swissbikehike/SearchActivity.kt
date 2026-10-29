@@ -32,14 +32,15 @@ import java.util.Locale
 /**
  * Search: places through the GeoAdmin search server (addresses, place names, peaks, huts) or typed
  * coordinates; people and businesses through the search.ch directory with the person's own key;
- * the favourites, with import and export of place lists. Every pick ends as a pin on the map.
+ * public-transport stops (online, or from the offline timetable); the favourites, with import and
+ * export of place lists. Every pick ends as a pin on the map.
  */
 class SearchActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_LAT = "lat"; const val EXTRA_LON = "lon"; const val EXTRA_LABEL = "label"
         const val EXTRA_KIND = "kind"; const val EXTRA_DETAIL = "detail"
     }
-    private enum class Tab { PLACES, PEOPLE, FAVS }
+    private enum class Tab { PLACES, PEOPLE, STOPS, FAVS }
     private class Hit(val label: String, val lat: Double, val lon: Double, val kind: String = Favourites.PLACE, val detail: String = "")
 
     private lateinit var b: ActivitySearchBinding
@@ -74,6 +75,7 @@ class SearchActivity : AppCompatActivity() {
             when (tab) {
                 Tab.PLACES -> hits.getOrNull(pos)?.let { finishWith(it) }
                 Tab.PEOPLE -> dirHits.getOrNull(pos)?.let { pick(it) }
+                Tab.STOPS -> hits.getOrNull(pos)?.let { finishWith(it) }
                 Tab.FAVS -> favs.getOrNull(pos)?.let { finishWith(Hit(it.name, it.lat, it.lon, it.kind, it.detail)) }
             }
         }
@@ -87,6 +89,7 @@ class SearchActivity : AppCompatActivity() {
         }
         b.btnPlaces.setOnClickListener { setTab(Tab.PLACES) }
         b.btnPeople.setOnClickListener { setTab(Tab.PEOPLE) }
+        b.btnStops.setOnClickListener { setTab(Tab.STOPS) }
         b.btnFavs.setOnClickListener { setTab(Tab.FAVS) }
         b.btnImport.setOnClickListener { pickFile.launch(arrayOf("*/*")) }
         b.btnExport.setOnClickListener { exportFavs() }
@@ -95,6 +98,19 @@ class SearchActivity : AppCompatActivity() {
             when (tab) {
                 Tab.PEOPLE -> {}
                 Tab.FAVS -> showFavs()
+                Tab.STOPS -> {
+                    job?.cancel()
+                    if (q.length < 2) { clear(); return@doAfterTextChanged }
+                    job = lifecycleScope.launch {
+                        delay(300)
+                        val found = runCatching { Planner.searchStops(this@SearchActivity, q) }.getOrDefault(emptyList())
+                            .map { Hit(it.name, it.at.latitude, it.at.longitude, Favourites.STOP, it.id) }
+                        hits.clear(); hits.addAll(found)
+                        adapter.clear()
+                        if (found.isEmpty() && !Timetable.isReady(this@SearchActivity) && !Planner.online(this@SearchActivity)) adapter.add(getString(R.string.timetable_missing))
+                        else adapter.addAll(found.map { it.label })
+                    }
+                }
                 Tab.PLACES -> {
                     job?.cancel()
                     if (q.length < 2) { clear(); return@doAfterTextChanged }
@@ -125,11 +141,14 @@ class SearchActivity : AppCompatActivity() {
     private fun setTab(t: Tab) {
         tab = t
         clear()
-        b.query.hint = getString(when (t) { Tab.PLACES -> R.string.search_hint; Tab.PEOPLE -> R.string.search_people_hint; Tab.FAVS -> R.string.fav_hint })
-        b.credit.visibility = if (t == Tab.PEOPLE) View.VISIBLE else View.GONE
-        b.credit.text = if (Directory.enabled(this)) Directory.CREDIT + " · " + getString(R.string.directory_press_search) else getString(R.string.directory_need_key)
+        b.query.hint = getString(when (t) { Tab.PLACES -> R.string.search_hint; Tab.PEOPLE -> R.string.search_people_hint; Tab.STOPS -> R.string.search_stops_hint; Tab.FAVS -> R.string.fav_hint })
+        b.credit.visibility = if (t == Tab.PEOPLE || t == Tab.STOPS) View.VISIBLE else View.GONE
+        b.credit.text = when (t) {
+            Tab.STOPS -> if (Planner.online(this)) TransitOnline.CREDIT else getString(if (Timetable.isReady(this)) R.string.offline_timetable else R.string.timetable_missing)
+            else -> if (Directory.enabled(this)) Directory.CREDIT + " · " + getString(R.string.directory_press_search) else getString(R.string.directory_need_key)
+        }
         b.favRow.visibility = if (t == Tab.FAVS) View.VISIBLE else View.GONE
-        style(b.btnPlaces, t == Tab.PLACES); style(b.btnPeople, t == Tab.PEOPLE); style(b.btnFavs, t == Tab.FAVS)
+        style(b.btnPlaces, t == Tab.PLACES); style(b.btnPeople, t == Tab.PEOPLE); style(b.btnStops, t == Tab.STOPS); style(b.btnFavs, t == Tab.FAVS)
         if (t == Tab.FAVS) showFavs() else b.query.text?.let { if (it.isNotBlank()) b.query.setText(it.toString()) }
     }
 
@@ -157,7 +176,7 @@ class SearchActivity : AppCompatActivity() {
         else adapter.addAll(favs.map { f -> listOf(glyph(f.kind) + " " + f.name, f.detail).filter { it.isNotBlank() }.joinToString("\n") })
     }
 
-    private fun glyph(kind: String) = when (kind) { Favourites.PERSON -> "☺"; Favourites.FIRM -> "▣"; Favourites.COORDS -> "✚"; else -> "●" }
+    private fun glyph(kind: String) = when (kind) { Favourites.PERSON -> "☺"; Favourites.FIRM -> "▣"; Favourites.COORDS -> "✚"; Favourites.STOP -> "◉"; else -> "●" }
 
     private fun exportFavs() {
         val all = Favourites.list(this)

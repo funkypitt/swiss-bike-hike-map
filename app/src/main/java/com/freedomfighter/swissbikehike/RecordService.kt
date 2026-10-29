@@ -134,14 +134,14 @@ class RecordService : Service(), LocationListener {
         stopSelf()
     }
 
-    /** Documents/Swiss Bike-Hike Map/<date>_<mode>.gpx through MediaStore, so the file is visible to any file manager. */
+    /** Documents/Swiss Bikers and Pedestrians Map/<date>_<mode>.gpx through MediaStore, so the file is visible to any file manager. */
     private fun save(): String? {
         val name = SimpleDateFormat("yyyy-MM-dd_HHmm", Locale.US).format(Date(state.value.startedAt)) +
             "_" + mode.name.lowercase() + ".gpx"
         val values = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, name)
             put(MediaStore.MediaColumns.MIME_TYPE, "application/gpx+xml")
-            put(MediaStore.MediaColumns.RELATIVE_PATH, "Documents/Swiss Bike-Hike Map")
+            put(MediaStore.MediaColumns.RELATIVE_PATH, "Documents/Swiss Bikers and Pedestrians Map")
         }
         val uri = contentResolver.insert(MediaStore.Files.getContentUri("external"), values) ?: return null
         contentResolver.openOutputStream(uri)?.use { it.write(Gpx.write(name, points).toByteArray()) } ?: return null

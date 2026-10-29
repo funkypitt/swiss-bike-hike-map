@@ -22,7 +22,7 @@ object Gpx {
     fun write(name: String, pts: List<TrackPoint>): String {
         val sb = StringBuilder()
         sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
-        sb.append("<gpx version=\"1.1\" creator=\"Swiss Bike-Hike Map\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n")
+        sb.append("<gpx version=\"1.1\" creator=\"Swiss Bikers and Pedestrians Map\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n")
         sb.append("<trk><name>").append(esc(name)).append("</name><trkseg>\n")
         for (p in pts) {
             sb.append("<trkpt lat=\"").append(String.format(Locale.US, "%.6f", p.lat))

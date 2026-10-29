@@ -1,4 +1,4 @@
-# Swiss Bike-Hike Map — notes
+# Swiss Bikers and Pedestrians Map — notes
 
 Technical notes kept from the private versions; the README has the overview.
 
@@ -42,10 +42,10 @@ upstream (`brouter/UPSTREAM-COMMIT.txt`); the two profile files and `lookups.dat
 
 - Routing: `Android/data/com.freedomfighter.swissbikehike/files/brouter/segments4/E5_N45.rd5` and `E10_N45.rd5`
   (about 450 MB), downloaded by the app over Wi-Fi on first **GO**, refreshed from the menu (brouter.de rebuilds them weekly).
-- Favourites: `favourites.json` in the app's private storage; export as GPX waypoints to `Documents/Swiss Bike-Hike Map/`.
+- Favourites: `favourites.json` in the app's private storage; export as GPX waypoints to `Documents/Swiss Bikers and Pedestrians Map/`.
 - Navigated trips: `trips/history.json` and one GPX per trip in the app's private storage.
 - Saved areas: MapLibre's own database in the app's private storage.
-- Recorded tracks: `Documents/Swiss Bike-Hike Map/<date>_<mode>.gpx`.
+- Recorded tracks: `Documents/Swiss Bikers and Pedestrians Map/<date>_<mode>.gpx`.
 
 ## Weight of a full offline Switzerland (sampled 2026-10-28, bounding box of the country)
 
@@ -58,3 +58,31 @@ upstream (`brouter/UPSTREAM-COMMIT.txt`); the two profile files and `lookups.dat
 (The 1:25 000 paper map, dropped in 0.3.0, would have added 3.6 GB at zoom 15 or 11 GB at zoom 16.)
 
 The box includes a good share of France, Italy, Germany and Austria; Switzerland alone is roughly half.
+
+## Public transport (0.6.0)
+
+* **Lines and stops** come from the swisstopo base map itself, so they are offline wherever the map
+  is: `transportation` layer, class `rail` (subclass rail / narrow_gauge / rack_rail / funicular),
+  `transit` (tram / subway), `cable_car` / `gondola` / `chair_lift` / `aerialway`, `ferry` /
+  `car_ferry`; sidings (`service=siding`) are skipped. Stops are the `poi` layer, classes `bus`,
+  `railway`, `ferry_terminal`, `funicular`, `aerialway`, minus `stop_position`.
+* **Online**: transport.opendata.ch (`locations`, `connections`, `stationboard`), no key, real-time
+  delays and platforms. The API goes stop to stop, so `Planner` tries the nearest stop and the
+  nearest station proper (no comma in its name, Swiss convention) at both ends, adds the walks,
+  and drops dominated journeys.
+* **Offline pack**: `tools/make-transit.py` turns the official GTFS (4.6 GB unpacked, 42 M stop
+  times, 2.6 M trips) into a 65 MB binary (15 MB gzipped): stations only (35 550), trips sharing a
+  stop sequence and relative times become one profile (193 k), trips differing only by service
+  days are merged (1.7 M kept), 366-bit service bitmaps, footpaths between stations within 500 m,
+  change times from transfers.txt. Memory-mapped on the phone, read on demand (`Transit.kt`).
+  Planner = RAPTOR, six rounds, origin and destination stops within 1 km, yesterday's services
+  looked at for trips past midnight; Lausanne → Montreux in 55 ms, Lausanne → Wengen in 650 ms on
+  the desktop JVM. Walks are routed by BRouter (hiking) when the routing data is there.
+* **Guidance** (`NavService`, `stepTransit`): one instruction at a time, from the position and the
+  clock (a ticker every 10 s): WALK to the stop, BOARD (vibration two minutes before), ON (stops
+  left, counted by position, by the clock without GPS), GET OFF (within 400 m or one stop before,
+  long vibration), CHANGE, ARRIVED; a ride missed by three minutes triggers a new plan from here.
+* The pack is downloaded by the system DownloadManager (Wi-Fi) from the release `transit-data`,
+  unpacked and checked, then refreshed every seven days when the server's `switzerland.transit.json`
+  is newer. Emulator trick: let the app create `files/transit/` before pushing the pack with adb,
+  a directory created by the shell user is not readable by the app.

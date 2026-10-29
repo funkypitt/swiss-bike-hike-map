@@ -12,8 +12,10 @@
         android:layout_weight="1" android:orientation="vertical" android:gravity="center"
         android:background="@drawable/block_bike" android:clickable="true" android:focusable="true"
         android:layout_marginStart="12dp" android:layout_marginEnd="12dp" android:layout_marginBottom="6dp">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="@string/bike" android:textSize="64sp" android:textStyle="bold"
+        <TextView android:layout_width="match_parent" android:layout_height="96dp"
+            android:text="@string/bike" android:textStyle="bold" android:gravity="center" android:maxLines="2"
+            android:autoSizeTextType="uniform" android:autoSizeMinTextSize="24sp" android:autoSizeMaxTextSize="56sp"
+            android:layout_marginStart="16dp" android:layout_marginEnd="16dp"
             android:textColor="@color/paper" android:letterSpacing="0.12"/>
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="@string/legend_bike" android:textSize="15sp" android:textColor="@color/paper"
@@ -23,12 +25,28 @@
     <LinearLayout android:id="@+id/walkBlock" android:layout_width="match_parent" android:layout_height="0dp"
         android:layout_weight="1" android:orientation="vertical" android:gravity="center"
         android:background="@drawable/block_walk" android:clickable="true" android:focusable="true"
-        android:layout_marginStart="12dp" android:layout_marginEnd="12dp" android:layout_marginTop="6dp">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="@string/walk" android:textSize="64sp" android:textStyle="bold"
+        android:layout_marginStart="12dp" android:layout_marginEnd="12dp" android:layout_marginTop="6dp" android:layout_marginBottom="6dp">
+        <TextView android:layout_width="match_parent" android:layout_height="96dp"
+            android:text="@string/walk" android:textStyle="bold" android:gravity="center" android:maxLines="2"
+            android:autoSizeTextType="uniform" android:autoSizeMinTextSize="24sp" android:autoSizeMaxTextSize="56sp"
+            android:layout_marginStart="16dp" android:layout_marginEnd="16dp"
             android:textColor="@color/ink" android:letterSpacing="0.12"/>
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="@string/legend_walk" android:textSize="15sp" android:textColor="@color/ink"
+            android:gravity="center" android:layout_marginTop="12dp" android:lineSpacingExtra="4dp"/>
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/transitBlock" android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" android:orientation="vertical" android:gravity="center"
+        android:background="@drawable/block_transit" android:clickable="true" android:focusable="true"
+        android:layout_marginStart="12dp" android:layout_marginEnd="12dp" android:layout_marginTop="6dp">
+        <TextView android:layout_width="match_parent" android:layout_height="96dp"
+            android:text="@string/transit" android:textStyle="bold" android:gravity="center" android:maxLines="2"
+            android:autoSizeTextType="uniform" android:autoSizeMinTextSize="24sp" android:autoSizeMaxTextSize="56sp"
+            android:layout_marginStart="16dp" android:layout_marginEnd="16dp"
+            android:textColor="@color/paper" android:letterSpacing="0.12"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="@string/legend_transit" android:textSize="15sp" android:textColor="@color/paper"
             android:gravity="center" android:layout_marginTop="12dp" android:lineSpacingExtra="4dp"/>
     </LinearLayout>
 

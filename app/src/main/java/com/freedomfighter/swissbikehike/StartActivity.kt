@@ -7,7 +7,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import com.freedomfighter.swissbikehike.databinding.ActivityStartBinding
 
-/** The first screen: BIKE or WALK, nothing else. A running recording goes straight to the map. */
+/** The first screen: BIKE, WALK or TRANSIT, nothing else. A running recording goes straight to the map. */
 class StartActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -16,11 +16,13 @@ class StartActivity : AppCompatActivity() {
         Insets.pad(b.root)
         b.bikeBlock.setOnClickListener { open(Mode.BIKE) }
         b.walkBlock.setOnClickListener { open(Mode.WALK) }
+        b.transitBlock.setOnClickListener { open(Mode.TRANSIT) }
         b.footer.text = getString(R.string.attribution) + " · " + BuildConfig.VERSION_NAME
         // Saved areas refresh themselves once a week over Wi-Fi, from the launch of the app.
         if (savedInstanceState == null) lifecycleScope.launch {
             OfflineMaps.autoRefresh(applicationContext, MapStyle.styleFile(this@StartActivity))
             OfflineMaps.resumeIfNeeded(applicationContext)
+            Timetable.autoUpdate(applicationContext)
         }
     }
 

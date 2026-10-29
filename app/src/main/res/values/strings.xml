@@ -1,10 +1,12 @@
 <resources>
-    <string name="app_name">Swiss Bike-Hike Map</string>
+    <string name="app_name">Swiss Bikers and Pedestrians Map</string>
     <string name="bike">BIKE</string>
     <string name="walk">WALK</string>
     <string name="legend_bike">Official cycling routes in <b>blue</b>\nMountain-bike routes in <b>orange</b></string>
     <string name="legend_walk"><b>Yellow</b> hiking trail\n<b>White-red-white</b> mountain trail\n<b>White-blue-white</b> alpine trail</string>
-    <string name="attribution">Map © swisstopo · Routing © OpenStreetMap contributors</string>
+    <string name="transit">PUBLIC TRANSPORT</string>
+    <string name="legend_transit"><b>Red</b> railways · <b>green</b> trams and metros\n<b>Purple</b> lifts · <b>blue</b> boats · stops as dots</string>
+    <string name="attribution">Map © swisstopo · Routing © OpenStreetMap contributors · Timetable © opentransportdata.swiss</string>
 
     <!-- map screen -->
     <string name="go">GO</string>
@@ -41,7 +43,7 @@
     <string name="downloading_bg">Downloading in the background</string>
     <string name="downloading_wifi">Downloading over Wi-Fi</string>
     <string name="recording_notif">Recording your track</string>
-    <string name="saved">Saved to Documents/Swiss Bike-Hike Map/%1$s</string>
+    <string name="saved">Saved to Documents/Swiss Bikers and Pedestrians Map/%1$s</string>
     <string name="my_position">My position</string>
     <string name="remove">REMOVE</string>
     <string name="cancel">CANCEL</string>
@@ -66,7 +68,7 @@
     <string name="fav_remove_q">Remove « %1$s » from the favourites?</string>
     <string name="fav_imported">%1$d places added</string>
     <string name="fav_none_in_file">No place found in that file</string>
-    <string name="fav_exported">Favourites saved to Documents/Swiss Bike-Hike Map/%1$s</string>
+    <string name="fav_exported">Favourites saved to Documents/Swiss Bikers and Pedestrians Map/%1$s</string>
     <string name="fav_write_fail">Could not write the file</string>
     <string name="import_places">IMPORT</string>
     <string name="export_places">EXPORT</string>
@@ -119,7 +121,7 @@
     <string name="people_on">People search on</string>
     <string name="people_off">People search off</string>
     <string name="menu_about">ABOUT</string>
-    <string name="about_text">Map: swisstopo vector base map, hiking trail network, Veloland and Mountainbikeland routes, closures (© swisstopo, © SchweizMobil).\nRouting: BRouter (MIT) on OpenStreetMap data (ODbL), profiles « trekking » and « hiking-mountain ».\nMap rendering: MapLibre Native (BSD).\nSearch: GeoAdmin API; people and firms: search.ch directory (Swisscom Directories AG) with your own key.</string>
+    <string name="about_text">Map: swisstopo vector base map, hiking trail network, Veloland and Mountainbikeland routes, closures (© swisstopo, © SchweizMobil).\nRouting: BRouter (MIT) on OpenStreetMap data (ODbL), profiles « trekking » and « hiking-mountain ».\nPublic transport: timetable of transport.opendata.ch (Opendata.ch) when connected; offline, the official Swiss timetable (opentransportdata.swiss, GTFS) packed weekly by the app\'s repository.\nMap rendering: MapLibre Native (BSD).\nSearch: GeoAdmin API; people and firms: search.ch directory (Swisscom Directories AG) with your own key.</string>
     <string name="nav_channel">Navigation</string>
     <string name="nav_starting">Navigation starting…</string>
     <string name="eta_short">arrival %1$s</string>
@@ -134,4 +136,49 @@
     <string name="menu_resume_packs">RESUME THE MAP DOWNLOAD</string>
     <string name="menu_pause_packs">PAUSE THE MAP DOWNLOAD</string>
     <string name="pause">PAUSE</string>
+
+    <!-- public transport -->
+    <string name="stops">STOPS</string>
+    <string name="search_stops_hint">Stop or station name</string>
+    <string name="departures">DEPARTURES</string>
+    <string name="departures_title">Departures at %1$s</string>
+    <string name="no_departures">No departure found</string>
+    <string name="journeys_title">Journeys to %1$s</string>
+    <string name="direct">direct</string>
+    <string name="change_1">1 change</string>
+    <string name="changes_n">%1$d changes</string>
+    <string name="no_journey">No journey found</string>
+    <string name="planning">Looking for journeys…</string>
+    <string name="need_timetable_title">Timetable</string>
+    <string name="need_timetable_msg">No connection, and the timetable pack is not on the phone. Over Wi-Fi, MENU › PUBLIC TRANSPORT TIMETABLE fetches it (about 15 MB), so journeys can be planned without a connection.</string>
+    <string name="menu_timetable">PUBLIC TRANSPORT TIMETABLE (opentransportdata.swiss)</string>
+    <string name="timetable_missing">Not on the phone: journeys and departures need a connection (transport.opendata.ch).</string>
+    <string name="timetable_info">Timetable %1$s · %2$s · built %3$s</string>
+    <string name="timetable_newer">→ newer pack on the server (%1$s)</string>
+    <string name="timetable_up_to_date">up to date</string>
+    <string name="timetable_downloading">downloading %1$d%%</string>
+    <string name="timetable_checking">checking the server…</string>
+    <string name="timetable_rule">(checked every %1$d days over Wi-Fi, when the app starts)</string>
+    <string name="offline_timetable">offline timetable</string>
+    <string name="realtime">real time</string>
+    <string name="nav_walk_to">WALK to %1$s</string>
+    <string name="nav_board">BOARD %1$s</string>
+    <string name="nav_ride">ON %1$s</string>
+    <string name="nav_get_off">GET OFF at %1$s</string>
+    <string name="nav_change">CHANGE</string>
+    <string name="nav_platform">platform %1$s</string>
+    <string name="nav_stops_left">%1$d stops</string>
+    <string name="nav_stop_left">next stop</string>
+    <string name="nav_leaves">leaves %1$s</string>
+    <string name="nav_in_min">in %1$d min</string>
+    <string name="nav_now">now</string>
+    <string name="nav_get_off_at">get off at %1$s</string>
+    <string name="nav_missed">Connection missed, planning again…</string>
+    <string name="nav_towards">→ %1$s</string>
+    <string name="kind_bus">Bus</string>
+    <string name="kind_tram">Tram</string>
+    <string name="kind_boat">Boat</string>
+    <string name="kind_lift">Lift</string>
+    <string name="transit_short">TRANSIT</string>
+    <string name="kind_metro">Metro</string>
 </resources>

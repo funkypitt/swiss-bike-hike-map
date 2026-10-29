@@ -51,6 +51,11 @@ class Prefs(ctx: Context) {
         get() = p.getString("night", Night.OFF) ?: Night.OFF
         set(v) = p.edit().putString("night", v).apply()
 
+    /** When the timetable pack was last checked against the server. */
+    var timetableChecked: Long
+        get() = p.getLong("timetable_checked", 0L)
+        set(v) = p.edit().putLong("timetable_checked", v).apply()
+
     fun downloadId(name: String): Long = p.getLong("dl_$name", -1)
     fun setDownloadId(name: String, id: Long) = p.edit().putLong("dl_$name", id).apply()
 }

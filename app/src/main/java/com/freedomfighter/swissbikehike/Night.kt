@@ -23,7 +23,7 @@ object Night {
         for (i in 0 until layers.length()) {
             val l = layers.getJSONObject(i)
             val id = l.optString("id")
-            if (id.startsWith("trail-") || id.startsWith("route-") || id == "track-line" || id == "pin") continue
+            if (id.startsWith("trail-") || id.startsWith("route-") || id.startsWith("pt-") || id.startsWith("journey-") || id == "track-line" || id == "pin") continue
             val paint = l.optJSONObject("paint") ?: continue
             if (l.optString("type") == "raster") { paint.put("raster-brightness-max", 0.75); continue }
             for (k in paint.keys().asSequence().toList()) {

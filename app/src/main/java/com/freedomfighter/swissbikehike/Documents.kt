@@ -6,9 +6,9 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.MediaStore
 
-/** Files the person keeps: saved under Documents/Swiss Bike-Hike Map through MediaStore, then offered for sharing. */
+/** Files the person keeps: saved under Documents/Swiss Bikers and Pedestrians Map through MediaStore, then offered for sharing. */
 object Documents {
-    const val FOLDER = "Documents/Swiss Bike-Hike Map"
+    const val FOLDER = "Documents/Swiss Bikers and Pedestrians Map"
 
     fun save(ctx: Context, name: String, mime: String, bytes: ByteArray): Uri? {
         val values = ContentValues().apply {

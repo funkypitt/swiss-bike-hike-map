@@ -20,7 +20,7 @@ class Fav(val name: String, val lat: Double, val lon: Double, val kind: String =
  * places in the usual formats (GPX waypoints, KML/KMZ, GeoJSON, CSV, or plain lines with coordinates).
  */
 object Favourites {
-    const val PLACE = "place"; const val PERSON = "person"; const val FIRM = "firm"; const val COORDS = "coords"
+    const val PLACE = "place"; const val PERSON = "person"; const val FIRM = "firm"; const val COORDS = "coords"; const val STOP = "stop"
 
     private fun file(ctx: Context) = File(ctx.filesDir, "favourites.json")
 
@@ -152,7 +152,7 @@ object Favourites {
 
     fun gpx(favs: List<Fav>): String {
         val sb = StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
-        sb.append("<gpx version=\"1.1\" creator=\"Swiss Bike-Hike Map\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n")
+        sb.append("<gpx version=\"1.1\" creator=\"Swiss Bikers and Pedestrians Map\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n")
         for (f in favs) {
             sb.append(String.format(Locale.US, "<wpt lat=\"%.6f\" lon=\"%.6f\"><name>%s</name>", f.lat, f.lon, esc(f.name)))
             if (f.detail.isNotBlank()) sb.append("<desc>").append(esc(f.detail)).append("</desc>")

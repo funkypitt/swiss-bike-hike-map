@@ -29,16 +29,26 @@ object MapStyle {
     const val RED = "#E30613"
     const val BLUE = "#0063C6"
     const val MAGENTA = "#E6007E"
+    // Public transport: the lines of the transit mode and of a journey
+    const val PT_TRAIN = "#D40000"
+    const val PT_TRAM = "#00843D"
+    const val PT_BUS = "#7A4A00"
+    const val PT_BOAT = "#0070C0"
+    const val PT_LIFT = "#8E24AA"
 
     const val SRC_ROUTE = "route"
     const val SRC_TRACK = "track"
     const val SRC_PIN = "pin"
     const val IMG_PIN = "pin"
+    const val SRC_JOURNEY = "journey"
+    const val SRC_JOURNEY_PTS = "journey-pts"
 
     /** Layer ids by group, so visibility can be switched without rebuilding. */
     val walkLayers = listOf("trail-hiking-casing", "trail-hiking", "trail-mountain", "trail-mountain-dash",
         "trail-alpine", "trail-alpine-dash", "closures-walk")
     val bikeLayers = listOf("veloland", "mtbland", "closures-bike", "closures-mtb")
+    val transitLayers = listOf("pt-rail-casing", "pt-rail", "pt-tram-casing", "pt-tram", "pt-lift", "pt-lift-dash", "pt-boat",
+        "pt-stops", "pt-stops-name")
 
     fun styleFile(ctx: Context) = File(ctx.filesDir, "style.json")
 
@@ -68,7 +78,7 @@ object MapStyle {
         sources.put("closures-walk", raster(WMS.format("ch.astra.wanderland-sperrungen_umleitungen"), 256, 14))
         sources.put("closures-bike", raster(WMS.format("ch.astra.veloland-sperrungen_umleitungen"), 256, 14))
         sources.put("closures-mtb", raster(WMS.format("ch.astra.mountainbikeland-sperrungen_umleitungen"), 256, 14))
-        for (id in listOf(SRC_ROUTE, SRC_TRACK, SRC_PIN))
+        for (id in listOf(SRC_ROUTE, SRC_TRACK, SRC_PIN, SRC_JOURNEY, SRC_JOURNEY_PTS))
             sources.put(id, JSONObject().put("type", "geojson").put("data", emptyCollection()))
 
         // --- layers: prune, remember, insert ---
@@ -97,6 +107,35 @@ object MapStyle {
         below.put(trail("trail-mountain-dash", baseSrc, "mountain_hiking", "#FFFFFF", widthX(0.4), JSONArray().put(2).put(2)))
         below.put(trail("trail-alpine", baseSrc, "alpine_hiking", BLUE, widthX(1.0), null))
         below.put(trail("trail-alpine-dash", baseSrc, "alpine_hiking", "#FFFFFF", widthX(0.4), JSONArray().put(2).put(2)))
+        // Public transport, drawn like the trails: the ways in their colour, the stops as dots.
+        val notSiding = JSONArray().put("!=").put(JSONArray().put("get").put("service")).put("siding")
+        val rail = JSONArray().put("all").put(JSONArray().put("==").put(JSONArray().put("get").put("class")).put("rail")).put(notSiding)
+        val tram = JSONArray().put("all").put(JSONArray().put("==").put(JSONArray().put("get").put("class")).put("transit")).put(notSiding)
+        val lift = JSONArray().put("in").put(JSONArray().put("get").put("class"))
+            .put(JSONArray().put("literal").put(JSONArray().put("cable_car").put("gondola").put("chair_lift").put("aerialway").put("aerialway_transportation")))
+        val boat = JSONArray().put("in").put(JSONArray().put("get").put("class")).put(JSONArray().put("literal").put(JSONArray().put("ferry").put("car_ferry")))
+        below.put(way("pt-rail-casing", baseSrc, rail, "#FFFFFF", widthX(1.6), null))
+        below.put(way("pt-rail", baseSrc, rail, PT_TRAIN, widthX(1.0), null))
+        below.put(way("pt-tram-casing", baseSrc, tram, "#FFFFFF", widthX(1.6), null))
+        below.put(way("pt-tram", baseSrc, tram, PT_TRAM, widthX(1.0), null))
+        below.put(way("pt-lift", baseSrc, lift, PT_LIFT, widthX(0.9), null))
+        below.put(way("pt-lift-dash", baseSrc, lift, "#FFFFFF", widthX(0.35), JSONArray().put(3).put(3)))
+        below.put(way("pt-boat", baseSrc, boat, PT_BOAT, widthX(0.9), JSONArray().put(2).put(1.5)))
+        val stopFilter = JSONArray().put("all")
+            .put(JSONArray().put("in").put(JSONArray().put("get").put("class")).put(JSONArray().put("literal")
+                .put(JSONArray().put("bus").put("railway").put("ferry_terminal").put("funicular").put("aerialway"))))
+            .put(JSONArray().put("!=").put(JSONArray().put("get").put("subclass")).put("stop_position"))
+        below.put(JSONObject().put("id", "pt-stops").put("type", "circle").put("source", baseSrc).put("source-layer", "poi")
+            .put("minzoom", 12).put("filter", stopFilter).put("layout", JSONObject().put("visibility", "none"))
+            .put("paint", JSONObject().put("circle-color", "#FFFFFF").put("circle-stroke-color", "#000000")
+                .put("circle-radius", JSONArray().put("interpolate").put(JSONArray().put("linear")).put(JSONArray().put("zoom")).put(12).put(2.5).put(16).put(6))
+                .put("circle-stroke-width", JSONArray().put("interpolate").put(JSONArray().put("linear")).put(JSONArray().put("zoom")).put(12).put(1).put(16).put(2.5))))
+        below.put(JSONObject().put("id", "pt-stops-name").put("type", "symbol").put("source", baseSrc).put("source-layer", "poi")
+            .put("minzoom", 14).put("filter", stopFilter)
+            .put("layout", JSONObject().put("visibility", "none").put("text-field", JSONArray().put("get").put("name"))
+                .put("text-font", JSONArray().put("Frutiger Neue Regular")).put("text-size", 11).put("text-anchor", "top")
+                .put("text-offset", JSONArray().put(0).put(0.7)).put("text-max-width", 8))
+            .put("paint", JSONObject().put("text-color", "#000000").put("text-halo-color", "#FFFFFF").put("text-halo-width", 1.5)))
 
         val merged = JSONArray()
         for (i in 0 until layers.length()) {
@@ -112,6 +151,18 @@ object MapStyle {
         merged.put(line("track-line", SRC_TRACK, "#000000", 3.0, JSONArray().put(1).put(2)))
         merged.put(line("route-casing", SRC_ROUTE, "#FFFFFF", 10.0, null))
         merged.put(line("route-line", SRC_ROUTE, MAGENTA, 6.0, null))
+        // A public-transport journey: the rides in their colour over a white casing, the walks dotted.
+        merged.put(line("journey-casing", SRC_JOURNEY, "#FFFFFF", 10.0, null))
+        merged.put(line("journey-ride", SRC_JOURNEY, JSONArray().put("get").put("c"), 6.0, null)
+            .put("filter", JSONArray().put("==").put(JSONArray().put("get").put("w")).put(0)))
+        merged.put(line("journey-walk", SRC_JOURNEY, "#000000", 4.0, JSONArray().put(0.5).put(2))
+            .put("filter", JSONArray().put("==").put(JSONArray().put("get").put("w")).put(1)))
+        merged.put(JSONObject().put("id", "journey-pts").put("type", "circle").put("source", SRC_JOURNEY_PTS)
+            .put("paint", JSONObject().put("circle-color", "#FFFFFF").put("circle-stroke-color", "#000000").put("circle-radius", 7).put("circle-stroke-width", 3)))
+        merged.put(JSONObject().put("id", "journey-pts-name").put("type", "symbol").put("source", SRC_JOURNEY_PTS)
+            .put("layout", JSONObject().put("text-field", JSONArray().put("get").put("n")).put("text-font", JSONArray().put("Frutiger Neue Medium"))
+                .put("text-size", 13).put("text-anchor", "top").put("text-offset", JSONArray().put(0).put(0.9)).put("text-max-width", 10))
+            .put("paint", JSONObject().put("text-color", "#000000").put("text-halo-color", "#FFFFFF").put("text-halo-width", 2)))
         merged.put(JSONObject().put("id", "pin").put("type", "symbol").put("source", SRC_PIN)
             .put("layout", JSONObject().put("icon-image", IMG_PIN).put("icon-anchor", "bottom")
                 .put("icon-allow-overlap", true).put("icon-ignore-placement", true)
@@ -148,7 +199,17 @@ object MapStyle {
             .put("paint", paint)
     }
 
-    private fun line(id: String, src: String, color: String, width: Double, dash: JSONArray?): JSONObject {
+    /** A public-transport way of the base map, off until the transit mode shows it. */
+    private fun way(id: String, src: String, filter: JSONArray, color: String, width: JSONArray, dash: JSONArray?): JSONObject {
+        val paint = JSONObject().put("line-color", color).put("line-width", width)
+        if (dash != null) paint.put("line-dasharray", dash)
+        return JSONObject().put("id", id).put("type", "line").put("source", src).put("source-layer", "transportation")
+            .put("minzoom", 8).put("filter", filter)
+            .put("layout", JSONObject().put("line-cap", if (dash == null) "round" else "butt").put("line-join", "round").put("visibility", "none"))
+            .put("paint", paint)
+    }
+
+    private fun line(id: String, src: String, color: Any, width: Double, dash: JSONArray?): JSONObject {
         val paint = JSONObject().put("line-color", color).put("line-width", width)
         if (dash != null) paint.put("line-dasharray", dash)
         return JSONObject().put("id", id).put("type", "line").put("source", src)

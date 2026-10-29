@@ -11,8 +11,8 @@ android {
         applicationId = "com.freedomfighter.swissbikehike"
         minSdk = 28
         targetSdk = 35
-        versionCode = 7
-        versionName = "0.5.1"
+        versionCode = 8
+        versionName = "0.6.0"
     }
 
     buildTypes {
@@ -27,6 +27,8 @@ android {
     kotlinOptions { jvmTarget = "17" }
     packaging { resources.excludes += setOf("META-INF/*.md", "META-INF/LICENSE*") }
 }
+
+tasks.withType<Test> { systemProperty("transit.pack", System.getProperty("transit.pack") ?: "") }
 
 dependencies {
     implementation(project(":brouter"))

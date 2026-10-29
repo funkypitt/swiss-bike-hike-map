@@ -36,8 +36,11 @@
                 <TextView android:id="@+id/btnDrop" style="@style/Btn" android:layout_width="44dp" android:layout_height="44dp"
                     android:minHeight="44dp" android:minWidth="44dp" android:layout_marginStart="8dp" android:textSize="20sp"
                     android:background="@drawable/btn_dark" android:textColor="@drawable/btn_dark_text" android:text="✕"/>
-                <TextView android:id="@+id/btnShare" style="@style/Btn" android:layout_width="104dp" android:layout_height="44dp"
-                    android:minHeight="44dp" android:layout_marginStart="8dp" android:autoSizeMaxTextSize="15sp"
+                <TextView android:id="@+id/btnDepartures" style="@style/Btn" android:layout_width="84dp" android:layout_height="44dp"
+                    android:minHeight="44dp" android:layout_marginStart="8dp" android:autoSizeMaxTextSize="13sp" android:visibility="gone"
+                    android:background="@drawable/btn_dark" android:textColor="@drawable/btn_dark_text" android:text="@string/departures"/>
+                <TextView android:id="@+id/btnShare" style="@style/Btn" android:layout_width="84dp" android:layout_height="44dp"
+                    android:minHeight="44dp" android:layout_marginStart="8dp" android:autoSizeMaxTextSize="13sp"
                     android:background="@drawable/btn_dark" android:textColor="@drawable/btn_dark_text" android:text="@string/share"/>
                 <TextView android:id="@+id/btnSave" style="@style/Btn" android:layout_width="44dp" android:layout_height="44dp"
                     android:minHeight="44dp" android:minWidth="44dp" android:layout_marginStart="8dp" android:textSize="22sp"
@@ -69,6 +72,18 @@
                             android:textColor="@color/grey" android:textSize="16sp" android:fontFamily="monospace" android:paddingStart="8dp"/>
                     </LinearLayout>
                 </LinearLayout>
+            </LinearLayout>
+
+            <!-- public-transport guidance: the instruction of the moment, in big letters -->
+            <LinearLayout android:id="@+id/transitPanel" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:background="@color/ink" android:padding="12dp" android:visibility="gone">
+                <TextView android:id="@+id/tTitle" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:textColor="@color/paper" android:textSize="30sp" android:textStyle="bold" android:maxLines="2"
+                    android:autoSizeTextType="uniform" android:autoSizeMinTextSize="18sp" android:autoSizeMaxTextSize="32sp"
+                    android:lineSpacingExtra="2dp" android:text="--"/>
+                <TextView android:id="@+id/tDetail" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:textColor="@color/paper" android:textSize="18sp" android:maxLines="4" android:lineSpacingExtra="4dp"
+                    android:layout_marginTop="6dp"/>
             </LinearLayout>
 
             <com.freedomfighter.swissbikehike.ProfileView android:id="@+id/profile" android:layout_width="match_parent"

@@ -64,6 +64,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
 
     private val stops = ArrayList<Stop>()
     private var trip: Trip? = null
+    private var journey: Journey? = null
 
     private var lastLocation: Location? = null
     private var prevFix: Location? = null
@@ -101,9 +102,9 @@ class MapActivity : AppCompatActivity(), LocationListener {
         Insets.pad(b.root)
         b.map.onCreate(savedInstanceState)
 
-        b.modeBadge.text = getString(if (mode == Mode.BIKE) R.string.bike else R.string.walk)
-        b.modeBadge.setBackgroundResource(if (mode == Mode.BIKE) R.drawable.badge_bike else R.drawable.badge_walk)
-        b.modeBadge.setTextColor(ContextCompat.getColor(this, if (mode == Mode.BIKE) R.color.paper else R.color.ink))
+        b.modeBadge.text = getString(when (mode) { Mode.BIKE -> R.string.bike; Mode.WALK -> R.string.walk; Mode.TRANSIT -> R.string.transit_short })
+        b.modeBadge.setBackgroundResource(when (mode) { Mode.BIKE -> R.drawable.badge_bike; Mode.WALK -> R.drawable.badge_walk; Mode.TRANSIT -> R.drawable.badge_transit })
+        b.modeBadge.setTextColor(ContextCompat.getColor(this, if (mode == Mode.WALK) R.color.ink else R.color.paper))
         b.modeBadge.setOnClickListener { finish() }
         b.btnFind.setOnClickListener { searchLauncher.launch(Intent(this, SearchActivity::class.java)) }
         b.btnMenu.setOnClickListener {
@@ -119,6 +120,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
         b.btnSave.setOnClickListener { toggleFavourite() }
         b.btnShare.setOnClickListener { stops.lastOrNull()?.let { share(it.name, it.at) } }
         b.btnDrop.setOnClickListener { dropLastStop() }
+        b.btnDepartures.setOnClickListener { stops.lastOrNull()?.let { showDepartures(it) } }
 
         b.map.getMapAsync { m ->
             map = m
@@ -210,6 +212,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
                 enableLocationLayer()
                 drawStops()
                 trip?.let { drawTrip(it) }
+                journey?.let { drawJourney(it) }
                 RecordService.state.value.let { if (it.running) drawTrack(it.points) }
             }
         }
@@ -224,6 +227,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
     private fun applyVisibility() {
         setVisible(MapStyle.walkLayers, mode == Mode.WALK)
         setVisible(MapStyle.bikeLayers, mode == Mode.BIKE)
+        setVisible(MapStyle.transitLayers, mode == Mode.TRANSIT)
     }
 
     // ---------- location and camera ----------
@@ -338,6 +342,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
         if (trip?.fromGpx == true) clearTrip()
         stops.add(s)
         if (trip != null) { trip = null; clearTripDrawing(); b.lDist.text = getString(R.string.dist); updateDist() }
+        if (journey != null) { journey = null; clearJourneyDrawing(); b.lDist.text = getString(R.string.dist); updateDist() }
         drawStops()
         b.btnGo.isEnabled = true
         b.btnGo.text = getString(R.string.go)
@@ -349,6 +354,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
         if (stops.isEmpty()) return
         stops.removeAt(stops.size - 1)
         if (trip != null) { trip = null; clearTripDrawing(); b.lDist.text = getString(R.string.dist); updateDist() }
+        if (journey != null) { journey = null; clearJourneyDrawing(); b.lDist.text = getString(R.string.dist); updateDist() }
         drawStops()
         b.btnGo.isEnabled = stops.isNotEmpty()
         b.btnGo.text = getString(R.string.go)
@@ -371,11 +377,39 @@ class MapActivity : AppCompatActivity(), LocationListener {
         b.pinStrip.visibility = View.VISIBLE
         val saved = Favourites.find(this, s.at.latitude, s.at.longitude)
         val head = if (stops.size > 1) getString(R.string.stop_n, stops.size) + "  " else ""
-        b.pinLabel.text = head + listOf(saved?.name ?: s.name, s.detail).filter { it.isNotBlank() }.joinToString("\n")
+        b.pinLabel.text = head + listOf(saved?.name ?: s.name, if (s.kind == Favourites.STOP) "" else s.detail).filter { it.isNotBlank() }.joinToString("\n")
         b.btnSave.text = if (saved != null) "★" else "☆"
         b.btnSave.isActivated = saved != null
         b.btnDrop.visibility = if (trip?.fromGpx == true) View.GONE else View.VISIBLE
+        b.btnDepartures.visibility = if (s.kind == Favourites.STOP) View.VISIBLE else View.GONE
     }
+
+    /** The next departures at a public-transport stop, as a plain list. */
+    private fun showDepartures(s: Stop) {
+        status(getString(R.string.planning))
+        lifecycleScope.launch {
+            val found = runCatching { Planner.departures(this@MapActivity, TStop(s.name, s.at, s.detail)) }
+            status(null)
+            found.onFailure { e -> if (e is Planner.NoTimetable) askForTimetable() else Toast.makeText(this@MapActivity, e.message ?: "?", Toast.LENGTH_LONG).show() }
+            found.onSuccess { list ->
+                if (list.isEmpty()) { Toast.makeText(this@MapActivity, R.string.no_departures, Toast.LENGTH_SHORT).show(); return@onSuccess }
+                val lines = list.map { d ->
+                    Journey.clock(d.time) + (if (d.delayMin > 0) " +${d.delayMin}" else "") + "   " + kindLabel(d.kind, d.line) + "  → " + d.headsign +
+                        (if (d.platform.isNotBlank()) "   " + getString(R.string.nav_platform, d.platform) else "")
+                }
+                AlertDialog.Builder(this@MapActivity).setTitle(getString(R.string.departures_title, s.name))
+                    .setItems(lines.toTypedArray(), null).setPositiveButton(android.R.string.ok, null).show()
+            }
+        }
+    }
+
+    private fun kindLabel(kind: Int, line: String): String = when (kind) {
+        Journey.BUS -> getString(R.string.kind_bus) + " " + line
+        Journey.TRAM -> if (line.startsWith("m", ignoreCase = true)) getString(R.string.kind_metro) + " " + line else if (line.length <= 3) getString(R.string.kind_tram) + " " + line else line
+        Journey.BOAT -> getString(R.string.kind_boat) + " " + line
+        Journey.LIFT -> getString(R.string.kind_lift) + " " + line
+        else -> line
+    }.trim()
 
     private fun toggleFavourite() {
         val s = stops.lastOrNull() ?: return
@@ -401,6 +435,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
 
     private fun go() {
         if (stops.isEmpty()) return
+        if (mode == Mode.TRANSIT) { planTransit(); return }
         if (!Segments.isReady(this)) { askForData(); return }
         val from = lastLocation?.let { LatLng(it.latitude, it.longitude) } ?: run {
             Toast.makeText(this, R.string.no_fix_centre, Toast.LENGTH_SHORT).show()
@@ -426,7 +461,111 @@ class MapActivity : AppCompatActivity(), LocationListener {
         }
     }
 
+    // ---------- public transport ----------
+
+    /** Journeys to the last stop (through the others in turn), offered as a list; the chosen one is drawn. */
+    private fun planTransit() {
+        if (routing) return
+        val from = lastLocation?.let { LatLng(it.latitude, it.longitude) } ?: run {
+            Toast.makeText(this, R.string.no_fix_centre, Toast.LENGTH_SHORT).show()
+            map?.cameraPosition?.target
+        } ?: return
+        routing = true
+        status(getString(R.string.planning))
+        lifecycleScope.launch {
+            val result = runCatching {
+                val now = System.currentTimeMillis()
+                if (stops.size == 1) Planner.plan(this@MapActivity, from, stops[0].at, now, 4)
+                else {
+                    // several stops: the first leg has the choice, the following legs take the first journey each
+                    val firsts = Planner.plan(this@MapActivity, from, stops[0].at, now, 4)
+                    firsts.mapNotNull { f ->
+                        val legs = ArrayList(f.legs); var ok = true
+                        for (i in 1 until stops.size) {
+                            val n = Planner.plan(this@MapActivity, stops[i - 1].at, stops[i].at, legs.last().arr + 60_000, 1).firstOrNull()
+                            if (n == null) { ok = false; break }
+                            legs.addAll(n.legs)
+                        }
+                        if (ok) Journey(legs, f.offline) else null
+                    }
+                }
+            }
+            routing = false
+            status(null)
+            result.onFailure { e ->
+                if (e is Planner.NoTimetable) askForTimetable()
+                else Toast.makeText(this@MapActivity, getString(R.string.no_journey) + ": " + e.message, Toast.LENGTH_LONG).show()
+            }
+            result.onSuccess { js ->
+                if (js.isEmpty()) { Toast.makeText(this@MapActivity, R.string.no_journey, Toast.LENGTH_LONG).show(); return@onSuccess }
+                if (js.size == 1) { setJourney(js[0], fit = true); return@onSuccess }
+                val lines = js.map { journeyLine(it) }
+                AlertDialog.Builder(this@MapActivity).setTitle(getString(R.string.journeys_title, stops.last().name))
+                    .setItems(lines.toTypedArray()) { _, i -> setJourney(js[i], fit = true) }
+                    .setNegativeButton(R.string.cancel, null).show()
+            }
+        }
+    }
+
+    private fun changesText(j: Journey): String = when (j.changes) { 0 -> getString(R.string.direct); 1 -> getString(R.string.change_1); else -> getString(R.string.changes_n, j.changes) }
+
+    private fun journeyLine(j: Journey): String {
+        val rides = j.legs.filter { it.ride }
+        val head = Journey.clock(j.dep) + " → " + Journey.clock(j.arr) + "   " + Fmt.hm(j.seconds) + "   " + changesText(j)
+        val detail = rides.joinToString("  ·  ") { kindLabel(it.kind, it.line) + (if (it.platDep.isNotBlank()) " (" + getString(R.string.nav_platform, it.platDep) + ")" else "") }
+        return if (rides.isEmpty()) head else head + "\n" + detail
+    }
+
+    private fun setJourney(j: Journey, fit: Boolean) {
+        if (trip != null) { trip = null; clearTripDrawing() }
+        journey = j
+        // the last walk ends at the pin: give it the pin's name, so the guidance can say it
+        j.legs.last().let { l -> if (!l.ride && l.to.name.isBlank()) l.to.name = stops.lastOrNull()?.name ?: "" }
+        drawJourney(j)
+        val rides = j.legs.filter { it.ride }
+        b.routeStrip.text = Journey.clock(j.dep) + " → " + Journey.clock(j.arr) + "   " + Fmt.hm(j.seconds) + "   " + changesText(j) +
+            (if (rides.isEmpty()) "" else "\n" + rides.joinToString(" · ") { kindLabel(it.kind, it.line) }) +
+            "\n" + getString(if (j.offline) R.string.offline_timetable else R.string.realtime)
+        b.routeStrip.visibility = if (nav) View.GONE else View.VISIBLE
+        b.profile.visibility = View.GONE
+        b.btnGo.text = getString(if (nav) R.string.stop_nav else R.string.clear)
+        b.btnGo.isEnabled = true
+        b.btnNav.isEnabled = true
+        b.lDist.text = getString(R.string.togo)
+        updateDist()
+        updatePinStrip()
+        if (fit) fitTo(j.points)
+    }
+
+    private fun drawJourney(j: Journey) {
+        val lines = j.legs.filter { it.path.size >= 2 }.map { l ->
+            Feature.fromGeometry(LineString.fromLngLats(l.path.map { Point.fromLngLat(it.longitude, it.latitude) })).also { f ->
+                f.addStringProperty("c", Journey.colour(l.kind)); f.addNumberProperty("w", if (l.ride) 0 else 1)
+            }
+        }
+        val pts = ArrayList<Feature>()
+        for (l in j.legs) if (l.ride) {
+            pts.add(Feature.fromGeometry(Point.fromLngLat(l.from.at.longitude, l.from.at.latitude)).also { it.addStringProperty("n", l.from.name + " " + Journey.clock(l.dep)) })
+            pts.add(Feature.fromGeometry(Point.fromLngLat(l.to.at.longitude, l.to.at.latitude)).also { it.addStringProperty("n", l.to.name + " " + Journey.clock(l.arr)) })
+        }
+        style?.getSourceAs<GeoJsonSource>(MapStyle.SRC_JOURNEY)?.setGeoJson(FeatureCollection.fromFeatures(lines))
+        style?.getSourceAs<GeoJsonSource>(MapStyle.SRC_JOURNEY_PTS)?.setGeoJson(FeatureCollection.fromFeatures(pts))
+    }
+
+    private fun clearJourneyDrawing() {
+        style?.getSourceAs<GeoJsonSource>(MapStyle.SRC_JOURNEY)?.setGeoJson(FeatureCollection.fromFeatures(emptyList()))
+        style?.getSourceAs<GeoJsonSource>(MapStyle.SRC_JOURNEY_PTS)?.setGeoJson(FeatureCollection.fromFeatures(emptyList()))
+        b.routeStrip.visibility = View.GONE
+    }
+
+    private fun askForTimetable() {
+        AlertDialog.Builder(this).setTitle(R.string.need_timetable_title).setMessage(R.string.need_timetable_msg)
+            .setPositiveButton(R.string.download) { _, _ -> Timetable.download(this); Toast.makeText(this, R.string.downloading_wifi, Toast.LENGTH_LONG).show() }
+            .setNegativeButton(R.string.later, null).show()
+    }
+
     private fun setTrip(t: Trip, fit: Boolean) {
+        if (journey != null) { journey = null; clearJourneyDrawing() }
         trip = t
         drawTrip(t)
         b.routeStrip.text = String.format(Locale.US, "%s km  ↑%d m  ↓%d m", Fmt.km(t.distanceM.toDouble()), t.ascendM, t.descendM) +
@@ -446,7 +585,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
     private fun fitTo(pts: List<LatLng>) {
         if (pts.size < 2) return
         val bb = LatLngBounds.Builder().also { bld -> pts.forEach { bld.include(it) } }.build()
-        map?.animateCamera(CameraUpdateFactory.newLatLngBounds(bb, 80, 480, 80, 120))
+        map?.animateCamera(CameraUpdateFactory.newLatLngBounds(bb, 80, 560, 200, 120))
     }
 
     /** A GPX file becomes the trip itself: followed as it is, with turns read off its shape. */
@@ -477,8 +616,8 @@ class MapActivity : AppCompatActivity(), LocationListener {
 
     private fun clearTrip() {
         if (nav) { stopNav(); exitNavUi() }
-        trip = null; stops.clear()
-        clearTripDrawing()
+        trip = null; stops.clear(); journey = null
+        clearTripDrawing(); clearJourneyDrawing()
         drawStops()
         b.btnGo.text = getString(R.string.go)
         b.btnGo.isEnabled = false
@@ -501,6 +640,11 @@ class MapActivity : AppCompatActivity(), LocationListener {
     }
 
     private fun remaining(): Double {
+        journey?.let { j ->
+            var d = 0.0
+            for (l in j.legs) for (k in 1 until l.path.size) d += l.path[k - 1].distanceTo(l.path[k])
+            return d
+        }
         val t = trip ?: return -1.0
         val loc = lastLocation ?: return t.distanceM.toDouble()
         return t.cum[t.cum.size - 1] - t.along(LatLng(loc.latitude, loc.longitude)).doneM
@@ -509,7 +653,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
     private fun updateDist() {
         val rec = RecordService.state.value
         b.vDist.text = when {
-            trip != null -> Fmt.km(remaining())
+            trip != null || journey != null -> Fmt.km(remaining())
             rec.running -> Fmt.km(rec.distanceM)
             else -> "--"
         }
@@ -518,8 +662,9 @@ class MapActivity : AppCompatActivity(), LocationListener {
     // ---------- navigation (done by NavService; this screen shows it) ----------
 
     private fun startNav() {
-        val t = trip ?: return
         if (!hasLocation()) { askPermissions.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)); return }
+        journey?.let { NavService.startTransit(this, it); return }
+        val t = trip ?: return
         NavService.start(this, t, mode)
     }
 
@@ -529,6 +674,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
         if (st.running && !nav) enterNavUi(st)
         if (!st.running && nav) exitNavUi()
         if (!st.running) { st.kept?.let { if (navVersion != -1) { Toast.makeText(this, getString(R.string.trip_kept, Fmt.km(it.distanceM.toDouble())), Toast.LENGTH_SHORT).show(); navVersion = -1 } }; return }
+        if (st.journey != null) { onTransitState(st); return }
         // a reroute replaced the trip
         if (st.trip != null && st.tripVersion != navVersion) {
             navVersion = st.tripVersion
@@ -558,12 +704,34 @@ class MapActivity : AppCompatActivity(), LocationListener {
         b.navThen.text = NavService.navM(st.afterM)
     }
 
+    /** The public-transport guidance: the instruction of the moment in big letters, the journey redrawn when replanned. */
+    private fun onTransitState(st: NavState) {
+        val j = st.journey ?: return
+        if (st.tripVersion != navVersion) {
+            navVersion = st.tripVersion
+            if (stops.isEmpty()) stops.add(Stop(j.destination.at, j.destination.name.ifBlank { Favourites.coordsName(j.destination.at.latitude, j.destination.at.longitude) }))
+            drawStops()
+            setJourney(j, fit = false)
+            b.routeStrip.visibility = View.GONE; b.pinStrip.visibility = View.GONE
+        }
+        status(if (st.rerouting) getString(R.string.nav_missed) else null)
+        if (st.eta.isNotEmpty()) b.vAlt.text = st.eta
+        if (st.leftM >= 0) b.vDist.text = Fmt.km(st.leftM)
+        val g = st.guide ?: return
+        b.tTitle.text = g.title
+        b.tDetail.text = g.detail
+        b.tDetail.visibility = if (g.detail.isBlank()) View.GONE else View.VISIBLE
+        b.tTitle.setTextColor(ContextCompat.getColor(this, if (g.urgent) R.color.walk_yellow else R.color.paper))
+    }
+
     private fun enterNavUi(st: NavState) {
         nav = true
         navVersion = 0
         if (trip == null && st.trip != null) { stops.clear(); stops.addAll(st.trip.stops); drawStops(); setTrip(st.trip, fit = false) }
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        b.navPanel.visibility = View.VISIBLE
+        val transit = st.journey != null
+        b.navPanel.visibility = if (transit) View.GONE else View.VISIBLE
+        b.transitPanel.visibility = if (transit) View.VISIBLE else View.GONE
         b.routeStrip.visibility = View.GONE
         b.pinStrip.visibility = View.GONE
         b.btnGo.text = getString(R.string.stop_nav)
@@ -585,8 +753,9 @@ class MapActivity : AppCompatActivity(), LocationListener {
         map?.setPadding(0, 0, 0, 0)
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         b.navPanel.visibility = View.GONE
-        if (trip != null) b.routeStrip.visibility = View.VISIBLE
-        b.btnGo.text = getString(if (trip != null) R.string.clear else R.string.go)
+        b.transitPanel.visibility = View.GONE
+        if (trip != null || journey != null) b.routeStrip.visibility = View.VISIBLE
+        b.btnGo.text = getString(if (trip != null || journey != null) R.string.clear else R.string.go)
         b.btnNav.visibility = View.VISIBLE
         b.lAlt.text = getString(R.string.alt)
         lastLocation?.let { onLocationChanged(it) }

@@ -1,0 +1,32 @@
+# Builds the offline public-transport timetable pack from the official Swiss GTFS feed
+# (opentransportdata.swiss, open data, no key) and keeps it on the rolling release "transit-data",
+# which the app downloads. Runs weekly, after the feed's own weekly update, and on demand.
+name: transit-data
+
+on:
+  schedule:
+    - cron: "17 4 * * 2"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build the pack
+        run: python3 tools/make-transit.py out
+      - name: Publish on the transit-data release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view transit-data --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+            gh release create transit-data --repo "$GITHUB_REPOSITORY" --title "Public-transport timetable pack" \
+              --notes "Offline timetable of the app, rebuilt weekly from the official Swiss GTFS feed (opentransportdata.swiss). Not an app release." --prerelease
+          gh release upload transit-data out/switzerland.transit.gz out/switzerland.transit.json --repo "$GITHUB_REPOSITORY" --clobber
+          cat out/switzerland.transit.json
