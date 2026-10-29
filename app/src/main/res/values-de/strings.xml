@@ -4,7 +4,7 @@
     <string name="legend_bike">Offizielle Velorouten in <b>Blau</b>\nMountainbike-Routen in <b>Orange</b></string>
     <string name="transit">ÖFFENTLICHER VERKEHR</string>
     <string name="legend_transit">Bahnen <b>rot</b> · Tram und Metro <b>grün</b>\nSeilbahnen <b>violett</b> · Schiffe <b>blau</b> · Haltestellen als Punkte</string>
-    <string name="legend_walk"><b>Gelber</b> Wanderweg\n<b>Weiss-rot-weisser</b> Bergwanderweg\n<b>Weiss-blau-weisser</b> Alpinwanderweg</string>
+    <string name="legend_walk"><b>Gelber</b> Wanderweg\n<b>Weiss-rot-weisser</b> Bergwanderweg\n<b>Weiss-blau-weisser</b> Alpinwanderweg\nÖV-Haltestellen als Punkte</string>
     <string name="attribution">Karte © swisstopo · Routen © OpenStreetMap-Mitwirkende · Fahrplan © opentransportdata.swiss</string>
     <string name="go">GO</string>
     <string name="clear">LÖSCHEN</string>

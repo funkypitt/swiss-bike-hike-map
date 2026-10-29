@@ -3,7 +3,7 @@
     <string name="bike">BIKE</string>
     <string name="walk">WALK</string>
     <string name="legend_bike">Official cycling routes in <b>blue</b>\nMountain-bike routes in <b>orange</b></string>
-    <string name="legend_walk"><b>Yellow</b> hiking trail\n<b>White-red-white</b> mountain trail\n<b>White-blue-white</b> alpine trail</string>
+    <string name="legend_walk"><b>Yellow</b> hiking trail\n<b>White-red-white</b> mountain trail\n<b>White-blue-white</b> alpine trail\nPublic-transport stops as dots</string>
     <string name="transit">PUBLIC TRANSPORT</string>
     <string name="legend_transit"><b>Red</b> railways · <b>green</b> trams and metros\n<b>Purple</b> lifts · <b>blue</b> boats · stops as dots</string>
     <string name="attribution">Map © swisstopo · Routing © OpenStreetMap contributors · Timetable © opentransportdata.swiss</string>

@@ -4,7 +4,7 @@
     <string name="legend_bike">Itinéraires cyclables officiels en <b>bleu</b>\nItinéraires VTT en <b>orange</b></string>
     <string name="transit">TRANSPORTS PUBLICS</string>
     <string name="legend_transit">Chemins de fer en <b>rouge</b> · trams et métros en <b>vert</b>\nRemontées en <b>violet</b> · bateaux en <b>bleu</b> · arrêts en points</string>
-    <string name="legend_walk">Chemin de randonnée <b>jaune</b>\nChemin de montagne <b>blanc-rouge-blanc</b>\nChemin alpin <b>blanc-bleu-blanc</b></string>
+    <string name="legend_walk">Chemin de randonnée <b>jaune</b>\nChemin de montagne <b>blanc-rouge-blanc</b>\nChemin alpin <b>blanc-bleu-blanc</b>\nArrêts de transports publics en points</string>
     <string name="attribution">Carte © swisstopo · Itinéraires © contributeurs OpenStreetMap · Horaires © opentransportdata.swiss</string>
     <string name="go">GO</string>
     <string name="clear">EFFACER</string>

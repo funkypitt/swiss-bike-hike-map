@@ -4,7 +4,7 @@
     <string name="legend_bike">Rutas ciclistas oficiales en <b>azul</b>\nRutas de bicicleta de montaña en <b>naranja</b></string>
     <string name="transit">TRANSPORTE PÚBLICO</string>
     <string name="legend_transit">Ferrocarriles en <b>rojo</b> · tranvías y metros en <b>verde</b>\nTeleféricos en <b>violeta</b> · barcos en <b>azul</b> · paradas como puntos</string>
-    <string name="legend_walk">Sendero <b>amarillo</b>\nSendero de montaña <b>blanco-rojo-blanco</b>\nSendero alpino <b>blanco-azul-blanco</b></string>
+    <string name="legend_walk">Sendero <b>amarillo</b>\nSendero de montaña <b>blanco-rojo-blanco</b>\nSendero alpino <b>blanco-azul-blanco</b>\nParadas de transporte público como puntos</string>
     <string name="attribution">Mapa © swisstopo · Rutas © colaboradores de OpenStreetMap · Horarios © opentransportdata.swiss</string>
     <string name="go">IR</string>
     <string name="clear">BORRAR</string>

@@ -285,6 +285,8 @@ class MapActivity : AppCompatActivity(), LocationListener {
         setVisible(MapStyle.walkLayers, mode == Mode.WALK)
         setVisible(MapStyle.bikeLayers, mode == Mode.BIKE)
         setVisible(MapStyle.transitLayers, mode == Mode.TRANSIT)
+        // walkers like to know where the stops are: the dots and names, nothing else, on the walking map
+        setVisible(MapStyle.stopLayers, mode == Mode.TRANSIT || mode == Mode.WALK)
     }
 
     // ---------- location and camera ----------

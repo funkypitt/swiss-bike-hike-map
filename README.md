@@ -13,7 +13,8 @@ the app was called Swiss Bike-Hike Map; the package name has not changed.)
 * **BIKE, WALK or PUBLIC TRANSPORT**, chosen on the first screen; the map then shows the official
   network of that mode: yellow / white-red-white / white-blue-white hiking trails, blue Veloland
   and orange mountain-bike routes, closures and detours (© swisstopo, © SchweizMobil); red
-  railways, green trams and metros, purple lifts, blue boats and every stop with its name.
+  railways, green trams and metros, purple lifts, blue boats and every stop with its name. The
+  walking map shows the stops too, as plain dots.
 * **Public transport**: GO offers the next journeys to your stop (departure, arrival, changes,
   lines, platforms), the chosen one is drawn leg by leg; NAV then says what to do in big letters
   (WALK to…, BOARD…, ON… get off at…, GET OFF at…, CHANGE), vibrates before boarding and before

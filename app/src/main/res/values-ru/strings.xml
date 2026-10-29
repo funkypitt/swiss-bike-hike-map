@@ -4,7 +4,7 @@
     <string name="legend_bike">Официальные веломаршруты <b>синим</b>\nМаршруты для горных велосипедов <b>оранжевым</b></string>
     <string name="transit">ОБЩЕСТВЕННЫЙ ТРАНСПОРТ</string>
     <string name="legend_transit">Железные дороги <b>красным</b> · трамваи и метро <b>зелёным</b>\nКанатные дороги <b>фиолетовым</b> · суда <b>синим</b> · остановки точками</string>
-    <string name="legend_walk"><b>Жёлтая</b> пешеходная тропа\n<b>Бело-красно-белая</b> горная тропа\n<b>Бело-сине-белая</b> альпийская тропа</string>
+    <string name="legend_walk"><b>Жёлтая</b> пешеходная тропа\n<b>Бело-красно-белая</b> горная тропа\n<b>Бело-сине-белая</b> альпийская тропа\nОстановки транспорта точками</string>
     <string name="attribution">Карта © swisstopo · Маршруты © участники OpenStreetMap · Расписание © opentransportdata.swiss</string>
     <string name="go">СТАРТ</string>
     <string name="clear">ОЧИСТИТЬ</string>

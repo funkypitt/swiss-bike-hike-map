@@ -47,8 +47,8 @@ object MapStyle {
     val walkLayers = listOf("trail-hiking-casing", "trail-hiking", "trail-mountain", "trail-mountain-dash",
         "trail-alpine", "trail-alpine-dash", "closures-walk")
     val bikeLayers = listOf("veloland", "mtbland", "closures-bike", "closures-mtb")
-    val transitLayers = listOf("pt-rail-casing", "pt-rail", "pt-tram-casing", "pt-tram", "pt-lift", "pt-lift-dash", "pt-boat",
-        "pt-stops", "pt-stops-name")
+    val transitLayers = listOf("pt-rail-casing", "pt-rail", "pt-tram-casing", "pt-tram", "pt-lift", "pt-lift-dash", "pt-boat")
+    val stopLayers = listOf("pt-stops", "pt-stops-name")
 
     fun styleFile(ctx: Context) = File(ctx.filesDir, "style.json")
 
