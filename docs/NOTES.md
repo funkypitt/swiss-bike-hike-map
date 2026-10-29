@@ -86,3 +86,22 @@ The box includes a good share of France, Italy, Germany and Austria; Switzerland
   unpacked and checked; the menu compares the local `switzerland.transit.json` with the server's and
   says when a newer pack exists, the download stays a button (0.6.1). Emulator trick: let the app create `files/transit/` before pushing the pack with adb,
   a directory created by the shell user is not readable by the app.
+
+## Routing profiles tuned for Switzerland (0.6.2)
+
+Measured with `TagCli` (scratch tool printing BRouter's way tags along the route) on brouter.de's
+E5_N45 segment, share of the route on OSM route relations (`route_hiking_*`, `route_foot_*`,
+`route_bicycle_[inrl]cn`), upstream profile → tuned profile:
+
+| route | upstream | tuned |
+|---|---|---|
+| hike Chexbres → Lutry | 38 % (8.9 km) | 79 % (10.2 km) |
+| hike Lausanne station → Sauvabelin | 75 % | 92 % |
+| hike Montreux → Les Avants | 50 % | 50 % (already on the signposted path) |
+| bike Lausanne → Vevey | 16 % (lake road, flat) | 16 % (unchanged, the route climbs 200 m through Lavaux) |
+| bike Lausanne → Echallens | 82 % | 86 % |
+
+Hiking: `hiking_routes_preference` 0.20 → 0.6 (ways outside a hiking relation cost ×1.6),
+`SAC_scale_limit` 3 → 4 with `SAC_K2` 0.8 (alpine trails allowed but dear). Bike: non-route ways
++0.25 instead of +0.05 (0.4 changed nothing on the samples), main roads without a cycle lane dearer
+(primary 4, secondary 2.2, tertiary 1.6). The Veloland routes themselves keep cost 1.

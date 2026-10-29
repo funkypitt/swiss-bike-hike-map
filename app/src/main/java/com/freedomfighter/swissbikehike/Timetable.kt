@@ -45,8 +45,11 @@ object Timetable {
 
     /** What the local pack says about itself (its description file). */
     fun local(ctx: Context): Info? {
-        val m = meta(ctx); if (!m.exists() || !file(ctx).exists()) return null
-        return runCatching { val o = JSONObject(m.readText()); Info(o.optString("feed"), o.optString("built"), o.optLong("bytes")) }.getOrNull()
+        val f = file(ctx); if (!f.exists()) return null
+        val m = meta(ctx)
+        val fromJson = if (m.exists()) runCatching { val o = JSONObject(m.readText()); Info(o.optString("feed"), o.optString("built"), o.optLong("bytes")) }.getOrNull() else null
+        // without its description file (fetch failed), the pack still says when its timetable starts
+        return fromJson ?: open(ctx)?.let { Info(it.feedStart.toString(), "", f.length()) }
     }
 
     /** The description of the pack on the server, or null offline. */
@@ -60,25 +63,17 @@ object Timetable {
     }
 
     /** Download progress in percent while one runs, else -1. */
-    fun downloading(ctx: Context): Int {
-        finalize(ctx)
-        val id = Prefs(ctx).downloadId(KEY); if (id < 0) return -1
-        val dm = ctx.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        dm.query(DownloadManager.Query().setFilterById(id)).use { c ->
-            if (!c.moveToFirst()) return -1
-            val st = c.getInt(c.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
-            if (st != DownloadManager.STATUS_RUNNING && st != DownloadManager.STATUS_PENDING && st != DownloadManager.STATUS_PAUSED) return -1
-            val done = c.getLong(c.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
-            val total = c.getLong(c.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
-            return if (total > 0) (done * 100 / total).toInt() else 0
-        }
-    }
+    fun downloading(ctx: Context): Int { finalize(ctx); return Downloads.state(ctx, Prefs(ctx).downloadId(KEY)).percent.coerceAtLeast(-1) }
+    fun waitingWifi(ctx: Context): Boolean = Downloads.state(ctx, Prefs(ctx).downloadId(KEY)).waitingWifi
+    /** Why the last download or unpacking failed, blank when it did not. */
+    fun failure(ctx: Context): String = Prefs(ctx).failure(KEY)
 
     /** Starts the download (Wi-Fi only) unless one is running. */
     fun download(ctx: Context) {
         if (downloading(ctx) >= 0) return
         val dm = ctx.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         part(ctx).delete()
+        Prefs(ctx).setFailure(KEY, "")
         val req = DownloadManager.Request(Uri.parse("$BASE$NAME.gz"))
             .setTitle(ctx.getString(R.string.menu_timetable))
             .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI)
@@ -104,6 +99,7 @@ object Timetable {
                         Transit.open(tmp).nStops > 0
                     }.getOrDefault(false)
                     if (ok) { file(ctx).delete(); tmp.renameTo(file(ctx)); cached = null }
+                    else prefs.setFailure(KEY, ctx.getString(R.string.dl_bad_pack))
                     tmp.delete(); p.delete()
                     if (ok) Thread { runCatching {
                         val cn = URL("$BASE$NAME.json").openConnection() as HttpURLConnection
@@ -112,7 +108,11 @@ object Timetable {
                         if (text.contains("\"feed\"")) meta(ctx).writeText(text)
                     } }.start()
                 }
-                DownloadManager.STATUS_FAILED -> { prefs.setDownloadId(KEY, -1); part(ctx).delete() }
+                DownloadManager.STATUS_FAILED -> {
+                    val reason = c.getInt(c.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON))
+                    prefs.setFailure(KEY, Downloads.reasonText(ctx, reason))
+                    prefs.setDownloadId(KEY, -1); part(ctx).delete()
+                }
             }
         }
     }

@@ -1,6 +1,13 @@
 # Walking-Hiking-Mountain/Alpine Hiking profile TEMPLATE
 # 18/5/2016  v1.8.7   ! Fixed down/uphillcostfactors for shortest_way - to be really shortest
 #
+# Swiss Bikers and Pedestrians Map, 2026-10-29: tuned for the Swiss signposted network.
+#   hiking_routes_preference 0.20 -> 0.6  : ways outside a hiking route relation (the yellow /
+#                                           white-red-white signposts are OSM lwn/rwn/nwn relations)
+#                                           cost 1.6 times more, so the route sticks to the signposts
+#   SAC_scale_limit 3 -> 4, SAC_K2 0.6 -> 0.8 : alpine trails (white-blue-white) are allowed, but
+#                                           dearly, so they are only taken when nothing else leads there
+#
 # SAC T3 - demanding_mountain_hiking - exposed sites may be secured, possible need of hands for balance,	Partly exposed with fall hazard, Well sure-footed, Good hiking shoes, Basic alpine experience
 #
 # Legend above is placeholder for generated comments of final profile
@@ -19,7 +26,7 @@ assign   consider_town          = false   # %consider_town% | Activate to bypass
 assign   shortest_way             0    # 0 as default, duplicate shortest standard profile, SAC access limit ignored for now
 
 assign   iswet                    0    # %iswet% | tries to prevent muddy boots and wet buttocks | boolean
-assign   hiking_routes_preference 0.20 # %hiking_routes_preference% | Increases cost of non hiking routes by multiplier 1 + hiking_routes_preference (0.10 to 2.0) | number
+assign   hiking_routes_preference 0.6  # %hiking_routes_preference% | Increases cost of non hiking routes by multiplier 1 + hiking_routes_preference (0.10 to 2.0) | number
 
 assign   Offroad_factor           0.0  # default 0.0, see ****), see also https://github.com/poutnikl/Brouter-profiles/wiki/Trekking-MTB-Profiles---legend
 
@@ -27,13 +34,13 @@ assign   path_preference          0.0  # 0.0 as default, try 20.0 to penalize no
 
 #SAC - mountain hiking - see http://wiki.openstreetmap.org/wiki/Key:sac_scale
 
-assign   SAC_scale_limit          3    # %SAC_scale_limit% | all paths with sac_scale higher than  SAC_scale_limit are forbidden | [0=avoid any SAC paths, 1=SAC T1, 2=SAC T2, 3=SAC T3, 4=SAC T4, 5=SAC T5, 6=SAC T6]
+assign   SAC_scale_limit          4    # %SAC_scale_limit% | all paths with sac_scale higher than  SAC_scale_limit are forbidden | [0=avoid any SAC paths, 1=SAC T1, 2=SAC T2, 3=SAC T3, 4=SAC T4, 5=SAC T5, 6=SAC T6]
 assign   SAC_scale_preferred      1    # %SAC_scale_preferred% | The same, but the preferred SAC scale level. Level below are slightly, above strongly penalized | [0=avoid any SAC paths, 1=SAC T1, 2=SAC T2, 3=SAC T3, 4=SAC T4, 5=SAC T5, 6=SAC T6]
 
 assign   SAC_access_penalty       9000 # costfactor 9999 means the most horrible but allowed road.,
                                        # 100000=forbidden. This makes difference if forbidden way is the only option.
 assign  SAC_K1 0.05                    # Penalizing of SAC levels below preferred
-assign  SAC_K2 0.6                     # Penalizing of SAC levels above preferred
+assign  SAC_K2 0.8                     # Penalizing of SAC levels above preferred
 
 #orientation/decision penalties, not used for preferred hiking routes
 assign   turncost_value           0 # not used now

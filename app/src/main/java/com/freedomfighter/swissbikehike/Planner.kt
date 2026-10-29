@@ -14,6 +14,9 @@ import org.maplibre.android.geometry.LatLng
  */
 object Planner {
     class NoTimetable : Exception("no timetable")
+    /** The live service failed and the offline pack answered instead: why, for a short notice. Read once. */
+    @Volatile var notice: String? = null
+    fun takeNotice(): String? = notice.also { notice = null }
 
     fun online(ctx: Context): Boolean {
         val cm = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -23,15 +26,21 @@ object Planner {
 
     suspend fun plan(ctx: Context, from: LatLng, to: LatLng, depart: Long, count: Int = 4): List<Journey> {
         var journeys: List<Journey> = emptyList()
-        var tried = false
+        var liveError: String? = null
         if (online(ctx)) {
-            tried = true
-            journeys = runCatching { planOnline(from, to, depart, count) }.getOrDefault(emptyList())
+            val r = runCatching { planOnline(from, to, depart, count) }
+            journeys = r.getOrDefault(emptyList())
+            liveError = r.exceptionOrNull()?.let { it.message ?: it.javaClass.simpleName }
         }
         if (journeys.isEmpty()) {
             val pack = Timetable.open(ctx)
-            if (pack == null) { if (!tried) throw NoTimetable() }
-            else journeys = withContext(Dispatchers.Default) { pack.plan(from, to, depart, count) }
+            if (pack == null) {
+                if (liveError != null) throw Exception(ctx.getString(R.string.live_failed, liveError))
+                if (!online(ctx)) throw NoTimetable()
+            } else {
+                journeys = withContext(Dispatchers.Default) { pack.plan(from, to, depart, count) }
+                if (liveError != null) notice = ctx.getString(R.string.live_failed_offline_used, liveError)
+            }
         }
         return routeWalks(ctx, journeys)
     }
@@ -105,11 +114,15 @@ object Planner {
 
     /** The next departures at a stop, online when possible. */
     suspend fun departures(ctx: Context, stop: TStop): List<Departure> {
+        var liveError: String? = null
         if (online(ctx)) {
-            val found = runCatching { TransitOnline.departures(TransitOnline.Station(stop.id, stop.name, stop.at, 0.0)) }.getOrDefault(emptyList())
+            val r = runCatching { TransitOnline.departures(TransitOnline.Station(stop.id, stop.name, stop.at, 0.0)) }
+            val found = r.getOrDefault(emptyList())
+            liveError = r.exceptionOrNull()?.let { it.message ?: it.javaClass.simpleName }
             if (found.isNotEmpty()) return found.map { Departure(it.time, it.kind, it.line, it.headsign, it.platform, it.delayMin, true) }
         }
-        val pack = Timetable.open(ctx) ?: throw NoTimetable()
+        val pack = Timetable.open(ctx) ?: throw (if (liveError != null) Exception(ctx.getString(R.string.live_failed, liveError)) else NoTimetable())
+        if (liveError != null) notice = ctx.getString(R.string.live_failed_offline_used, liveError)
         val idx = stop.id.toIntOrNull()?.let { pack.stopByDidok(it) }?.takeIf { it >= 0 } ?: pack.nearest(stop.at, 150.0, 1).firstOrNull()?.first ?: return emptyList()
         return withContext(Dispatchers.Default) { pack.departures(idx, System.currentTimeMillis()) }.map { Departure(it.time, it.kind, it.line, it.headsign, it.platform, 0, false) }
     }

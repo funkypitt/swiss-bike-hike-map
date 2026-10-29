@@ -32,29 +32,20 @@ object Segments {
         return names.all { file(ctx, it).exists() }
     }
 
-    class Status(val name: String, val present: Boolean, val size: Long, val modified: Long, val downloading: Int)
+    class Status(val name: String, val present: Boolean, val size: Long, val modified: Long, val downloading: Int, val waitingWifi: Boolean, val failure: String)
 
     fun status(ctx: Context): List<Status> {
         finalizeDownloads(ctx)
-        val dm = ctx.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val prefs = Prefs(ctx)
         return names.map { n ->
             val f = file(ctx, n)
-            var pct = -1
-            val id = prefs.downloadId(n)
-            if (id >= 0) dm.query(DownloadManager.Query().setFilterById(id)).use { c ->
-                if (c.moveToFirst()) {
-                    val st = c.getInt(c.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
-                    if (st == DownloadManager.STATUS_RUNNING || st == DownloadManager.STATUS_PENDING || st == DownloadManager.STATUS_PAUSED) {
-                        val done = c.getLong(c.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
-                        val total = c.getLong(c.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
-                        pct = if (total > 0) (done * 100 / total).toInt() else 0
-                    }
-                }
-            }
-            Status(n, f.exists(), f.length(), f.lastModified(), pct)
+            val st = Downloads.state(ctx, prefs.downloadId(n))
+            Status(n, f.exists(), f.length(), f.lastModified(), st.percent.coerceAtLeast(-1), st.waitingWifi, prefs.failure("seg_$n"))
         }
     }
+
+    /** True while any segment is still coming, so GO can say so instead of asking to download again. */
+    fun downloading(ctx: Context): Int = status(ctx).maxOf { it.downloading }
 
     /** Moves finished .part downloads into place. Safe to call often. */
     fun finalizeDownloads(ctx: Context) {
@@ -69,9 +60,12 @@ object Segments {
                 if (st == DownloadManager.STATUS_SUCCESSFUL) {
                     val part = File(dir(ctx), "$n.rd5.part")
                     if (part.exists()) { file(ctx, n).delete(); part.renameTo(file(ctx, n)) }
-                    prefs.setDownloadId(n, -1)
+                    prefs.setDownloadId(n, -1); prefs.setFailure("seg_$n", "")
                 } else if (st == DownloadManager.STATUS_FAILED) {
+                    val reason = c.getInt(c.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON))
+                    prefs.setFailure("seg_$n", Downloads.reasonText(ctx, reason))
                     prefs.setDownloadId(n, -1)
+                    File(dir(ctx), "$n.rd5.part").delete()
                 }
             }
         }
@@ -85,6 +79,7 @@ object Segments {
         for (n in which) {
             if ((st[n]?.downloading ?: -1) >= 0) continue
             File(dir(ctx), "$n.rd5.part").delete()
+            prefs.setFailure("seg_$n", "")
             val req = DownloadManager.Request(Uri.parse("$BASE$n.rd5"))
                 .setTitle(ctx.getString(R.string.need_data_title) + " " + n)
                 .setDescription(ctx.getString(R.string.app_name))

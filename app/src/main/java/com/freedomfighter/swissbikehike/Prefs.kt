@@ -51,6 +51,10 @@ class Prefs(ctx: Context) {
         get() = p.getString("night", Night.OFF) ?: Night.OFF
         set(v) = p.edit().putString("night", v).apply()
 
+    /** Why the last download of a kind failed, in words; blank when it did not. */
+    fun failure(key: String): String = p.getString("fail_$key", "") ?: ""
+    fun setFailure(key: String, text: String) = p.edit().putString("fail_$key", text).apply()
+
     fun downloadId(name: String): Long = p.getLong("dl_$name", -1)
     fun setDownloadId(name: String, id: Long) = p.edit().putLong("dl_$name", id).apply()
 }

@@ -115,25 +115,31 @@ class MenuActivity : AppCompatActivity() {
 
     private fun refreshSegments() {
         val st = Segments.status(this)
-        b.segInfo.text = st.joinToString("\n") { s ->
-            when {
-                s.downloading >= 0 -> "${s.name}  " + getString(R.string.seg_downloading, s.downloading)
-                s.present -> "${s.name}  ${Fmt.mb(s.size)}  ${date(s.modified)}"
-                else -> "${s.name}  " + getString(R.string.seg_missing)
-            }
-        } + "\n" + getString(R.string.seg_checking)
+        fun line(s: Segments.Status, tail: String) = "${s.name}  " + when {
+            s.waitingWifi -> getString(R.string.dl_waiting_wifi)
+            s.downloading >= 0 -> getString(R.string.seg_downloading, s.downloading)
+            s.failure.isNotBlank() && !s.present -> getString(R.string.dl_failed, s.failure)
+            else -> tail
+        }
+        b.segInfo.text = st.joinToString("\n") { s -> line(s, if (s.present) "${Fmt.mb(s.size)}  ${date(s.modified)}" else getString(R.string.seg_missing)) } + "\n" + getString(R.string.seg_checking)
+        segmentsState = when {
+            st.any { it.waitingWifi } -> getString(R.string.dl_waiting_wifi)
+            st.any { it.downloading >= 0 } -> getString(R.string.seg_downloading, st.maxOf { it.downloading })
+            st.any { it.failure.isNotBlank() && !it.present } -> getString(R.string.dl_failed, st.first { it.failure.isNotBlank() }.failure)
+            else -> ""
+        }
+        segmentsMissing = st.any { !it.present }; updateAllInfo()
         lifecycleScope.launch {
             val server = Segments.serverDates()
             val lines = st.map { s ->
                 val srv = server[s.name]
                 val tail = when {
-                    s.downloading >= 0 -> getString(R.string.seg_downloading, s.downloading)
                     !s.present -> getString(R.string.seg_missing)
-                    srv == null -> "${Fmt.mb(s.size)}  ${date(s.modified)}"
+                    srv == null -> "${Fmt.mb(s.size)}  ${date(s.modified)}  " + getString(R.string.server_unreachable)
                     srv > s.modified -> "${Fmt.mb(s.size)}  ${date(s.modified)}  " + getString(R.string.seg_newer, date(srv))
                     else -> "${Fmt.mb(s.size)}  ${date(s.modified)}  " + getString(R.string.seg_up_to_date)
                 }
-                "${s.name}  $tail"
+                line(s, tail)
             }
             b.segInfo.text = lines.joinToString("\n")
             segmentsMissing = st.any { !it.present }
@@ -147,17 +153,25 @@ class MenuActivity : AppCompatActivity() {
     private fun refreshTimetable(askServer: Boolean = true) {
         val pct = Timetable.downloading(this)
         val l = Timetable.local(this)
-        val base = when {
+        val fail = Timetable.failure(this)
+        timetableState = when {
+            Timetable.waitingWifi(this) -> getString(R.string.dl_waiting_wifi)
             pct >= 0 -> getString(R.string.timetable_downloading, pct)
+            fail.isNotBlank() -> getString(R.string.dl_failed, fail)
+            else -> ""
+        }
+        val base = when {
+            timetableState.isNotBlank() -> timetableState + (if (l != null) "\n" + getString(R.string.timetable_info, l.feed, Fmt.mb(l.bytes), l.built) else "")
             l == null -> getString(R.string.timetable_missing)
             else -> getString(R.string.timetable_info, l.feed, Fmt.mb(l.bytes), l.built)
         }
+        updateAllInfo()
         b.timetableInfo.text = base + "\n" + getString(R.string.timetable_hint) + (if (askServer) "\n" + getString(R.string.timetable_checking) else "")
         if (!askServer) return
         lifecycleScope.launch {
             val r = Timetable.remote()
             val tail = when {
-                r == null -> ""
+                r == null -> "\n" + getString(R.string.server_unreachable)
                 l == null -> "\n" + getString(R.string.timetable_newer, r.feed + " · " + Fmt.mb(r.bytes))
                 r.feed > l.feed || r.built > l.built -> "\n" + getString(R.string.timetable_newer, r.feed + " · " + r.built)
                 else -> "\n" + getString(R.string.timetable_up_to_date)
@@ -250,6 +264,7 @@ class MenuActivity : AppCompatActivity() {
     private var areasCount = 0; private var areasMissing = false; private var areasJob: WorkInfo.State? = null
     private var segmentsNewer = false; private var segmentsMissing = false
     private var timetableNewer = false
+    private var segmentsState = ""; private var timetableState = ""
 
     /** One line per kind of offline data, under the big button: what is there, what the server has newer. */
     private fun updateAllInfo() {
@@ -259,8 +274,8 @@ class MenuActivity : AppCompatActivity() {
             areasMissing -> getString(R.string.all_maps_incomplete, areasCount)
             else -> getString(R.string.all_maps_ok, areasCount)
         }
-        val seg = when { segmentsMissing -> getString(R.string.all_routing_missing); segmentsNewer -> getString(R.string.all_routing_newer); else -> getString(R.string.all_routing_ok) }
-        val tt = when { !Timetable.isReady(this) -> getString(R.string.all_timetable_missing); timetableNewer -> getString(R.string.all_timetable_newer); else -> getString(R.string.all_timetable_ok) }
+        val seg = when { segmentsState.isNotBlank() -> getString(R.string.all_routing_state, segmentsState); segmentsMissing -> getString(R.string.all_routing_missing); segmentsNewer -> getString(R.string.all_routing_newer); else -> getString(R.string.all_routing_ok) }
+        val tt = when { timetableState.isNotBlank() -> getString(R.string.all_timetable_state, timetableState); !Timetable.isReady(this) -> getString(R.string.all_timetable_missing); timetableNewer -> getString(R.string.all_timetable_newer); else -> getString(R.string.all_timetable_ok) }
         b.allInfo.text = "• $maps\n• $seg\n• $tt"
     }
 

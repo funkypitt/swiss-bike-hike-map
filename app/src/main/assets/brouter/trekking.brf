@@ -2,6 +2,11 @@
 # *** and avoiding car traffic, but still with
 # *** a focus on approaching your destination
 # *** efficiently.
+#
+# Swiss Bikers and Pedestrians Map, 2026-10-29: tuned for the Swiss signposted network.
+#   Veloland national, regional and local routes are OSM ncn/rcn/lcn relations: they keep cost 1,
+#   every other way costs 0.25 more than upstream's 0.05 (half way to stick_to_cycleroutes), and
+#   main roads without a cycle lane cost more (primary 4, secondary 2.2, tertiary 1.6).
 
 ---context:global   # following code refers to global config
 
@@ -316,7 +321,7 @@ assign costfactor
   #
   else if ( is_ldcr ) then 1                   # always treated as perfect (=1)
   else
-  add ( if stick_to_cycleroutes then 0.5 else 0.05 )  # everything else somewhat up
+  add ( if stick_to_cycleroutes then 0.5 else 0.25 )  # everything else up: the signposted routes are magnetic
 
   #
   # some other highway types
@@ -351,9 +356,9 @@ assign costfactor
   # actuals roads are o.k. if we have a bike hint
   #
        if ( highway=trunk|trunk_link         ) then ( if isbike then 1.5 else 10  )
-  else if ( highway=primary|primary_link     ) then ( if isbike then 1.2 else  3  )
-  else if ( highway=secondary|secondary_link ) then ( if isbike then 1.1 else 1.6 )
-  else if ( highway=tertiary|tertiary_link   ) then ( if isbike then 1.0 else 1.4 )
+  else if ( highway=primary|primary_link     ) then ( if isbike then 1.2 else  4  )
+  else if ( highway=secondary|secondary_link ) then ( if isbike then 1.1 else 2.2 )
+  else if ( highway=tertiary|tertiary_link   ) then ( if isbike then 1.0 else 1.6 )
   else if ( highway=unclassified             ) then ( if isbike then 1.0 else 1.3 )
 
   #

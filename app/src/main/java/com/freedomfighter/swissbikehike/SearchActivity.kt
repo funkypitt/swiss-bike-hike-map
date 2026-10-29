@@ -122,9 +122,11 @@ class SearchActivity : AppCompatActivity() {
                     }
                     job = lifecycleScope.launch {
                         delay(300)
-                        val found = searchPlaces(q)
+                        val r = runCatching { searchPlaces(q) }
+                        val found = r.getOrDefault(emptyList())
                         hits.clear(); hits.addAll(found)
                         adapter.clear(); adapter.addAll(found.map { it.label })
+                        if (r.isFailure) adapter.add(getString(R.string.search_no_answer))
                     }
                 }
             }
@@ -238,6 +240,6 @@ class SearchActivity : AppCompatActivity() {
                 val label = Html.fromHtml(raw, Html.FROM_HTML_MODE_LEGACY).toString().trim()
                 Hit(label, a.getDouble("lat"), a.getDouble("lon"))
             }
-        } catch (e: Exception) { emptyList() }
+        } catch (e: Exception) { if (origins == null) throw e else emptyList() }
     }
 }

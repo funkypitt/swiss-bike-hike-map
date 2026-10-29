@@ -390,6 +390,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
         lifecycleScope.launch {
             val found = runCatching { Planner.departures(this@MapActivity, TStop(s.name, s.at, s.detail)) }
             status(null)
+            Planner.takeNotice()?.let { Toast.makeText(this@MapActivity, it, Toast.LENGTH_LONG).show() }
             found.onFailure { e -> if (e is Planner.NoTimetable) askForTimetable() else Toast.makeText(this@MapActivity, e.message ?: "?", Toast.LENGTH_LONG).show() }
             found.onSuccess { list ->
                 if (list.isEmpty()) { Toast.makeText(this@MapActivity, R.string.no_departures, Toast.LENGTH_SHORT).show(); return@onSuccess }
@@ -436,7 +437,13 @@ class MapActivity : AppCompatActivity(), LocationListener {
     private fun go() {
         if (stops.isEmpty()) return
         if (mode == Mode.TRANSIT) { planTransit(); return }
-        if (!Segments.isReady(this)) { askForData(); return }
+        if (!Segments.isReady(this)) {
+            val pct = Segments.downloading(this)
+            if (pct >= 0) { Toast.makeText(this, getString(R.string.seg_still_downloading, pct), Toast.LENGTH_LONG).show(); return }
+            val failed = Segments.status(this).firstOrNull { it.failure.isNotBlank() }?.failure
+            if (failed != null) Toast.makeText(this, getString(R.string.seg_failed_hint, failed), Toast.LENGTH_LONG).show()
+            askForData(); return
+        }
         val from = lastLocation?.let { LatLng(it.latitude, it.longitude) } ?: run {
             Toast.makeText(this, R.string.no_fix_centre, Toast.LENGTH_SHORT).show()
             map?.cameraPosition?.target
@@ -454,7 +461,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
                 val t = Trip.fromRoute(r, via)
                 setTrip(t, fit)
             } catch (e: Exception) {
-                Toast.makeText(this@MapActivity, getString(R.string.route_fail) + ": " + e.message, Toast.LENGTH_LONG).show()
+                Toast.makeText(this@MapActivity, routeFailText(e), Toast.LENGTH_LONG).show()
             }
             routing = false
             status(null)
@@ -496,6 +503,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
                 if (e is Planner.NoTimetable) askForTimetable()
                 else Toast.makeText(this@MapActivity, getString(R.string.no_journey) + ": " + e.message, Toast.LENGTH_LONG).show()
             }
+            Planner.takeNotice()?.let { Toast.makeText(this@MapActivity, it, Toast.LENGTH_LONG).show() }
             result.onSuccess { js ->
                 if (js.isEmpty()) { Toast.makeText(this@MapActivity, R.string.no_journey, Toast.LENGTH_LONG).show(); return@onSuccess }
                 if (js.size == 1) { setJourney(js[0], fit = true); return@onSuccess }
@@ -562,6 +570,17 @@ class MapActivity : AppCompatActivity(), LocationListener {
         AlertDialog.Builder(this).setTitle(R.string.need_timetable_title).setMessage(R.string.need_timetable_msg)
             .setPositiveButton(R.string.download) { _, _ -> Timetable.download(this); Toast.makeText(this, R.string.downloading_wifi, Toast.LENGTH_LONG).show() }
             .setNegativeButton(R.string.later, null).show()
+    }
+
+    /** BRouter's messages in plain words: the usual one is a start or end too far from any way. */
+    private fun routeFailText(e: Exception): String {
+        val m = e.message ?: ""
+        return when {
+            m.contains("not found", true) || m.contains("no track", true) || m.contains("no way", true) -> getString(R.string.route_fail) + ": " + getString(R.string.route_fail_far)
+            m.contains("memory", true) -> getString(R.string.route_fail) + ": " + getString(R.string.route_fail_memory)
+            m.contains("rd5", true) || m.contains("file", true) -> getString(R.string.route_fail) + ": " + getString(R.string.route_fail_data)
+            else -> getString(R.string.route_fail) + ": " + m
+        }
     }
 
     private fun setTrip(t: Trip, fit: Boolean) {

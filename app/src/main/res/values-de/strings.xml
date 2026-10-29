@@ -181,4 +181,27 @@
     <string name="all_timetable_missing">Fahrplan: nicht auf dem Telefon</string>
     <string name="all_timetable_newer">Fahrplan: neuer auf dem Server</string>
     <string name="all_timetable_ok">Fahrplan: aktuell</string>
+
+    <!-- robustness: downloads and failures in words -->
+    <string name="dl_no_space">zu wenig Platz auf dem Telefon</string>
+    <string name="dl_cannot_resume">der Download konnte nicht fortgesetzt werden, starten Sie ihn neu</string>
+    <string name="dl_network">die Verbindung brach ab</string>
+    <string name="dl_file">die Datei konnte nicht geschrieben werden</string>
+    <string name="dl_server">der Server antwortete %1$d</string>
+    <string name="dl_unknown">Fehler %1$d</string>
+    <string name="dl_bad_pack">das geladene Paket ist beschädigt, laden Sie es erneut</string>
+    <string name="dl_waiting_wifi">wartet auf WLAN</string>
+    <string name="dl_failed">fehlgeschlagen: %1$s</string>
+    <string name="server_unreachable">Server nicht erreichbar</string>
+    <string name="seg_still_downloading">Routing-Daten werden noch geladen (%1$d %%); Routen gehen, sobald sie vollständig sind</string>
+    <string name="seg_failed_hint">Der letzte Download schlug fehl: %1$s</string>
+    <string name="route_fail_far">Start oder Ziel liegt zu weit von jedem Weg</string>
+    <string name="route_fail_memory">zu wenig Speicher für eine so lange Route</string>
+    <string name="route_fail_data">die Routing-Daten sind unlesbar: im Menü erneut laden</string>
+    <string name="live_failed">Der Online-Fahrplan antwortete nicht (%1$s), und der Offline-Fahrplan ist nicht auf dem Telefon</string>
+    <string name="live_failed_offline_used">Online-Fahrplan nicht verfügbar (%1$s): Offline-Fahrplan verwendet, ohne Verspätungen</string>
+    <string name="nav_replan_failed">Keine neue Verbindung gefunden: mit dem nächsten Schritt weiter</string>
+    <string name="search_no_answer">Keine Antwort vom Suchserver; Verbindung prüfen</string>
+    <string name="all_routing_state">Routing-Daten: %1$s</string>
+    <string name="all_timetable_state">Fahrplan: %1$s</string>
 </resources>

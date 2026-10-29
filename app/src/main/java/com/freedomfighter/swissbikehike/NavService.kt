@@ -329,9 +329,16 @@ class NavService : Service(), LocationListener {
             val found = runCatching { Planner.plan(this@NavService, from, j.destination.at, now, 1) }.getOrDefault(emptyList())
             replanning = false
             val n = found.firstOrNull()
-            if (n != null) { journey = n; legIdx = 0; passedStops = 0; buzzedLeg = -1; changeNext = false; version++ }
-            else legIdx = minOf(legIdx + 1, j.legs.size) // give up on that ride, go on with what follows
-            stepTransit(lastFix)
+            if (n != null) { journey = n; legIdx = 0; passedStops = 0; buzzedLeg = -1; changeNext = false; version++; stepTransit(lastFix) }
+            else {
+                // nothing better known: say so, then go on with what follows the missed ride
+                legIdx = minOf(legIdx + 1, j.legs.size)
+                state.value = NavState(true, mode, null, version, lastFix, eta = Journey.clock(j.arr), journey = j,
+                    guide = Guide(getString(R.string.nav_replan_failed), nextRideText(legIdx), Journey.WALK, legIdx, true))
+                notify(getString(R.string.nav_replan_failed))
+                buzz(longArrayOf(0, 120, 80, 120, 80, 120))
+                scope.launch { delay(15_000); if (state.value.running) stepTransit(lastFix) }
+            }
         }
     }
 
