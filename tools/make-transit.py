@@ -49,7 +49,13 @@ def open_feed(path):
         os.makedirs("feed", exist_ok=True)
         path = os.path.join("feed", "gtfs.zip")
         log("downloading", PERMALINK)
-        urllib.request.urlretrieve(PERMALINK, path)
+        # the portal answers 403 to urllib's default User-Agent; it takes one that names the client
+        req = urllib.request.Request(PERMALINK, headers={"User-Agent": "swiss-bikers-pedestrians-map (+https://github.com/funkypitt/swiss-bike-hike-map)"})
+        with urllib.request.urlopen(req, timeout=120) as r, open(path, "wb") as f:
+            while True:
+                chunk = r.read(1 << 20)
+                if not chunk: break
+                f.write(chunk)
     if os.path.isdir(path):
         return lambda n: open(os.path.join(path, n), encoding="utf-8-sig", newline=""), path
     z = zipfile.ZipFile(path)
