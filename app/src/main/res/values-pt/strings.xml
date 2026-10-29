@@ -98,13 +98,6 @@
     <string name="area_saved">%1$s guardada (%2$d mosaicos)</string>
     <string name="area_refreshing">A atualizar %1$s: %2$d / %3$d mosaicos</string>
     <string name="area_refreshed">%1$s atualizada</string>
-    <string name="auto_refresh_never">Ainda não atualizado automaticamente</string>
-    <string name="auto_refresh_rule">(a cada %1$d dias por Wi-Fi, ao abrir a app)</string>
-    <string name="auto_refresh_running">Atualização automática em curso…</string>
-    <string name="auto_refresh_progress">Atualização automática: %1$s %2$d / %3$d mosaicos</string>
-    <string name="auto_refresh_done">%1$d zona(s) atualizada(s) automaticamente em %2$s</string>
-    <string name="auto_refresh_incomplete">Atualização automática incompleta, %1$d zona(s) em %2$s</string>
-    <string name="auto_refresh_error">Atualização automática: %1$s</string>
     <string name="open_map_first">Abra primeiro o mapa</string>
     <string name="delete_areas_q">Apagar todas as zonas guardadas?</string>
     <string name="error_x">Erro: %1$s</string>
@@ -151,7 +144,6 @@
     <string name="timetable_up_to_date">atualizado</string>
     <string name="timetable_downloading">a descarregar %1$d%%</string>
     <string name="timetable_checking">a verificar o servidor…</string>
-    <string name="timetable_rule">(verificado a cada %1$d dias com Wi-Fi, ao iniciar)</string>
     <string name="offline_timetable">horário offline</string>
     <string name="realtime">tempo real</string>
     <string name="nav_walk_to">A PÉ até %1$s</string>
@@ -174,4 +166,19 @@
     <string name="kind_lift">Teleférico</string>
     <string name="transit_short">TRANSPORTES</string>
     <string name="kind_metro">Metro</string>
+    <string name="refresh_hint">Nada é descarregado sozinho. ATUALIZAR AS ZONAS GUARDADAS traz mosaicos novos quando decidir; o progresso aparece aqui e numa notificação, PAUSA pára, RETOMAR continua.</string>
+    <string name="refresh_asked">Atualização pedida para %1$d zona(s) em %2$s</string>
+    <string name="timetable_hint">Nada é descarregado sozinho: quando um pacote mais recente for assinalado aqui, carregue em DESCARREGAR / ATUALIZAR. O progresso aparece aqui e na notificação de transferência do sistema.</string>
+    <string name="menu_update_all">ATUALIZAR TUDO O QUE É OFFLINE</string>
+    <string name="update_all_confirm">Traz mosaicos novos para cada zona guardada, os dados de rotas (cerca de 450 MB) e o horário (cerca de 15 MB), por Wi-Fi. O progresso aparece no menu e nas notificações; nada mais é descarregado sem si.</string>
+    <string name="all_maps_none">Mapas: nenhuma zona guardada</string>
+    <string name="all_maps_running">Mapas: %1$d zona(s), transferência em curso</string>
+    <string name="all_maps_incomplete">Mapas: %1$d zona(s), algumas incompletas</string>
+    <string name="all_maps_ok">Mapas: %1$d zona(s) completas</string>
+    <string name="all_routing_missing">Dados de rotas: em falta</string>
+    <string name="all_routing_newer">Dados de rotas: mais recentes no servidor</string>
+    <string name="all_routing_ok">Dados de rotas: atualizados</string>
+    <string name="all_timetable_missing">Horário: não está no telemóvel</string>
+    <string name="all_timetable_newer">Horário: mais recente no servidor</string>
+    <string name="all_timetable_ok">Horário: atualizado</string>
 </resources>

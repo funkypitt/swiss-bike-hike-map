@@ -3,8 +3,6 @@ package com.freedomfighter.swissbikehike
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
 import com.freedomfighter.swissbikehike.databinding.ActivityStartBinding
 
 /** The first screen: BIKE, WALK or TRANSIT, nothing else. A running recording goes straight to the map. */
@@ -18,12 +16,9 @@ class StartActivity : AppCompatActivity() {
         b.walkBlock.setOnClickListener { open(Mode.WALK) }
         b.transitBlock.setOnClickListener { open(Mode.TRANSIT) }
         b.footer.text = getString(R.string.attribution) + " · " + BuildConfig.VERSION_NAME
-        // Saved areas refresh themselves once a week over Wi-Fi, from the launch of the app.
-        if (savedInstanceState == null) lifecycleScope.launch {
-            OfflineMaps.autoRefresh(applicationContext, MapStyle.styleFile(this@StartActivity))
-            OfflineMaps.resumeIfNeeded(applicationContext)
-            Timetable.autoUpdate(applicationContext)
-        }
+        // Nothing starts by itself here: every download is asked for in the menu and followed there
+        // and in its notification. (Refreshing the saved areas at launch used to stall the map: the
+        // whole-country pack being marked stale in the tile database while the map reads it.)
     }
 
     override fun onResume() {

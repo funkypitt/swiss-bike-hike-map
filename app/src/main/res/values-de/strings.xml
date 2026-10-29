@@ -98,13 +98,6 @@
     <string name="area_saved">%1$s gespeichert (%2$d Kacheln)</string>
     <string name="area_refreshing">Auffrischen %1$s: %2$d / %3$d Kacheln</string>
     <string name="area_refreshed">%1$s aufgefrischt</string>
-    <string name="auto_refresh_never">Noch nie automatisch aufgefrischt</string>
-    <string name="auto_refresh_rule">(alle %1$d Tage über WLAN, beim Start der App)</string>
-    <string name="auto_refresh_running">Automatisches Auffrischen läuft…</string>
-    <string name="auto_refresh_progress">Automatisches Auffrischen: %1$s %2$d / %3$d Kacheln</string>
-    <string name="auto_refresh_done">%1$d Ausschnitt(e) automatisch aufgefrischt am %2$s</string>
-    <string name="auto_refresh_incomplete">Automatisches Auffrischen unvollständig, %1$d Ausschnitt(e) am %2$s</string>
-    <string name="auto_refresh_error">Automatisches Auffrischen: %1$s</string>
     <string name="open_map_first">Zuerst die Karte öffnen</string>
     <string name="delete_areas_q">Alle gespeicherten Ausschnitte löschen?</string>
     <string name="error_x">Fehler: %1$s</string>
@@ -151,7 +144,6 @@
     <string name="timetable_up_to_date">aktuell</string>
     <string name="timetable_downloading">Download %1$d%%</string>
     <string name="timetable_checking">Server wird geprüft…</string>
-    <string name="timetable_rule">(alle %1$d Tage im WLAN beim Start geprüft)</string>
     <string name="offline_timetable">Offline-Fahrplan</string>
     <string name="realtime">Echtzeit</string>
     <string name="nav_walk_to">ZU FUSS nach %1$s</string>
@@ -174,4 +166,19 @@
     <string name="kind_lift">Seilbahn</string>
     <string name="transit_short">ÖV</string>
     <string name="kind_metro">Metro</string>
+    <string name="refresh_hint">Nichts wird von selbst geladen. GESPEICHERTE GEBIETE AUFFRISCHEN holt frische Kacheln, wenn Sie es entscheiden; der Fortschritt steht hier und in einer Benachrichtigung, PAUSE hält an, FORTSETZEN macht weiter.</string>
+    <string name="refresh_asked">Auffrischen von %1$d Gebiet(en) angefordert am %2$s</string>
+    <string name="timetable_hint">Nichts wird von selbst geladen: wird hier ein neueres Paket gemeldet, drücken Sie HERUNTERLADEN / AKTUALISIEREN. Der Fortschritt steht hier und in der Download-Benachrichtigung des Systems.</string>
+    <string name="menu_update_all">ALLE OFFLINE-DATEN AKTUALISIEREN</string>
+    <string name="update_all_confirm">Holt frische Kacheln für jedes gespeicherte Gebiet, die Routing-Daten (etwa 450 MB) und den Fahrplan (etwa 15 MB), über WLAN. Der Fortschritt steht im Menü und in den Benachrichtigungen; sonst wird nichts ohne Sie geladen.</string>
+    <string name="all_maps_none">Karten: kein gespeichertes Gebiet</string>
+    <string name="all_maps_running">Karten: %1$d Gebiet(e), Download läuft</string>
+    <string name="all_maps_incomplete">Karten: %1$d Gebiet(e), einige unvollständig</string>
+    <string name="all_maps_ok">Karten: %1$d Gebiet(e) vollständig</string>
+    <string name="all_routing_missing">Routing-Daten: fehlen</string>
+    <string name="all_routing_newer">Routing-Daten: neuer auf dem Server</string>
+    <string name="all_routing_ok">Routing-Daten: aktuell</string>
+    <string name="all_timetable_missing">Fahrplan: nicht auf dem Telefon</string>
+    <string name="all_timetable_newer">Fahrplan: neuer auf dem Server</string>
+    <string name="all_timetable_ok">Fahrplan: aktuell</string>
 </resources>

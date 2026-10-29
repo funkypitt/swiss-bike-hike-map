@@ -33,7 +33,7 @@ class Prefs(ctx: Context) {
         get() = p.getString("directory_key", "") ?: ""
         set(v) = p.edit().putString("directory_key", v.trim()).apply()
 
-    /** Automatic refresh of the saved areas: when it last completed, and a line for the menu. */
+    /** The last refresh of the saved areas asked for in the menu: when, and a line for the menu. */
     var offlineRefreshed: Long
         get() = p.getLong("offline_refreshed", 0L)
         set(v) = p.edit().putLong("offline_refreshed", v).apply()
@@ -50,11 +50,6 @@ class Prefs(ctx: Context) {
     var night: String
         get() = p.getString("night", Night.OFF) ?: Night.OFF
         set(v) = p.edit().putString("night", v).apply()
-
-    /** When the timetable pack was last checked against the server. */
-    var timetableChecked: Long
-        get() = p.getLong("timetable_checked", 0L)
-        set(v) = p.edit().putLong("timetable_checked", v).apply()
 
     fun downloadId(name: String): Long = p.getLong("dl_$name", -1)
     fun setDownloadId(name: String, id: Long) = p.edit().putLong("dl_$name", id).apply()

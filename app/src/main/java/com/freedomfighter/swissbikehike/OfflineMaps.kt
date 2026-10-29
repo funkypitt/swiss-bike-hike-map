@@ -3,9 +3,6 @@ package com.freedomfighter.swissbikehike
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import org.maplibre.android.geometry.LatLngBounds
 import org.maplibre.android.offline.OfflineManager
 import org.maplibre.android.offline.OfflineRegion
@@ -66,9 +63,6 @@ object OfflineMaps {
     /** Packs that still miss tiles (interrupted, or marked stale by a refresh). */
     suspend fun incomplete(ctx: Context): List<OfflineRegion> = list(ctx).filter { status(it)?.isComplete == false }
 
-    /** Called at every launch: whatever was left unfinished goes on, once Wi-Fi is there. */
-    suspend fun resumeIfNeeded(ctx: Context) { if (incomplete(ctx).isNotEmpty()) PackWorker.enqueue(ctx) }
-
     fun start(r: OfflineRegion, onProgress: (Long, Long, Boolean) -> Unit, onError: (String) -> Unit) {
         r.setObserver(object : OfflineRegion.OfflineRegionObserver {
             override fun onStatusChanged(status: OfflineRegionStatus) {
@@ -89,36 +83,10 @@ object OfflineMaps {
         })
     }
 
-    // ---- automatic refresh ----
-
-    const val AUTO_DAYS = 7
-
     fun unmetered(ctx: Context): Boolean {
         val cm = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val caps = cm.getNetworkCapabilities(cm.activeNetwork) ?: return false
         return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
-    }
-
-    /**
-     * Once a week, on an unmetered connection, every saved area is marked stale and downloaded again
-     * in the background; the current style is seeded again too, so the packs follow the app. The
-     * menu shows how it went. Returns true when a refresh was started.
-     */
-    suspend fun autoRefresh(ctx: Context, styleFile: File): Boolean {
-        val prefs = Prefs(ctx)
-        if (System.currentTimeMillis() - prefs.offlineRefreshed < AUTO_DAYS * 86400_000L) return false
-        if (!unmetered(ctx)) return false
-        val regions = list(ctx)
-        prefs.offlineRefreshed = System.currentTimeMillis()
-        if (regions.isEmpty()) return false
-        if (styleFile.exists()) {
-            val now = System.currentTimeMillis() / 1000
-            manager(ctx).putResourceWithUrl(STYLE_URL, styleFile.readBytes(), now, now + 3650L * 86400, null, false)
-        }
-        for (r in regions) refresh(r)
-        prefs.offlineRefreshStatus = ctx.getString(R.string.auto_refresh_done, regions.size, SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date()))
-        PackWorker.enqueue(ctx)
-        return true
     }
 
     suspend fun delete(r: OfflineRegion): Boolean = suspendCoroutine { cont ->

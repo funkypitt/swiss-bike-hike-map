@@ -98,13 +98,6 @@
     <string name="area_saved">%1$s сохранена (%2$d тайлов)</string>
     <string name="area_refreshing">Обновление %1$s: %2$d / %3$d тайлов</string>
     <string name="area_refreshed">%1$s обновлена</string>
-    <string name="auto_refresh_never">Автоматически ещё не обновлялось</string>
-    <string name="auto_refresh_rule">(каждые %1$d дней по Wi-Fi при запуске приложения)</string>
-    <string name="auto_refresh_running">Идёт автоматическое обновление…</string>
-    <string name="auto_refresh_progress">Автообновление: %1$s %2$d / %3$d тайлов</string>
-    <string name="auto_refresh_done">Автоматически обновлено областей: %1$d, %2$s</string>
-    <string name="auto_refresh_incomplete">Автообновление неполное, областей: %1$d, %2$s</string>
-    <string name="auto_refresh_error">Автообновление: %1$s</string>
     <string name="open_map_first">Сначала откройте карту</string>
     <string name="delete_areas_q">Удалить все сохранённые области?</string>
     <string name="error_x">Ошибка: %1$s</string>
@@ -151,7 +144,6 @@
     <string name="timetable_up_to_date">актуально</string>
     <string name="timetable_downloading">загрузка %1$d%%</string>
     <string name="timetable_checking">проверка сервера…</string>
-    <string name="timetable_rule">(проверяется каждые %1$d дней по Wi-Fi при запуске)</string>
     <string name="offline_timetable">офлайн-расписание</string>
     <string name="realtime">в реальном времени</string>
     <string name="nav_walk_to">ПЕШКОМ до %1$s</string>
@@ -174,4 +166,19 @@
     <string name="kind_lift">Канатная дорога</string>
     <string name="transit_short">ТРАНСПОРТ</string>
     <string name="kind_metro">Метро</string>
+    <string name="refresh_hint">Ничего не загружается само. ОБНОВИТЬ СОХРАНЁННЫЕ ОБЛАСТИ загружает свежие тайлы, когда вы решите; ход показан здесь и в уведомлении, ПАУЗА останавливает, ПРОДОЛЖИТЬ возобновляет.</string>
+    <string name="refresh_asked">Обновление запрошено для областей: %1$d, %2$s</string>
+    <string name="timetable_hint">Ничего не загружается само: когда здесь появится более новый пакет, нажмите ЗАГРУЗИТЬ / ОБНОВИТЬ. Ход показан здесь и в системном уведомлении о загрузке.</string>
+    <string name="menu_update_all">ОБНОВИТЬ ВСЕ ОФЛАЙН-ДАННЫЕ</string>
+    <string name="update_all_confirm">Загружает свежие тайлы для каждой сохранённой области, данные маршрутов (около 450 МБ) и расписание (около 15 МБ) по Wi-Fi. Ход показан в меню и в уведомлениях; больше ничего не загружается без вас.</string>
+    <string name="all_maps_none">Карты: нет сохранённых областей</string>
+    <string name="all_maps_running">Карты: областей %1$d, идёт загрузка</string>
+    <string name="all_maps_incomplete">Карты: областей %1$d, часть неполные</string>
+    <string name="all_maps_ok">Карты: областей %1$d, все полные</string>
+    <string name="all_routing_missing">Данные маршрутов: отсутствуют</string>
+    <string name="all_routing_newer">Данные маршрутов: на сервере новее</string>
+    <string name="all_routing_ok">Данные маршрутов: актуальны</string>
+    <string name="all_timetable_missing">Расписание: нет в телефоне</string>
+    <string name="all_timetable_newer">Расписание: на сервере новее</string>
+    <string name="all_timetable_ok">Расписание: актуально</string>
 </resources>

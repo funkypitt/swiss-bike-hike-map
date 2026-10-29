@@ -98,13 +98,6 @@
     <string name="area_saved">%1$s enregistrée (%2$d tuiles)</string>
     <string name="area_refreshing">Rafraîchissement %1$s : %2$d / %3$d tuiles</string>
     <string name="area_refreshed">%1$s rafraîchie</string>
-    <string name="auto_refresh_never">Pas encore rafraîchi automatiquement</string>
-    <string name="auto_refresh_rule">(tous les %1$d jours en Wi-Fi, au lancement de l\'app)</string>
-    <string name="auto_refresh_running">Rafraîchissement automatique en cours…</string>
-    <string name="auto_refresh_progress">Rafraîchissement automatique : %1$s %2$d / %3$d tuiles</string>
-    <string name="auto_refresh_done">%1$d zone(s) rafraîchie(s) automatiquement le %2$s</string>
-    <string name="auto_refresh_incomplete">Rafraîchissement automatique incomplet, %1$d zone(s) le %2$s</string>
-    <string name="auto_refresh_error">Rafraîchissement automatique : %1$s</string>
     <string name="open_map_first">Ouvrez d\'abord la carte</string>
     <string name="delete_areas_q">Supprimer toutes les zones enregistrées ?</string>
     <string name="error_x">Erreur : %1$s</string>
@@ -151,7 +144,6 @@
     <string name="timetable_up_to_date">à jour</string>
     <string name="timetable_downloading">téléchargement %1$d%%</string>
     <string name="timetable_checking">vérification du serveur…</string>
-    <string name="timetable_rule">(vérifié tous les %1$d jours en Wi-Fi, au lancement)</string>
     <string name="offline_timetable">horaire hors ligne</string>
     <string name="realtime">temps réel</string>
     <string name="nav_walk_to">MARCHER jusqu\'à %1$s</string>
@@ -174,4 +166,19 @@
     <string name="kind_lift">Remontée</string>
     <string name="transit_short">TRANSPORTS</string>
     <string name="kind_metro">Métro</string>
+    <string name="refresh_hint">Rien ne se télécharge tout seul. RAFRAÎCHIR LES ZONES ENREGISTRÉES va chercher des tuiles fraîches quand vous le décidez ; la progression s\'affiche ici et dans une notification, PAUSE l\'arrête, REPRENDRE la poursuit.</string>
+    <string name="refresh_asked">Rafraîchissement demandé pour %1$d zone(s) le %2$s</string>
+    <string name="timetable_hint">Rien ne se télécharge tout seul : quand un paquet plus récent est signalé ici, appuyez sur TÉLÉCHARGER / METTRE À JOUR. La progression s\'affiche ici et dans la notification de téléchargement du système.</string>
+    <string name="menu_update_all">METTRE À JOUR TOUT LE HORS-LIGNE</string>
+    <string name="update_all_confirm">Va chercher des tuiles fraîches pour chaque zone enregistrée, les données d\'itinéraires (environ 450 Mo) et l\'horaire (environ 15 Mo), en Wi-Fi. La progression s\'affiche dans le menu et dans les notifications ; rien d\'autre ne se télécharge sans vous.</string>
+    <string name="all_maps_none">Cartes : aucune zone enregistrée</string>
+    <string name="all_maps_running">Cartes : %1$d zone(s), téléchargement en cours</string>
+    <string name="all_maps_incomplete">Cartes : %1$d zone(s), certaines incomplètes</string>
+    <string name="all_maps_ok">Cartes : %1$d zone(s) complètes</string>
+    <string name="all_routing_missing">Données d\'itinéraires : manquantes</string>
+    <string name="all_routing_newer">Données d\'itinéraires : plus récentes sur le serveur</string>
+    <string name="all_routing_ok">Données d\'itinéraires : à jour</string>
+    <string name="all_timetable_missing">Horaire : pas sur le téléphone</string>
+    <string name="all_timetable_newer">Horaire : plus récent sur le serveur</string>
+    <string name="all_timetable_ok">Horaire : à jour</string>
 </resources>

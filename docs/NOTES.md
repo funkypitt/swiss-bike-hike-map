@@ -27,7 +27,7 @@ Everything is recycled:
 | Routing | [BRouter](https://github.com/abrensch/brouter) (MIT) embedded as the `brouter` module, OpenStreetMap data from brouter.de (profiles `trekking` and `hiking-mountain`) |
 | Turn instructions | BRouter's own voice hints (`turnInstructionMode`), read through `brouter/.../TurnHints.java` |
 | Search | GeoAdmin search API; people and firms through the search.ch directory with the person's own key |
-| Offline | MapLibre offline packs for the area on screen, zoom 8 to 15, refreshed automatically once a week over Wi-Fi |
+| Offline | MapLibre offline packs for the area on screen, zoom 8 to 15, refreshed from the menu only (0.6.1: nothing automatic at launch, it stalled the map) |
 
 Data © swisstopo, © SchweizMobil, © OpenStreetMap contributors.
 
@@ -83,6 +83,6 @@ The box includes a good share of France, Italy, Germany and Austria; Switzerland
   left, counted by position, by the clock without GPS), GET OFF (within 400 m or one stop before,
   long vibration), CHANGE, ARRIVED; a ride missed by three minutes triggers a new plan from here.
 * The pack is downloaded by the system DownloadManager (Wi-Fi) from the release `transit-data`,
-  unpacked and checked, then refreshed every seven days when the server's `switzerland.transit.json`
-  is newer. Emulator trick: let the app create `files/transit/` before pushing the pack with adb,
+  unpacked and checked; the menu compares the local `switzerland.transit.json` with the server's and
+  says when a newer pack exists, the download stays a button (0.6.1). Emulator trick: let the app create `files/transit/` before pushing the pack with adb,
   a directory created by the shell user is not readable by the app.

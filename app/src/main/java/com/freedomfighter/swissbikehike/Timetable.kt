@@ -21,7 +21,6 @@ object Timetable {
     private const val BASE = "https://github.com/funkypitt/swiss-bike-hike-map/releases/download/transit-data/"
     const val NAME = "switzerland.transit"
     private const val KEY = "transit"
-    const val AUTO_DAYS = 7
 
     fun dir(ctx: Context): File = File(ctx.getExternalFilesDir(null) ?: ctx.filesDir, "transit").apply { mkdirs() }
     fun file(ctx: Context) = File(dir(ctx), NAME)
@@ -116,17 +115,5 @@ object Timetable {
                 DownloadManager.STATUS_FAILED -> { prefs.setDownloadId(KEY, -1); part(ctx).delete() }
             }
         }
-    }
-
-    /** Once a week on Wi-Fi: fetch the pack again when the server has a newer feed. */
-    suspend fun autoUpdate(ctx: Context) {
-        val prefs = Prefs(ctx)
-        if (!file(ctx).exists()) return
-        if (System.currentTimeMillis() - prefs.timetableChecked < AUTO_DAYS * 86400_000L) return
-        if (!OfflineMaps.unmetered(ctx)) return
-        val r = remote() ?: return
-        prefs.timetableChecked = System.currentTimeMillis()
-        val l = local(ctx)
-        if (l == null || r.feed > l.feed || r.built > l.built) download(ctx)
     }
 }

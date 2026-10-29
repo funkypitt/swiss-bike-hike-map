@@ -4,6 +4,9 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="vertical" android:padding="16dp">
 
+        <TextView android:id="@+id/btnUpdateAll" style="@style/Btn" android:layout_width="match_parent" android:layout_height="64dp" android:layout_marginTop="4dp" android:background="@drawable/btn_active" android:textColor="@drawable/btn_active_text" android:text="@string/menu_update_all"/>
+        <TextView android:id="@+id/allInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:lineSpacingExtra="4dp" android:paddingTop="8dp"/>
+
         <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/menu_trip"/>
         <TextView android:id="@+id/btnFollowGpx" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:text="@string/menu_follow_gpx"/>
         <TextView android:id="@+id/btnSharePos" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_share_position"/>

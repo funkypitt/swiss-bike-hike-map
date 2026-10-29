@@ -39,6 +39,7 @@ class MenuActivity : AppCompatActivity() {
         setContentView(b.root)
         Insets.pad(b.root)
         prefs = Prefs(this)
+        b.btnUpdateAll.setOnClickListener { updateAll() }
         b.btnFollowGpx.setOnClickListener { pickGpx.launch(arrayOf("*/*")) }
         b.btnSharePos.setOnClickListener { sharePosition() }
         b.btnNight.setOnClickListener {
@@ -135,6 +136,9 @@ class MenuActivity : AppCompatActivity() {
                 "${s.name}  $tail"
             }
             b.segInfo.text = lines.joinToString("\n")
+            segmentsMissing = st.any { !it.present }
+            segmentsNewer = st.any { s -> s.present && (server[s.name] ?: 0L) > s.modified }
+            updateAllInfo()
         }
     }
 
@@ -148,7 +152,7 @@ class MenuActivity : AppCompatActivity() {
             l == null -> getString(R.string.timetable_missing)
             else -> getString(R.string.timetable_info, l.feed, Fmt.mb(l.bytes), l.built)
         }
-        b.timetableInfo.text = base + "\n" + getString(R.string.timetable_rule, Timetable.AUTO_DAYS) + (if (askServer) "\n" + getString(R.string.timetable_checking) else "")
+        b.timetableInfo.text = base + "\n" + getString(R.string.timetable_hint) + (if (askServer) "\n" + getString(R.string.timetable_checking) else "")
         if (!askServer) return
         lifecycleScope.launch {
             val r = Timetable.remote()
@@ -158,7 +162,9 @@ class MenuActivity : AppCompatActivity() {
                 r.feed > l.feed || r.built > l.built -> "\n" + getString(R.string.timetable_newer, r.feed + " · " + r.built)
                 else -> "\n" + getString(R.string.timetable_up_to_date)
             }
-            b.timetableInfo.text = base + "\n" + getString(R.string.timetable_rule, Timetable.AUTO_DAYS) + tail
+            b.timetableInfo.text = base + "\n" + getString(R.string.timetable_hint) + tail
+            timetableNewer = r != null && (l == null || r.feed > l.feed || r.built > l.built)
+            updateAllInfo()
         }
     }
 
@@ -182,10 +188,13 @@ class MenuActivity : AppCompatActivity() {
                 WorkInfo.State.ENQUEUED, WorkInfo.State.BLOCKED -> getString(R.string.packs_waiting)
                 else -> if (missing) getString(R.string.packs_incomplete) else prefs.packStatus
             }
-            val auto = prefs.offlineRefreshStatus.ifBlank { getString(R.string.auto_refresh_never) }
+            val last = prefs.offlineRefreshStatus
             b.offlineInfo.text = (if (lines.isEmpty()) getString(R.string.no_saved_area) else lines.joinToString("\n")) +
                 (if (jobLine.isNotBlank()) "\n\n$jobLine" else "") +
-                "\n\n" + auto + "\n" + getString(R.string.auto_refresh_rule, OfflineMaps.AUTO_DAYS)
+                (if (last.isNotBlank()) "\n$last" else "") +
+                "\n\n" + getString(R.string.refresh_hint)
+            areasCount = regions.size; areasMissing = missing; areasJob = job
+            updateAllInfo()
             val active = job == WorkInfo.State.RUNNING || job == WorkInfo.State.ENQUEUED || job == WorkInfo.State.BLOCKED
             b.btnPacks.visibility = if (active || missing) View.VISIBLE else View.GONE
             b.btnPacks.text = getString(if (active) R.string.menu_pause_packs else R.string.menu_resume_packs)
@@ -217,13 +226,57 @@ class MenuActivity : AppCompatActivity() {
         lifecycleScope.launch { OfflineMaps.create(this@MenuActivity, styleFile, bounds, name); refreshAreasInfo() }
     }
 
-    private fun refreshAreas() {
+    private fun refreshAreas(quiet: Boolean = false) {
         lifecycleScope.launch {
             val regions = OfflineMaps.list(this@MenuActivity)
+            if (regions.isEmpty()) { if (!quiet) Toast.makeText(this@MenuActivity, R.string.no_saved_area, Toast.LENGTH_SHORT).show(); return@launch }
+            // the current style goes into the packs too, so they follow the app
+            val styleFile = MapStyle.styleFile(this@MenuActivity)
+            if (styleFile.exists()) {
+                val now = System.currentTimeMillis() / 1000
+                OfflineMaps.manager(this@MenuActivity).putResourceWithUrl(OfflineMaps.STYLE_URL, styleFile.readBytes(), now, now + 3650L * 86400, null, false)
+            }
             for (r in regions) OfflineMaps.refresh(r)
-            if (regions.isNotEmpty()) PackWorker.enqueue(this@MenuActivity)
+            prefs.offlineRefreshed = System.currentTimeMillis()
+            prefs.offlineRefreshStatus = getString(R.string.refresh_asked, regions.size, SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date()))
+            PackWorker.enqueue(this@MenuActivity)
+            if (!quiet) Toast.makeText(this@MenuActivity, R.string.downloading_wifi, Toast.LENGTH_SHORT).show()
             refreshAreasInfo()
         }
+    }
+
+    // ---- everything offline, in one button ----
+
+    private var areasCount = 0; private var areasMissing = false; private var areasJob: WorkInfo.State? = null
+    private var segmentsNewer = false; private var segmentsMissing = false
+    private var timetableNewer = false
+
+    /** One line per kind of offline data, under the big button: what is there, what the server has newer. */
+    private fun updateAllInfo() {
+        val maps = when {
+            areasCount == 0 -> getString(R.string.all_maps_none)
+            areasJob == WorkInfo.State.RUNNING || areasJob == WorkInfo.State.ENQUEUED || areasJob == WorkInfo.State.BLOCKED -> getString(R.string.all_maps_running, areasCount)
+            areasMissing -> getString(R.string.all_maps_incomplete, areasCount)
+            else -> getString(R.string.all_maps_ok, areasCount)
+        }
+        val seg = when { segmentsMissing -> getString(R.string.all_routing_missing); segmentsNewer -> getString(R.string.all_routing_newer); else -> getString(R.string.all_routing_ok) }
+        val tt = when { !Timetable.isReady(this) -> getString(R.string.all_timetable_missing); timetableNewer -> getString(R.string.all_timetable_newer); else -> getString(R.string.all_timetable_ok) }
+        b.allInfo.text = "• $maps\n• $seg\n• $tt"
+    }
+
+    /** Refreshes every saved area, fetches the routing data and the timetable again: all of it, after one yes. */
+    private fun updateAll() {
+        val wifi = OfflineMaps.unmetered(this)
+        AlertDialog.Builder(this).setTitle(R.string.menu_update_all)
+            .setMessage(getString(R.string.update_all_confirm) + if (!wifi) "\n\n" + getString(R.string.country_not_wifi) else "")
+            .setPositiveButton(R.string.download) { _, _ ->
+                refreshAreas(quiet = true)
+                Segments.download(this, Segments.names)
+                Timetable.download(this)
+                Toast.makeText(this, R.string.downloading_wifi, Toast.LENGTH_LONG).show()
+                refreshSegments(); refreshTimetable(); refreshAreasInfo()
+            }
+            .setNegativeButton(R.string.cancel, null).show()
     }
 
     private fun deleteAreas() {

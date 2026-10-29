@@ -98,13 +98,6 @@
     <string name="area_saved">%1$s guardada (%2$d teselas)</string>
     <string name="area_refreshing">Actualizando %1$s: %2$d / %3$d teselas</string>
     <string name="area_refreshed">%1$s actualizada</string>
-    <string name="auto_refresh_never">Aún no actualizado automáticamente</string>
-    <string name="auto_refresh_rule">(cada %1$d días por Wi-Fi, al abrir la app)</string>
-    <string name="auto_refresh_running">Actualización automática en curso…</string>
-    <string name="auto_refresh_progress">Actualización automática: %1$s %2$d / %3$d teselas</string>
-    <string name="auto_refresh_done">%1$d zona(s) actualizada(s) automáticamente el %2$s</string>
-    <string name="auto_refresh_incomplete">Actualización automática incompleta, %1$d zona(s) el %2$s</string>
-    <string name="auto_refresh_error">Actualización automática: %1$s</string>
     <string name="open_map_first">Abra primero el mapa</string>
     <string name="delete_areas_q">¿Eliminar todas las zonas guardadas?</string>
     <string name="error_x">Error: %1$s</string>
@@ -151,7 +144,6 @@
     <string name="timetable_up_to_date">al día</string>
     <string name="timetable_downloading">descargando %1$d%%</string>
     <string name="timetable_checking">comprobando el servidor…</string>
-    <string name="timetable_rule">(comprobado cada %1$d días con Wi-Fi, al iniciar)</string>
     <string name="offline_timetable">horario sin conexión</string>
     <string name="realtime">tiempo real</string>
     <string name="nav_walk_to">CAMINAR hasta %1$s</string>
@@ -174,4 +166,19 @@
     <string name="kind_lift">Teleférico</string>
     <string name="transit_short">TRANSPORTE</string>
     <string name="kind_metro">Metro</string>
+    <string name="refresh_hint">Nada se descarga solo. ACTUALIZAR LAS ZONAS GUARDADAS trae teselas nuevas cuando usted lo decide; el progreso se ve aquí y en una notificación, PAUSA lo detiene, REANUDAR lo continúa.</string>
+    <string name="refresh_asked">Actualización pedida para %1$d zona(s) el %2$s</string>
+    <string name="timetable_hint">Nada se descarga solo: cuando aquí se señale un paquete más reciente, pulse DESCARGAR / ACTUALIZAR. El progreso se ve aquí y en la notificación de descarga del sistema.</string>
+    <string name="menu_update_all">ACTUALIZAR TODO LO SIN CONEXIÓN</string>
+    <string name="update_all_confirm">Trae teselas nuevas para cada zona guardada, los datos de rutas (unos 450 MB) y el horario (unos 15 MB), por Wi-Fi. El progreso se ve en el menú y en las notificaciones; nada más se descarga sin usted.</string>
+    <string name="all_maps_none">Mapas: ninguna zona guardada</string>
+    <string name="all_maps_running">Mapas: %1$d zona(s), descarga en curso</string>
+    <string name="all_maps_incomplete">Mapas: %1$d zona(s), algunas incompletas</string>
+    <string name="all_maps_ok">Mapas: %1$d zona(s) completas</string>
+    <string name="all_routing_missing">Datos de rutas: faltan</string>
+    <string name="all_routing_newer">Datos de rutas: más recientes en el servidor</string>
+    <string name="all_routing_ok">Datos de rutas: al día</string>
+    <string name="all_timetable_missing">Horario: no está en el teléfono</string>
+    <string name="all_timetable_newer">Horario: más reciente en el servidor</string>
+    <string name="all_timetable_ok">Horario: al día</string>
 </resources>

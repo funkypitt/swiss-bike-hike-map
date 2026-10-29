@@ -105,13 +105,6 @@
     <string name="area_saved">Saved %1$s (%2$d tiles)</string>
     <string name="area_refreshing">Refreshing %1$s: %2$d / %3$d tiles</string>
     <string name="area_refreshed">Refreshed %1$s</string>
-    <string name="auto_refresh_never">Not refreshed automatically yet</string>
-    <string name="auto_refresh_rule">(every %1$d days over Wi-Fi, when the app starts)</string>
-    <string name="auto_refresh_running">Automatic refresh running…</string>
-    <string name="auto_refresh_progress">Automatic refresh: %1$s %2$d / %3$d tiles</string>
-    <string name="auto_refresh_done">Automatically refreshed %1$d area(s) on %2$s</string>
-    <string name="auto_refresh_incomplete">Automatic refresh incomplete, %1$d area(s) on %2$s</string>
-    <string name="auto_refresh_error">Automatic refresh: %1$s</string>
     <string name="open_map_first">Open the map first</string>
     <string name="delete_areas_q">Delete every saved area?</string>
     <string name="error_x">Error: %1$s</string>
@@ -158,7 +151,6 @@
     <string name="timetable_up_to_date">up to date</string>
     <string name="timetable_downloading">downloading %1$d%%</string>
     <string name="timetable_checking">checking the server…</string>
-    <string name="timetable_rule">(checked every %1$d days over Wi-Fi, when the app starts)</string>
     <string name="offline_timetable">offline timetable</string>
     <string name="realtime">real time</string>
     <string name="nav_walk_to">WALK to %1$s</string>
@@ -181,4 +173,19 @@
     <string name="kind_lift">Lift</string>
     <string name="transit_short">TRANSIT</string>
     <string name="kind_metro">Metro</string>
+    <string name="refresh_hint">Nothing is downloaded by itself. REFRESH SAVED AREAS fetches fresh tiles when you decide; the progress shows here and in a notification, PAUSE stops it, RESUME goes on.</string>
+    <string name="refresh_asked">Refresh asked for %1$d area(s) on %2$s</string>
+    <string name="timetable_hint">Nothing is downloaded by itself: when a newer pack is reported here, press DOWNLOAD / UPDATE. The progress shows here and in the system\'s download notification.</string>
+    <string name="menu_update_all">UPDATE ALL OFFLINE DATA</string>
+    <string name="update_all_confirm">Fetches fresh tiles for every saved area, the routing data (about 450 MB) and the timetable (about 15 MB), over Wi-Fi. The progress shows in the menu and in the notifications; nothing else is downloaded without you.</string>
+    <string name="all_maps_none">Maps: no saved area</string>
+    <string name="all_maps_running">Maps: %1$d area(s), download running</string>
+    <string name="all_maps_incomplete">Maps: %1$d area(s), some incomplete</string>
+    <string name="all_maps_ok">Maps: %1$d area(s) complete</string>
+    <string name="all_routing_missing">Routing data: missing</string>
+    <string name="all_routing_newer">Routing data: newer on the server</string>
+    <string name="all_routing_ok">Routing data: up to date</string>
+    <string name="all_timetable_missing">Timetable: not on the phone</string>
+    <string name="all_timetable_newer">Timetable: newer on the server</string>
+    <string name="all_timetable_ok">Timetable: up to date</string>
 </resources>

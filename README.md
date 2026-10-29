@@ -33,8 +33,10 @@ the app was called Swiss Bike-Hike Map; the package name has not changed.)
   firms from the search.ch directory with your own free key, public-transport stops, and your
   favourites, which you can import and export (GPX, KML, GeoJSON, CSV).
 * **Offline**: save the area on screen or the whole country in one button (about 2.5 GB); the
-  download survives the app being closed and the phone restarting, waits for Wi-Fi, and the
-  saved areas refresh themselves once a week.
+  download survives the app being closed and the phone restarting, waits for Wi-Fi, and shows
+  its progress in the menu and in a notification with PAUSE. Nothing is downloaded by itself:
+  one button at the top of the menu updates every offline thing (saved areas, routing data,
+  timetable) when you decide.
 * **Night map** by hand or after sunset; share a place or your position as text; six languages
   (en, fr, de, es, pt, ru).
 * Permissions: location, notifications (guidance and downloads), vibration; the network serves
