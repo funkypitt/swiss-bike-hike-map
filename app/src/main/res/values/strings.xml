@@ -289,4 +289,6 @@
     <string name="all_places_newer">Places: newer on the server</string>
     <string name="all_places_ok">Places: up to date</string>
     <string name="all_places_state">Places: %1$s</string>
+    <string name="places_zoom_in">Zoom in to see the places (from zoom 13)</string>
+    <string name="places_offer_msg">Fountains, shelters, huts, shops… from OpenStreetMap are not on the phone yet: about 3 MB, over Wi-Fi. Then they show on the map and in FIND without a connection.</string>
 </resources>

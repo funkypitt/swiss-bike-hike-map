@@ -282,4 +282,6 @@
     <string name="all_places_newer">Места: новее на сервере</string>
     <string name="all_places_ok">Места: актуальны</string>
     <string name="all_places_state">Места: %1$s</string>
+    <string name="places_zoom_in">Приблизьте, чтобы увидеть места (с зума 13)</string>
+    <string name="places_offer_msg">Фонтаны, укрытия, хижины, магазины… из OpenStreetMap ещё не на телефоне: около 3 МБ по Wi-Fi. Затем они видны на карте и в ПОИСКЕ без связи.</string>
 </resources>

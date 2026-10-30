@@ -282,4 +282,6 @@
     <string name="all_places_newer">Orte: neuer auf dem Server</string>
     <string name="all_places_ok">Orte: aktuell</string>
     <string name="all_places_state">Orte: %1$s</string>
+    <string name="places_zoom_in">Hineinzoomen, um die Orte zu sehen (ab Zoom 13)</string>
+    <string name="places_offer_msg">Brunnen, Unterstände, Hütten, Läden… aus OpenStreetMap sind noch nicht auf dem Telefon: etwa 3 MB, über WLAN. Danach erscheinen sie auf der Karte und in SUCHEN ohne Verbindung.</string>
 </resources>

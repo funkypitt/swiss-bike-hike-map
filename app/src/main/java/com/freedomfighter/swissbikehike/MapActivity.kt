@@ -152,6 +152,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
             if (c != null) i.putExtra(SearchActivity.EXTRA_CENTRE_LAT, c.latitude).putExtra(SearchActivity.EXTRA_CENTRE_LON, c.longitude)
             searchLauncher.launch(i)
         }
+        b.btnPlaces.setOnClickListener { togglePlaces() }
         b.btnMenu.setOnClickListener {
             map?.let { prefs.lastBounds = it.projection.visibleRegion.latLngBounds }
             menuLauncher.launch(Intent(this, MenuActivity::class.java))
@@ -300,8 +301,42 @@ class MapActivity : AppCompatActivity(), LocationListener {
     private var placesShown = false
     private var placesJob: kotlinx.coroutines.Job? = null
 
-    /** Fills the places source with what the pack has in view (zoom 13 and closer), when the menu asked for the dots. */
+    /** The ◆ button: the dots on or off; without the pack on the phone, the offer to fetch it (3 MB, Wi-Fi). */
+    private fun togglePlaces() {
+        if (!prefs.placesOnMap && !PlacesPack.isReady(this)) {
+            val pct = PlacesPack.downloading(this)
+            if (pct >= 0) { Toast.makeText(this, getString(R.string.timetable_downloading, pct), Toast.LENGTH_SHORT).show(); return }
+            AlertDialog.Builder(this).setTitle(R.string.menu_places).setMessage(R.string.places_offer_msg)
+                .setPositiveButton(R.string.download) { _, _ -> PlacesPack.download(this); prefs.placesOnMap = true; updatePlacesButton(); Toast.makeText(this, R.string.downloading_wifi, Toast.LENGTH_LONG).show(); watchPlacesPack() }
+                .setNegativeButton(R.string.later, null).show()
+            return
+        }
+        prefs.placesOnMap = !prefs.placesOnMap
+        refreshPlaces()
+        if (prefs.placesOnMap && (map?.cameraPosition?.zoom ?: 0.0) < 13) Toast.makeText(this, R.string.places_zoom_in, Toast.LENGTH_SHORT).show()
+    }
+
+    /** After the download asked for from the map: the dots appear as soon as the pack is unpacked (a few seconds). */
+    private fun watchPlacesPack() {
+        lifecycleScope.launch {
+            repeat(120) {
+                kotlinx.coroutines.delay(2000)
+                if (PlacesPack.isReady(this@MapActivity)) { refreshPlaces(); return@launch }
+                if (PlacesPack.failure(this@MapActivity).isNotBlank()) { Toast.makeText(this@MapActivity, PlacesPack.failure(this@MapActivity), Toast.LENGTH_LONG).show(); return@launch }
+            }
+        }
+    }
+
+    private fun updatePlacesButton() {
+        val on = prefs.placesOnMap
+        b.btnPlaces.setBackgroundResource(if (on) R.drawable.btn_active else R.drawable.btn)
+        b.btnPlaces.setTextColor(AppCompatResources.getColorStateList(this, if (on) R.drawable.btn_active_text else R.drawable.btn_text))
+        b.btnPlaces.contentDescription = getString(if (on) R.string.menu_places_map_on else R.string.menu_places_map_off)
+    }
+
+    /** Fills the places source with what the pack has in view (zoom 13 and closer), when the dots are asked for. */
     private fun refreshPlaces() {
+        updatePlacesButton()
         val m = map ?: return; val s = style ?: return
         val want = prefs.placesOnMap && m.cameraPosition.zoom >= 13
         if (want != placesShown) { placesShown = want; setVisible(MapStyle.placeLayers, want) }

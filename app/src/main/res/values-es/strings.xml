@@ -282,4 +282,6 @@
     <string name="all_places_newer">Lugares: más recientes en el servidor</string>
     <string name="all_places_ok">Lugares: al día</string>
     <string name="all_places_state">Lugares: %1$s</string>
+    <string name="places_zoom_in">Acerque para ver los lugares (desde el zoom 13)</string>
+    <string name="places_offer_msg">Fuentes, refugios, cabañas, tiendas… de OpenStreetMap aún no están en el teléfono: unos 3 MB, por Wi-Fi. Después aparecen en el mapa y en BUSCAR sin conexión.</string>
 </resources>

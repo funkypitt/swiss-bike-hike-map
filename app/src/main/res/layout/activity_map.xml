@@ -19,7 +19,9 @@
                     android:includeFontPadding="false" android:autoSizeTextType="uniform" android:autoSizeMinTextSize="11sp" android:autoSizeMaxTextSize="20sp"
                     android:gravity="center" android:textSize="20sp" android:textStyle="bold" android:letterSpacing="0.12" android:text="@string/walk"/>
             </FrameLayout>
-            <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="0.6"/>
+            <TextView android:id="@+id/btnPlaces" style="@style/Btn" android:layout_width="48dp" android:layout_height="56dp"
+                android:layout_marginStart="6dp" android:layout_marginEnd="6dp" android:textSize="22sp" android:autoSizeTextType="none"
+                android:text="◆" android:contentDescription="@string/menu_places_map_off"/>
             <TextView android:id="@+id/btnFind" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
                 android:layout_height="56dp" android:text="@string/find"/>
             <TextView android:id="@+id/btnMenu" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"

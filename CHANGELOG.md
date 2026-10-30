@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.1 — 2026-10-30
+
+* A ◆ button between the mode badge and FIND turns the places on the map on and off (black
+  when on). Without the pack on the phone, it offers the download (3 MB, Wi-Fi). The menu keeps
+  its own switch beside the download and the colour legend.
+
 ## 0.8.0 — 2026-10-30
 
 Places from OpenStreetMap, offline, and the directory to complete them.
