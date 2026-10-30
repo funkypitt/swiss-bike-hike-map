@@ -34,9 +34,13 @@ the app was called Swiss Bike-Hike Map; the package name has not changed.)
   platforms), to share as text, keep in the app, show on the map, or follow at once with GO.
   On the transit map a tap on any stop dot lists its lines with their next departure.
 * **GPX**: follow a track as it is (turns read off its shape), or record your own.
-* **FIND**: places and addresses (GeoAdmin), typed coordinates (WGS84, LV95, LV03), people and
-  firms from the search.ch directory with your own free key, public-transport stops, and your
-  favourites, which you can import and export (GPX, KML, GeoJSON, CSV).
+* **FIND**: what is around you by category, offline (drinking water, shelters, huts, picnic and
+  fire places, bike shops and repair stations, bakeries, farm shops, restaurants, campsites…
+  from OpenStreetMap, a 3 MB pack), places and addresses (GeoAdmin), typed coordinates (WGS84,
+  LV95, LV03), people and firms from the search.ch directory with your own free key, which also
+  completes a place with its phone and address; public-transport stops, and your favourites,
+  which you can import and export (GPX, KML, GeoJSON, CSV). The places can be drawn on the map
+  as coloured dots.
 * **Offline**: save the area on screen or the whole country in one button (about 2.5 GB); the
   download survives the app being closed and the phone restarting, waits for Wi-Fi, and shows
   its progress in the menu and in a notification with PAUSE. Nothing is downloaded by itself:
@@ -71,7 +75,10 @@ are in `app/src/main/assets/brouter`.
 
 The offline timetable pack is built by `tools/make-transit.py` from the official GTFS feed
 (standard library only, about two minutes) and published on the rolling release `transit-data`
-by the workflow `.github/workflows/transit-data.yml`, every Tuesday and on demand.
+by the workflow `.github/workflows/transit-data.yml`, every Tuesday and on demand. The places
+pack is built by `tools/make-places.py` (pyosmium, `pip install osmium`) from the Geofabrik
+extract of Switzerland in under a minute and published on the rolling release `places-data` by
+`.github/workflows/places-data.yml`, every Wednesday and on demand.
 
 ## Credits
 
@@ -79,8 +86,9 @@ Map: swisstopo vector base map and style, hiking trail network, Veloland and Mou
 routes, closures — © swisstopo, © SchweizMobil, free open government data.
 Routing: [BRouter](https://github.com/abrensch/brouter) (MIT) on OpenStreetMap data (ODbL),
 segments from brouter.de. Rendering: [MapLibre Native](https://maplibre.org) (BSD).
-Search: GeoAdmin API; people and firms: search.ch directory (Swisscom Directories AG) with the
-user's own key. Public transport: [transport.opendata.ch](https://transport.opendata.ch)
+Search: GeoAdmin API; places (fountains, shelters, huts, shops…): © OpenStreetMap contributors
+(ODbL), extract by [Geofabrik](https://download.geofabrik.de), packed weekly by this repository;
+people and firms: search.ch directory (Swisscom Directories AG) with the user's own key. Public transport: [transport.opendata.ch](https://transport.opendata.ch)
 (Opendata.ch) online; the offline pack comes from the official Swiss timetable (GTFS) of
 [opentransportdata.swiss](https://opentransportdata.swiss), open data of the Federal Office of
 Transport, converted by this repository.

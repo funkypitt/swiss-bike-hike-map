@@ -42,6 +42,8 @@ object MapStyle {
     const val IMG_PIN = "pin"
     const val SRC_JOURNEY = "journey"
     const val SRC_JOURNEY_PTS = "journey-pts"
+    const val SRC_PLACES = "places"
+    val placeLayers = listOf("places", "places-name")
 
     /** Layer ids by group, so visibility can be switched without rebuilding. */
     val walkLayers = listOf("trail-hiking-casing", "trail-hiking", "trail-mountain", "trail-mountain-dash",
@@ -78,7 +80,7 @@ object MapStyle {
         sources.put("closures-walk", raster(WMS.format("ch.astra.wanderland-sperrungen_umleitungen"), 256, 14))
         sources.put("closures-bike", raster(WMS.format("ch.astra.veloland-sperrungen_umleitungen"), 256, 14))
         sources.put("closures-mtb", raster(WMS.format("ch.astra.mountainbikeland-sperrungen_umleitungen"), 256, 14))
-        for (id in listOf(SRC_ROUTE, SRC_TRACK, SRC_PIN, SRC_JOURNEY, SRC_JOURNEY_PTS))
+        for (id in listOf(SRC_ROUTE, SRC_TRACK, SRC_PIN, SRC_JOURNEY, SRC_JOURNEY_PTS, SRC_PLACES))
             sources.put(id, JSONObject().put("type", "geojson").put("data", emptyCollection()))
 
         // --- layers: prune, remember, insert ---
@@ -148,6 +150,17 @@ object MapStyle {
         merged.put(rasterLayer("closures-walk", "closures-walk", 10))
         merged.put(rasterLayer("closures-bike", "closures-bike", 10))
         merged.put(rasterLayer("closures-mtb", "closures-mtb", 10))
+        // The places of the OpenStreetMap pack (when asked for in the menu): a dot in the colour of their group, the name close up.
+        merged.put(JSONObject().put("id", "places").put("type", "circle").put("source", SRC_PLACES).put("minzoom", 13)
+            .put("layout", JSONObject().put("visibility", "none"))
+            .put("paint", JSONObject().put("circle-color", JSONArray().put("get").put("c")).put("circle-stroke-color", "#FFFFFF")
+                .put("circle-radius", JSONArray().put("interpolate").put(JSONArray().put("linear")).put(JSONArray().put("zoom")).put(13).put(3.5).put(17).put(7))
+                .put("circle-stroke-width", 1.5)))
+        merged.put(JSONObject().put("id", "places-name").put("type", "symbol").put("source", SRC_PLACES).put("minzoom", 15)
+            .put("layout", JSONObject().put("visibility", "none").put("text-field", JSONArray().put("get").put("n"))
+                .put("text-font", JSONArray().put("Frutiger Neue Regular")).put("text-size", 11).put("text-anchor", "top")
+                .put("text-offset", JSONArray().put(0).put(0.8)).put("text-max-width", 8).put("text-optional", true))
+            .put("paint", JSONObject().put("text-color", JSONArray().put("get").put("c")).put("text-halo-color", "#FFFFFF").put("text-halo-width", 1.5)))
         merged.put(line("track-line", SRC_TRACK, "#000000", 3.0, JSONArray().put(1).put(2)))
         merged.put(line("route-casing", SRC_ROUTE, "#FFFFFF", 10.0, null))
         merged.put(line("route-line", SRC_ROUTE, MAGENTA, 6.0, null))

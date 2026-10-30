@@ -10,7 +10,7 @@ import java.util.Locale
 import java.util.zip.ZipInputStream
 import kotlin.math.abs
 
-/** A saved place: an address, a person, a firm or bare coordinates. */
+/** A saved place: an address, a person, a firm, a stop, a place of the OpenStreetMap pack or bare coordinates. */
 class Fav(val name: String, val lat: Double, val lon: Double, val kind: String = Favourites.PLACE, val detail: String = "") {
     fun near(lat: Double, lon: Double) = abs(this.lat - lat) < 2e-5 && abs(this.lon - lon) < 3e-5
 }
@@ -20,7 +20,7 @@ class Fav(val name: String, val lat: Double, val lon: Double, val kind: String =
  * places in the usual formats (GPX waypoints, KML/KMZ, GeoJSON, CSV, or plain lines with coordinates).
  */
 object Favourites {
-    const val PLACE = "place"; const val PERSON = "person"; const val FIRM = "firm"; const val COORDS = "coords"; const val STOP = "stop"
+    const val PLACE = "place"; const val PERSON = "person"; const val FIRM = "firm"; const val COORDS = "coords"; const val STOP = "stop"; const val POI = "poi"
 
     private fun file(ctx: Context) = File(ctx.filesDir, "favourites.json")
 
@@ -102,7 +102,7 @@ object Favourites {
             val lon = Regex("lon=\"([-\\d.]+)\"").find(attrs)?.groupValues?.get(1)?.toDoubleOrNull() ?: return@mapNotNull null
             val body = m.groupValues[2]
             val name = xmlTag(body, "name") ?: coordsName(lat, lon)
-            Fav(name, lat, lon, xmlTag(body, "type")?.takeIf { it in setOf(PLACE, PERSON, FIRM, COORDS) } ?: PLACE, xmlTag(body, "desc") ?: "")
+            Fav(name, lat, lon, xmlTag(body, "type")?.takeIf { it in setOf(PLACE, PERSON, FIRM, COORDS, POI) } ?: PLACE, xmlTag(body, "desc") ?: "")
         }.toList()
 
     private fun kml(t: String): List<Fav> =

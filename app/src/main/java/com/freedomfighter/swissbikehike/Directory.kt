@@ -29,9 +29,9 @@ object Directory {
 
     fun enabled(ctx: Context) = Prefs(ctx).directoryKey.isNotBlank()
 
-    /** The hits for this text: from the cache when asked within a month, else from search.ch. Throws on a network failure. */
-    fun search(ctx: Context, text: String): List<Hit> {
-        val q = text.trim().lowercase(Locale.ROOT)
+    /** The hits for this text (and place, optional): from the cache when asked within a month, else from search.ch. Throws on a network failure. */
+    fun search(ctx: Context, text: String, where: String = ""): List<Hit> {
+        val q = text.trim().lowercase(Locale.ROOT) + (if (where.isBlank()) "" else "@" + where.trim().lowercase(Locale.ROOT))
         val sp = cache(ctx)
         sp.getString("q:$q", null)?.let { v ->
             val nl = v.indexOf('\n')
@@ -39,7 +39,7 @@ object Directory {
             if (System.currentTimeMillis() - t < KEEP_MS) return decode(v.substring(nl + 1))
         }
         if (!underQuota(sp)) throw IllegalStateException("daily limit of $PER_DAY directory searches reached")
-        val hits = fetch(Prefs(ctx).directoryKey, text.trim())
+        val hits = fetch(Prefs(ctx).directoryKey, text.trim(), where.trim())
         countOne(sp)
         sp.edit().putString("q:$q", "${System.currentTimeMillis()}\n" + encode(hits)).apply()
         return hits
@@ -49,9 +49,10 @@ object Directory {
     private fun underQuota(sp: SharedPreferences) = sp.getInt("day:" + today(), 0) < PER_DAY
     private fun countOne(sp: SharedPreferences) { val k = "day:" + today(); sp.edit().putInt(k, sp.getInt(k, 0) + 1).apply() }
 
-    fun fetch(key: String, text: String): List<Hit> {
+    fun fetch(key: String, text: String, where: String = ""): List<Hit> {
         val lang = Locale.getDefault().language.takeIf { it in setOf("de", "fr", "it", "en") } ?: "fr"
-        val url = ENDPOINT + "?was=" + URLEncoder.encode(text, "UTF-8") + "&maxnum=20&lang=$lang&key=" + URLEncoder.encode(key, "UTF-8")
+        val url = ENDPOINT + "?was=" + URLEncoder.encode(text, "UTF-8") + (if (where.isBlank()) "" else "&wo=" + URLEncoder.encode(where, "UTF-8")) +
+            "&maxnum=20&lang=$lang&key=" + URLEncoder.encode(key, "UTF-8")
         val c = (URL(url).openConnection() as HttpURLConnection).apply {
             connectTimeout = 8_000; readTimeout = 8_000
             setRequestProperty("User-Agent", "swiss-bike-hike-map")

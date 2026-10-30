@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.8.0 — 2026-10-30
+
+Places from OpenStreetMap, offline, and the directory to complete them.
+
+* A pack of places of Switzerland built weekly from OpenStreetMap (`tools/make-places.py`,
+  pyosmium, Geofabrik extract; 142 000 places, 3 MB to download): drinking water, fountains,
+  toilets, shelters, mountain huts, picnic and fire places, viewpoints, bathing, bike shops,
+  repair stations, rentals, parkings, e-bike charging, sports shops, bakeries, groceries and farm
+  shops, restaurants, campsites, hotels, pharmacies, hospitals, tourist offices, sights, cash
+  machines. Fetched from MENU › PLACES, part of UPDATE ALL OFFLINE DATA; nothing without you.
+* FIND › PLACES opens on the categories: one tap lists what is around you (or around the map's
+  centre), nearest first, with hours, altitude, phone, address when OpenStreetMap has them. A
+  typed word searches the categories, GeoAdmin and the names of the pack together; coordinates
+  still work.
+* A long press on a place shows its details: PIN, CALL, WEBSITE, or SEARCH.CH when a directory
+  key is there and the place has no phone: the directory's entries for that name and town
+  complete the row (phone, address). With a key, Search in PLACES also merges the directory's
+  firms into the list: those naming a listed place complete it, the others are appended.
+* MENU › PLACES ON THE MAP draws the places as coloured dots from zoom 13 (blue water, green
+  rest, red bike, amber food, purple lodging, grey services), names close up; a tap on a dot
+  pins it. Off by default.
+* Data packs share one download mechanism (`DataPack`): the timetable and the places.
+* Credits: © OpenStreetMap contributors on the map's attribution line, in ABOUT and the README.
+
 ## 0.7.0 — 2026-10-29
 
 Fixes from a critical review of the 0.6 series.

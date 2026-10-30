@@ -1,5 +1,5 @@
 # Builds the app and runs its unit tests at every push and pull request; also checks that the
-# timetable tool still turns the GTFS fixture into a pack the app reads.
+# timetable and places tools still turn their fixtures into packs the app reads.
 name: android
 
 on:
@@ -24,6 +24,11 @@ jobs:
         run: |
           python3 tools/make-transit.py app/src/test/resources/gtfs out
           cmp out/switzerland.transit app/src/test/resources/test.transit && echo "fixture pack unchanged" || echo "fixture pack differs from the committed one (fine if the tool changed on purpose)"
+      - name: Pack from the OSM fixture
+        run: |
+          pip install osmium
+          python3 tools/make-places.py app/src/test/resources/places/test.osm out
+          cmp out/switzerland.places app/src/test/resources/test.places && echo "fixture pack unchanged" || echo "fixture pack differs from the committed one (fine if the tool changed on purpose)"
       - name: Unit tests
         run: ./gradlew --no-daemon -q :app:testDebugUnitTest
       - name: Debug build

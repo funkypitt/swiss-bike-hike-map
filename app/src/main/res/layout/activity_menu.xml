@@ -24,6 +24,11 @@
         <TextView android:id="@+id/timetableInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="15sp" android:lineSpacingExtra="4dp"/>
         <TextView android:id="@+id/btnTimetable" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_download_update"/>
 
+        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/menu_places"/>
+        <TextView android:id="@+id/placesInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="15sp" android:lineSpacingExtra="4dp"/>
+        <TextView android:id="@+id/btnPlaces" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_download_update"/>
+        <TextView android:id="@+id/btnPlacesMap" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_places_map_off"/>
+
         <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/menu_offline"/>
         <TextView android:id="@+id/offlineInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="15sp" android:lineSpacingExtra="4dp"/>
         <TextView android:id="@+id/btnPacks" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_resume_packs" android:visibility="gone"/>

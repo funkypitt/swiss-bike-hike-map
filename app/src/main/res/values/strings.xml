@@ -6,7 +6,7 @@
     <string name="legend_walk"><b>Yellow</b> hiking trail\n<b>White-red-white</b> mountain trail\n<b>White-blue-white</b> alpine trail\nPublic-transport stops as dots</string>
     <string name="transit">PUBLIC TRANSPORT</string>
     <string name="legend_transit"><b>Red</b> railways · <b>green</b> trams and metros\n<b>Purple</b> lifts · <b>blue</b> boats · stops as dots</string>
-    <string name="attribution">Map © swisstopo · Routing © OpenStreetMap contributors · Timetable © opentransportdata.swiss</string>
+    <string name="attribution">Map © swisstopo · Routing and places © OpenStreetMap contributors · Timetable © opentransportdata.swiss</string>
 
     <!-- map screen -->
     <string name="go">GO</string>
@@ -53,7 +53,7 @@
     <string name="places">PLACES</string>
     <string name="people">PEOPLE &amp; FIRMS</string>
     <string name="favourites">FAVOURITES</string>
-    <string name="search_hint">Place, address, peak, hut, coordinates…</string>
+    <string name="search_hint">Place, address, fountain, hut, shop, coordinates…</string>
     <string name="search_people_hint">Name, business, then Search</string>
     <string name="directory_need_key">People search needs your own search.ch key: paste it in MENU.</string>
     <string name="directory_nobody">Nobody listed</string>
@@ -114,7 +114,7 @@
     <string name="people_on">People search on</string>
     <string name="people_off">People search off</string>
     <string name="menu_about">ABOUT</string>
-    <string name="about_text">Map: swisstopo vector base map, hiking trail network, Veloland and Mountainbikeland routes, closures (© swisstopo, © SchweizMobil).\nRouting: BRouter (MIT) on OpenStreetMap data (ODbL), profiles « trekking » and « hiking-mountain ».\nPublic transport: timetable of transport.opendata.ch (Opendata.ch) when connected; offline, the official Swiss timetable (opentransportdata.swiss, GTFS) packed weekly by the app\'s repository.\nMap rendering: MapLibre Native (BSD).\nSearch: GeoAdmin API; people and firms: search.ch directory (Swisscom Directories AG) with your own key.\nThe transit map sends your position to transport.opendata.ch to find the stops around you; nothing else leaves the phone.</string>
+    <string name="about_text">Map: swisstopo vector base map, hiking trail network, Veloland and Mountainbikeland routes, closures (© swisstopo, © SchweizMobil).\nRouting: BRouter (MIT) on OpenStreetMap data (ODbL), profiles « trekking » and « hiking-mountain ».\nPublic transport: timetable of transport.opendata.ch (Opendata.ch) when connected; offline, the official Swiss timetable (opentransportdata.swiss, GTFS) packed weekly by the app\'s repository.\nMap rendering: MapLibre Native (BSD).\nSearch: GeoAdmin API; places (fountains, shelters, huts, shops…): © OpenStreetMap contributors (ODbL), packed weekly by the app\'s repository; people and firms: search.ch directory (Swisscom Directories AG) with your own key.\nThe transit map sends your position to transport.opendata.ch to find the stops around you; nothing else leaves the phone.</string>
     <string name="nav_channel">Navigation</string>
     <string name="nav_starting">Navigation starting…</string>
     <string name="eta_short">arrival %1$s</string>
@@ -177,7 +177,7 @@
     <string name="refresh_asked">Refresh asked for %1$d area(s) on %2$s</string>
     <string name="timetable_hint">Nothing is downloaded by itself: when a newer pack is reported here, press DOWNLOAD / UPDATE. The progress shows here and in the system\'s download notification.</string>
     <string name="menu_update_all">UPDATE ALL OFFLINE DATA</string>
-    <string name="update_all_confirm">Fetches fresh tiles for every saved area, the routing data (about 450 MB) and the timetable (about 15 MB), over Wi-Fi. The progress shows in the menu and in the notifications; nothing else is downloaded without you.</string>
+    <string name="update_all_confirm">Fetches fresh tiles for every saved area, the routing data (about 450 MB), the timetable (about 15 MB) and the places (about 3 MB), over Wi-Fi. The progress shows in the menu and in the notifications; nothing else is downloaded without you.</string>
     <string name="all_maps_none">Maps: no saved area</string>
     <string name="all_maps_running">Maps: %1$d area(s), download running</string>
     <string name="all_maps_incomplete">Maps: %1$d area(s), some incomplete</string>
@@ -240,4 +240,53 @@
     <string name="minutes_n">%1$d min</string>
     <string name="dl_unpacking">unpacking…</string>
     <string name="transit_multi_hint">Public transport: the journey goes through your stops in order; only the first leg offers a choice of times.</string>
+    <!-- places from OpenStreetMap -->
+    <string name="cat_water">Drinking water</string>
+    <string name="cat_fountain">Fountain</string>
+    <string name="cat_toilets">Toilets</string>
+    <string name="cat_shelter">Shelter</string>
+    <string name="cat_hut">Mountain hut</string>
+    <string name="cat_picnic">Picnic</string>
+    <string name="cat_fireplace">Fireplace</string>
+    <string name="cat_viewpoint">Viewpoint</string>
+    <string name="cat_bathing">Bathing</string>
+    <string name="cat_bike_shop">Bike shop</string>
+    <string name="cat_bike_repair">Bike repair station</string>
+    <string name="cat_bike_rental">Bike rental</string>
+    <string name="cat_bike_parking">Bike parking</string>
+    <string name="cat_charging">E-bike charging</string>
+    <string name="cat_outdoor">Sports and outdoor shop</string>
+    <string name="cat_bakery">Bakery</string>
+    <string name="cat_grocery">Grocery, farm shop</string>
+    <string name="cat_restaurant">Restaurant, café</string>
+    <string name="cat_camping">Campsite</string>
+    <string name="cat_lodging">Hotel, hostel</string>
+    <string name="cat_pharmacy">Pharmacy</string>
+    <string name="cat_hospital">Hospital</string>
+    <string name="cat_info">Tourist information</string>
+    <string name="cat_sight">Sight, castle</string>
+    <string name="cat_atm">Cash machine</string>
+    <string name="places_pack_missing">Fountains, shelters, huts, shops… are not on the phone yet: MENU › PLACES fetches them (about 3 MB), then they can be searched without a connection.</string>
+    <string name="places_pick">Pick a category, or type a name</string>
+    <string name="around_you">around you</string>
+    <string name="around_map">around the map centre</string>
+    <string name="back_categories">‹ CATEGORIES</string>
+    <string name="place_capacity">capacity %1$s</string>
+    <string name="place_fee">fee</string>
+    <string name="place_call">CALL</string>
+    <string name="place_web">WEBSITE</string>
+    <string name="place_pin">PIN</string>
+    <string name="place_directory">SEARCH.CH</string>
+    <string name="place_directory_none">Not in the directory</string>
+    <string name="place_directory_more">Hold a place for its details; with your search.ch key, the directory completes it (phone, address).</string>
+    <string name="menu_places">PLACES (OpenStreetMap)</string>
+    <string name="places_missing">Not on the phone: fountains, shelters, huts, shops… need this pack (about 3 MB).</string>
+    <string name="places_info">%1$s places · %2$s · built %3$s</string>
+    <string name="menu_places_map_off">PLACES ON THE MAP: OFF</string>
+    <string name="menu_places_map_on">PLACES ON THE MAP: ON</string>
+    <string name="places_map_hint">ON draws the places of the pack as coloured dots from zoom 13 (blue water, green rest, red bike, amber food, purple lodging, grey services); a tap on a dot pins it.</string>
+    <string name="all_places_missing">Places: not on the phone</string>
+    <string name="all_places_newer">Places: newer on the server</string>
+    <string name="all_places_ok">Places: up to date</string>
+    <string name="all_places_state">Places: %1$s</string>
 </resources>

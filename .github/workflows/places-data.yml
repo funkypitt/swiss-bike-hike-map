@@ -1,0 +1,34 @@
+# Builds the offline pack of places (fountains, shelters, huts, bike shops, bakeries…) from the
+# Geofabrik extract of Switzerland (OpenStreetMap, ODbL) and keeps it on the rolling release
+# "places-data", which the app downloads. Runs weekly and on demand.
+name: places-data
+
+on:
+  schedule:
+    - cron: "17 4 * * 3"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pyosmium
+        run: pip install osmium
+      - name: Build the pack
+        run: python3 tools/make-places.py out
+      - name: Publish on the places-data release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view places-data --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+            gh release create places-data --repo "$GITHUB_REPOSITORY" --title "Places pack (OpenStreetMap)" \
+              --notes "Offline places of the app (fountains, shelters, huts, shops…), rebuilt weekly from OpenStreetMap (© OpenStreetMap contributors, ODbL; extract by Geofabrik). Not an app release." --prerelease
+          gh release upload places-data out/switzerland.places.gz out/switzerland.places.json --repo "$GITHUB_REPOSITORY" --clobber
+          cat out/switzerland.places.json

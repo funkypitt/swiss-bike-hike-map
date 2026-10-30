@@ -23,7 +23,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/** Everything that is not the map: trip tools, history, data ages and refreshes, saved areas, the directory key. */
+/** Everything that is not the map: trip tools, history, data ages and refreshes (routing, timetable, places), saved areas, the directory key. */
 class MenuActivity : AppCompatActivity() {
     companion object { const val RESULT_RESTYLE = 7; const val RESULT_TRIP = 8; const val EXTRA_FILE = "file" }
     private lateinit var b: ActivityMenuBinding
@@ -48,6 +48,8 @@ class MenuActivity : AppCompatActivity() {
         }
         b.btnSegments.setOnClickListener { Segments.download(this, Segments.names); refreshSegments(); Toast.makeText(this, R.string.downloading_wifi, Toast.LENGTH_SHORT).show() }
         b.btnTimetable.setOnClickListener { Timetable.download(this); refreshTimetable(); Toast.makeText(this, R.string.downloading_wifi, Toast.LENGTH_SHORT).show() }
+        b.btnPlaces.setOnClickListener { PlacesPack.download(this); refreshPlaces(); Toast.makeText(this, R.string.downloading_wifi, Toast.LENGTH_SHORT).show() }
+        b.btnPlacesMap.setOnClickListener { prefs.placesOnMap = !prefs.placesOnMap; updatePlacesMapButton() }
         b.btnCountry.setOnClickListener { saveCountry() }
         b.btnPacks.setOnClickListener { if (PackWorker.state(this)?.isFinished == false) { PackWorker.pause(this); prefs.packStatus = getString(R.string.packs_paused) } else PackWorker.enqueue(this); lifecycleScope.launch { kotlinx.coroutines.delay(600); refreshAreasInfo() } }
         b.btnOfflineArea.setOnClickListener { saveArea() }
@@ -61,17 +63,21 @@ class MenuActivity : AppCompatActivity() {
         b.btnDirOrder.setOnClickListener { runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(Directory.ORDER_URL))) } }
         val pm = packageManager.getPackageInfo(packageName, 0)
         b.about.text = getString(R.string.app_name) + " ${pm.versionName}\n\n" + getString(R.string.about_text)
-        updateNightButton()
+        updateNightButton(); updatePlacesMapButton()
     }
 
     private var ticking = false
     override fun onResume() {
-        super.onResume(); refreshSegments(); refreshAreasInfo(); refreshTrips(); refreshTimetable()
-        if (!ticking) { ticking = true; lifecycleScope.launch { while (ticking) { kotlinx.coroutines.delay(3000); if (lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) { refreshAreasInfo(); if (Timetable.downloading(this@MenuActivity) >= 0) refreshTimetable(false) } } } }
+        super.onResume(); refreshSegments(); refreshAreasInfo(); refreshTrips(); refreshTimetable(); refreshPlaces()
+        if (!ticking) { ticking = true; lifecycleScope.launch { while (ticking) { kotlinx.coroutines.delay(3000); if (lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) { refreshAreasInfo(); if (Timetable.downloading(this@MenuActivity) >= 0 || Timetable.unpacking) refreshTimetable(false); if (PlacesPack.downloading(this@MenuActivity) >= 0 || PlacesPack.unpacking) refreshPlaces(false) } } } }
     }
     override fun onPause() { super.onPause(); ticking = false }
 
     private fun date(t: Long) = if (t <= 0) "?" else SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(t))
+
+    private fun updatePlacesMapButton() {
+        b.btnPlacesMap.text = getString(if (prefs.placesOnMap) R.string.menu_places_map_on else R.string.menu_places_map_off)
+    }
 
     private fun updateNightButton() {
         b.btnNight.text = getString(when (prefs.night) { Night.ON -> R.string.menu_night_on; Night.AUTO -> R.string.menu_night_auto; else -> R.string.menu_night_off })
@@ -162,9 +168,9 @@ class MenuActivity : AppCompatActivity() {
             else -> ""
         }
         val base = when {
-            timetableState.isNotBlank() -> timetableState + (if (l != null) "\n" + getString(R.string.timetable_info, l.feed, Fmt.mb(l.bytes), l.built) else "")
+            timetableState.isNotBlank() -> timetableState + (if (l != null) "\n" + getString(R.string.timetable_info, l.version, Fmt.mb(l.bytes), l.built) else "")
             l == null -> getString(R.string.timetable_missing)
-            else -> getString(R.string.timetable_info, l.feed, Fmt.mb(l.bytes), l.built)
+            else -> getString(R.string.timetable_info, l.version, Fmt.mb(l.bytes), l.built)
         }
         updateAllInfo()
         b.timetableInfo.text = base + "\n" + getString(R.string.timetable_hint) + (if (askServer) "\n" + getString(R.string.timetable_checking) else "")
@@ -173,12 +179,48 @@ class MenuActivity : AppCompatActivity() {
             val r = Timetable.remote()
             val tail = when {
                 r == null -> "\n" + getString(R.string.server_unreachable)
-                l == null -> "\n" + getString(R.string.timetable_newer, r.feed + " · " + Fmt.mb(r.bytes))
-                r.feed > l.feed || (l.built.isNotBlank() && r.built > l.built) -> "\n" + getString(R.string.timetable_newer, r.feed + " · " + r.built)
+                l == null -> "\n" + getString(R.string.timetable_newer, r.version + " · " + Fmt.mb(r.bytes))
+                r.version > l.version || (l.built.isNotBlank() && r.built > l.built) -> "\n" + getString(R.string.timetable_newer, r.version + " · " + r.built)
                 else -> "\n" + getString(R.string.timetable_up_to_date)
             }
             b.timetableInfo.text = base + "\n" + getString(R.string.timetable_hint) + tail
-            timetableNewer = r != null && (l == null || r.feed > l.feed || (l.built.isNotBlank() && r.built > l.built))
+            timetableNewer = r != null && (l == null || r.version > l.version || (l.built.isNotBlank() && r.built > l.built))
+            updateAllInfo()
+        }
+    }
+
+    // ---- places (OpenStreetMap) ----
+
+    private fun refreshPlaces(askServer: Boolean = true) {
+        val pct = PlacesPack.downloading(this)
+        val l = PlacesPack.local(this)
+        val fail = PlacesPack.failure(this)
+        placesState = when {
+            PlacesPack.unpacking -> getString(R.string.dl_unpacking)
+            PlacesPack.waitingWifi(this) -> getString(R.string.dl_waiting_wifi)
+            pct >= 0 -> getString(R.string.timetable_downloading, pct)
+            fail.isNotBlank() -> getString(R.string.dl_failed, fail)
+            else -> ""
+        }
+        val base = when {
+            placesState.isNotBlank() -> placesState + (if (l != null) "\n" + getString(R.string.places_info, l.version, Fmt.mb(l.bytes), l.built) else "")
+            l == null -> getString(R.string.places_missing)
+            else -> getString(R.string.places_info, l.version, Fmt.mb(l.bytes), l.built)
+        }
+        updateAllInfo()
+        val hint = "\n" + PlacesPack.CREDIT + "\n" + getString(R.string.places_map_hint)
+        b.placesInfo.text = base + hint + (if (askServer) "\n" + getString(R.string.timetable_checking) else "")
+        if (!askServer) return
+        lifecycleScope.launch {
+            val r = PlacesPack.remote()
+            val tail = when {
+                r == null -> "\n" + getString(R.string.server_unreachable)
+                l == null -> "\n" + getString(R.string.timetable_newer, r.built + " · " + Fmt.mb(r.bytes))
+                r.built > l.built -> "\n" + getString(R.string.timetable_newer, r.built)
+                else -> "\n" + getString(R.string.timetable_up_to_date)
+            }
+            b.placesInfo.text = base + hint + tail
+            placesNewer = r != null && (l == null || r.built > l.built)
             updateAllInfo()
         }
     }
@@ -264,8 +306,8 @@ class MenuActivity : AppCompatActivity() {
 
     private var areasCount = 0; private var areasMissing = false; private var areasJob: WorkInfo.State? = null
     private var segmentsNewer = false; private var segmentsMissing = false
-    private var timetableNewer = false
-    private var segmentsState = ""; private var timetableState = ""
+    private var timetableNewer = false; private var placesNewer = false
+    private var segmentsState = ""; private var timetableState = ""; private var placesState = ""
 
     /** One line per kind of offline data, under the big button: what is there, what the server has newer. */
     private fun updateAllInfo() {
@@ -277,7 +319,8 @@ class MenuActivity : AppCompatActivity() {
         }
         val seg = when { segmentsState.isNotBlank() -> getString(R.string.all_routing_state, segmentsState); segmentsMissing -> getString(R.string.all_routing_missing); segmentsNewer -> getString(R.string.all_routing_newer); else -> getString(R.string.all_routing_ok) }
         val tt = when { timetableState.isNotBlank() -> getString(R.string.all_timetable_state, timetableState); !Timetable.isReady(this) -> getString(R.string.all_timetable_missing); timetableNewer -> getString(R.string.all_timetable_newer); else -> getString(R.string.all_timetable_ok) }
-        b.allInfo.text = "• $maps\n• $seg\n• $tt"
+        val pl = when { placesState.isNotBlank() -> getString(R.string.all_places_state, placesState); !PlacesPack.isReady(this) -> getString(R.string.all_places_missing); placesNewer -> getString(R.string.all_places_newer); else -> getString(R.string.all_places_ok) }
+        b.allInfo.text = "• $maps\n• $seg\n• $tt\n• $pl"
     }
 
     /** Refreshes every saved area, fetches the routing data and the timetable again: all of it, after one yes. */
@@ -289,8 +332,9 @@ class MenuActivity : AppCompatActivity() {
                 refreshAreas(quiet = true)
                 Segments.download(this, Segments.names)
                 Timetable.download(this)
+                PlacesPack.download(this)
                 Toast.makeText(this, R.string.downloading_wifi, Toast.LENGTH_LONG).show()
-                refreshSegments(); refreshTimetable(); refreshAreasInfo()
+                refreshSegments(); refreshTimetable(); refreshPlaces(); refreshAreasInfo()
             }
             .setNegativeButton(R.string.cancel, null).show()
     }

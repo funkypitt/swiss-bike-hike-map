@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<osm version="0.6" generator="hand">
+  <node id="1" lat="46.5200" lon="6.6300"><tag k="amenity" v="drinking_water"/></node>
+  <node id="2" lat="46.5210" lon="6.6310"><tag k="amenity" v="fountain"/><tag k="drinking_water" v="yes"/><tag k="name" v="Fontaine de la Palud"/></node>
+  <node id="3" lat="46.5220" lon="6.6320"><tag k="amenity" v="fountain"/><tag k="name" v="Fontaine sèche"/></node>
+  <node id="4" lat="46.5230" lon="6.6330"><tag k="amenity" v="restaurant"/><tag k="name" v="Café du Grütli"/><tag k="phone" v="+41 21 312 94 93"/><tag k="opening_hours" v="Mo-Sa 08:00-24:00"/><tag k="addr:city" v="Lausanne"/><tag k="addr:street" v="Rue de la Mercerie"/><tag k="addr:housenumber" v="4"/><tag k="cuisine" v="swiss"/></node>
+  <node id="5" lat="46.5240" lon="6.6340"><tag k="shop" v="bicycle"/><tag k="name" v="Vélo Shop"/><tag k="website" v="https://example.org"/></node>
+  <node id="6" lat="46.5250" lon="6.6350"><tag k="highway" v="crossing"/></node>
+  <node id="7" lat="44.0000" lon="6.6350"><tag k="amenity" v="toilets"/></node>
+  <node id="8" lat="46.7000" lon="7.9000"><tag k="tourism" v="alpine_hut"/><tag k="name" v="Berghütte Test"/><tag k="ele" v="2345"/><tag k="operator" v="SAC"/></node>
+  <node id="9" lat="46.5260" lon="6.6360"><tag k="amenity" v="toilets"/><tag k="fee" v="no"/></node>
+  <node id="10" lat="46.5270" lon="6.6370"><tag k="amenity" v="shelter"/><tag k="shelter_type" v="public_transport"/></node>
+  <node id="11" lat="46.5300" lon="6.6400"/>
+  <node id="12" lat="46.5300" lon="6.6420"/>
+  <node id="13" lat="46.5320" lon="6.6420"/>
+  <node id="14" lat="46.5320" lon="6.6400"/>
+  <way id="20"><nd ref="11"/><nd ref="12"/><nd ref="13"/><nd ref="14"/><nd ref="11"/><tag k="building" v="yes"/><tag k="shop" v="bakery"/><tag k="name" v="Boulangerie du Coin"/><tag k="opening_hours" v="Mo-Fr 06:00-18:00"/></way>
+</osm>

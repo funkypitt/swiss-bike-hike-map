@@ -143,7 +143,15 @@ class MapActivity : AppCompatActivity(), LocationListener {
         b.modeBadge.setBackgroundResource(when (mode) { Mode.BIKE -> R.drawable.badge_bike; Mode.WALK -> R.drawable.badge_walk; Mode.TRANSIT -> R.drawable.badge_transit })
         b.modeBadgeText.setTextColor(ContextCompat.getColor(this, if (mode == Mode.WALK) R.color.ink else R.color.paper))
         b.modeBadge.setOnClickListener { finish() }
-        b.btnFind.setOnClickListener { searchLauncher.launch(Intent(this, SearchActivity::class.java)) }
+        b.btnFind.setOnClickListener {
+            // "around you" in the search: the position when there is one, else the centre of the map
+            val i = Intent(this, SearchActivity::class.java)
+            val l = lastLocation; val c = map?.cameraPosition?.target
+            if (l != null) i.putExtra(SearchActivity.EXTRA_NEAR_LAT, l.latitude).putExtra(SearchActivity.EXTRA_NEAR_LON, l.longitude).putExtra(SearchActivity.EXTRA_NEAR_GPS, true)
+            else if (c != null) i.putExtra(SearchActivity.EXTRA_NEAR_LAT, c.latitude).putExtra(SearchActivity.EXTRA_NEAR_LON, c.longitude).putExtra(SearchActivity.EXTRA_NEAR_GPS, false)
+            if (c != null) i.putExtra(SearchActivity.EXTRA_CENTRE_LAT, c.latitude).putExtra(SearchActivity.EXTRA_CENTRE_LON, c.longitude)
+            searchLauncher.launch(i)
+        }
         b.btnMenu.setOnClickListener {
             map?.let { prefs.lastBounds = it.projection.visibleRegion.latLngBounds }
             menuLauncher.launch(Intent(this, MenuActivity::class.java))
@@ -182,17 +190,24 @@ class MapActivity : AppCompatActivity(), LocationListener {
                 } else addStop(Stop(p, Favourites.coordsName(p.latitude, p.longitude)))
                 true
             }
-            // a tap on a stop dot of the transit map: its departures, line by line
+            // a tap on a place dot pins it; on a stop dot of the transit map: its departures, line by line
             m.addOnMapClickListener { p ->
-                if (mode != Mode.TRANSIT) return@addOnMapClickListener false
                 val pt = m.projection.toScreenLocation(p)
                 val r = 28f * resources.displayMetrics.density
-                val f = m.queryRenderedFeatures(RectF(pt.x - r, pt.y - r, pt.x + r, pt.y + r), "pt-stops").firstOrNull() ?: return@addOnMapClickListener false
+                val box = RectF(pt.x - r, pt.y - r, pt.x + r, pt.y + r)
+                if (!nav && prefs.placesOnMap) m.queryRenderedFeatures(box, "places").firstOrNull()?.let { f ->
+                    val g = f.geometry() as? Point ?: return@let
+                    addStop(Stop(LatLng(g.latitude(), g.longitude()), f.getStringProperty("n") ?: "", Favourites.POI, f.getStringProperty("d") ?: ""))
+                    return@addOnMapClickListener true
+                }
+                if (mode != Mode.TRANSIT) return@addOnMapClickListener false
+                val f = m.queryRenderedFeatures(box, "pt-stops").firstOrNull() ?: return@addOnMapClickListener false
                 val g = f.geometry() as? Point ?: return@addOnMapClickListener false
                 val id = f.getProperty("station_id")?.asString ?: ""
                 showDepartures(Stop(LatLng(g.latitude(), g.longitude()), f.getStringProperty("name") ?: "", Favourites.STOP, id))
                 true
             }
+            m.addOnCameraIdleListener { refreshPlaces() }
             night = wantNight()
             loadStyle()
             handleIntent(intent)
@@ -275,7 +290,36 @@ class MapActivity : AppCompatActivity(), LocationListener {
                 trip?.let { drawTrip(it) }
                 journey?.let { drawJourney(it) }
                 RecordService.state.value.let { if (it.running) drawTrack(it.points) }
+                refreshPlaces()
             }
+        }
+    }
+
+    // ---------- places of the OpenStreetMap pack ----------
+
+    private var placesShown = false
+    private var placesJob: kotlinx.coroutines.Job? = null
+
+    /** Fills the places source with what the pack has in view (zoom 13 and closer), when the menu asked for the dots. */
+    private fun refreshPlaces() {
+        val m = map ?: return; val s = style ?: return
+        val want = prefs.placesOnMap && m.cameraPosition.zoom >= 13
+        if (want != placesShown) { placesShown = want; setVisible(MapStyle.placeLayers, want) }
+        if (!want) { if (placesJob != null) { placesJob?.cancel(); placesJob = null; s.getSourceAs<GeoJsonSource>(MapStyle.SRC_PLACES)?.setGeoJson(FeatureCollection.fromFeatures(emptyList())) }; return }
+        val pack = PlacesPack.open(this) ?: return
+        val bb = m.projection.visibleRegion.latLngBounds
+        placesJob?.cancel()
+        placesJob = lifecycleScope.launch {
+            val feats = withContext(Dispatchers.Default) {
+                pack.inBox(bb.latitudeSouth, bb.longitudeWest, bb.latitudeNorth, bb.longitudeEast, null, 600).map { p ->
+                    Feature.fromGeometry(Point.fromLngLat(p.at.longitude, p.at.latitude)).also { f ->
+                        f.addStringProperty("n", p.label(this@MapActivity))
+                        f.addStringProperty("c", Places.GROUP_COLOURS[p.cat.group])
+                        f.addStringProperty("d", (listOf(getString(p.cat.label)) + Places.describe(this@MapActivity, p)).joinToString(" · "))
+                    }
+                }
+            }
+            style?.getSourceAs<GeoJsonSource>(MapStyle.SRC_PLACES)?.setGeoJson(FeatureCollection.fromFeatures(feats))
         }
     }
 
@@ -906,7 +950,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
     override fun onStart() { super.onStart(); b.map.onStart() }
     override fun onResume() {
         super.onResume(); b.map.onResume(); startLocation()
-        if (map != null) checkNight(force = true)
+        if (map != null) { checkNight(force = true); refreshPlaces() }
         // back from the background during navigation: the map takes the course up again once it is laid out
         b.root.postDelayed({ if (nav && follow == 0 && map != null) setFollow(2) }, 700)
     }

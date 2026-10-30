@@ -46,6 +46,11 @@ class Prefs(ctx: Context) {
         get() = p.getString("pack_status", "") ?: ""
         set(v) = p.edit().putString("pack_status", v).apply()
 
+    /** The places of the pack drawn on the map as dots (off by default: no clutter). */
+    var placesOnMap: Boolean
+        get() = p.getBoolean("places_on_map", false)
+        set(v) = p.edit().putBoolean("places_on_map", v).apply()
+
     /** Night map: off, on or auto (after sunset). */
     var night: String
         get() = p.getString("night", Night.OFF) ?: Night.OFF
