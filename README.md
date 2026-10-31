@@ -78,7 +78,10 @@ The offline timetable pack is built by `tools/make-transit.py` from the official
 by the workflow `.github/workflows/transit-data.yml`, every Tuesday and on demand. The places
 pack is built by `tools/make-places.py` (pyosmium, `pip install osmium`) from the Geofabrik
 extract of Switzerland in under a minute and published on the rolling release `places-data` by
-`.github/workflows/places-data.yml`, every Wednesday and on demand.
+`.github/workflows/places-data.yml`, every Wednesday and on demand. GitHub stops scheduled
+workflows after 60 days without a commit: `tools/healthcheck.sh` (meant for a weekly cron on the
+maintainer's machine) checks that, the last runs, the age of the packs and every third party the
+app calls, and reports to a Telegram bot.
 
 ## Credits
 
