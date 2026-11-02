@@ -28,6 +28,7 @@
     <string name="off_track">Fora do trilho: %1$s</string>
     <string name="routing">A calcular a rota…</string>
     <string name="route_fail">Nenhuma rota encontrada</string>
+    <string name="fix_wait">A procurar a posição…</string>
     <string name="no_fix">Ainda sem posição GPS</string>
     <string name="no_fix_centre">Sem posição GPS: partida do centro do mapa</string>
     <string name="no_track_in_file">Nenhum trilho nesse ficheiro</string>

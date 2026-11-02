@@ -87,9 +87,9 @@ class MenuActivity : AppCompatActivity() {
 
     @SuppressLint("MissingPermission")
     private fun sharePosition() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return
+        if (!Fixes.any(this)) return
         val lm = getSystemService(LOCATION_SERVICE) as LocationManager
-        val loc = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER) ?: run { Toast.makeText(this, R.string.no_fix, Toast.LENGTH_SHORT).show(); return }
+        val loc = Fixes.lastKnown(this, lm) ?: run { Toast.makeText(this, R.string.no_fix, Toast.LENGTH_SHORT).show(); return }
         val lat = String.format(Locale.US, "%.5f", loc.latitude); val lon = String.format(Locale.US, "%.5f", loc.longitude)
         val name = getString(R.string.my_position)
         val text = "$name\n$lat, $lon\nhttps://www.openstreetmap.org/?mlat=$lat&mlon=$lon#map=16/$lat/$lon\ngeo:$lat,$lon?q=$lat,$lon(${Uri.encode(name)})"

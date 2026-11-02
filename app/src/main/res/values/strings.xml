@@ -31,6 +31,7 @@
     <string name="off_track">Off the track: %1$s</string>
     <string name="routing">Routing…</string>
     <string name="route_fail">No route found</string>
+    <string name="fix_wait">Looking for your position…</string>
     <string name="no_fix">No GPS fix yet</string>
     <string name="no_fix_centre">No GPS fix: route from the map centre</string>
     <string name="no_track_in_file">No track in that file</string>

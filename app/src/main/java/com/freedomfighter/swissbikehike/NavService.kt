@@ -181,7 +181,7 @@ class NavService : Service(), LocationListener {
         if (listening) lm.removeUpdates(this)
         lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, intervalMs, 0f, this)
         listening = true; listenInterval = intervalMs   // noted before the first fix is fed: the guidance calls listen() again
-        if (first) lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)?.let { onLocationChanged(it) }
+        if (first) Fixes.lastKnown(this, lm)?.let { onLocationChanged(it) }   // any provider: a start point before the satellites speak
     }
 
     /** The last fix, only if it is recent enough to mean something (a minute). */

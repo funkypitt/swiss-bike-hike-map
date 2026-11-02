@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.8.2 — 2026-11-02
+
+* The position dot appears indoors too. The map listened to the satellites only, which say
+  nothing inside a building (and forget the last fix after a reboot); it now also takes the
+  phone's own position (fused / network) until the satellites speak, then lets them rule.
+  « Looking for your position… » is shown until the first point; the share-position and the
+  navigation start use the freshest point of any provider too. Precise and approximate location
+  are asked together; approximate is enough for the dot. Location switched back on while the
+  map is open is heard again.
+
 ## 0.8.1 — 2026-10-30
 
 * A ◆ button between the mode badge and FIND turns the places on the map on and off (black

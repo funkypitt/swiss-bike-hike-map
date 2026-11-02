@@ -28,6 +28,7 @@
     <string name="off_track">Вне трека: %1$s</string>
     <string name="routing">Расчёт маршрута…</string>
     <string name="route_fail">Маршрут не найден</string>
+    <string name="fix_wait">Поиск позиции…</string>
     <string name="no_fix">Позиция GPS ещё не получена</string>
     <string name="no_fix_centre">Нет позиции GPS: старт из центра карты</string>
     <string name="no_track_in_file">В этом файле нет трека</string>

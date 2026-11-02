@@ -214,7 +214,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
             handleIntent(intent)
         }
 
-        val wanted = arrayListOf(Manifest.permission.ACCESS_FINE_LOCATION)
+        val wanted = arrayListOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
         if (Build.VERSION.SDK_INT >= 33) wanted.add(Manifest.permission.POST_NOTIFICATIONS)
         if (!hasLocation()) askPermissions.launch(wanted.toTypedArray())
 
@@ -374,15 +374,17 @@ class MapActivity : AppCompatActivity(), LocationListener {
 
     // ---------- location and camera ----------
 
-    private fun hasLocation() =
-        ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    /** Approximate location is enough to show a point; the satellites need the precise one. */
+    private fun hasLocation() = Fixes.any(this)
 
-    @SuppressLint("MissingPermission")
+    private var lastGpsAt = 0L
+    /** Satellites plus the phone's own position (fused / network), so a point shows indoors too. */
     private fun startLocation() {
         if (!hasLocation()) return
         val lm = getSystemService(LOCATION_SERVICE) as LocationManager
-        lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)?.let { onLocationChanged(it) }
-        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 0f, this)
+        if (lastLocation == null) Fixes.lastKnown(this, lm)?.let { onLocationChanged(it) }
+        Fixes.listen(this, lm, 1000L, this)
+        if (lastLocation == null && picking == null) status(getString(R.string.fix_wait))
     }
 
     @SuppressLint("MissingPermission")
@@ -422,9 +424,15 @@ class MapActivity : AppCompatActivity(), LocationListener {
     }
 
     override fun onLocationChanged(loc: Location) {
+        // The satellites rule: a rough fix (fused / network) only counts while they are silent.
+        if (Fixes.shadowed(loc, lastGpsAt)) return
+        if (Fixes.isGps(loc)) lastGpsAt = System.currentTimeMillis()
         // Some receivers give no course when slow or just started: take it from the last few metres.
-        prevFix?.let { p -> if (!loc.hasBearing() && p.distanceTo(loc) >= 3f) loc.bearing = p.bearingTo(loc).let { if (it < 0) it + 360f else it } }
-        if (prevFix == null || prevFix!!.distanceTo(loc) >= 3f) prevFix = loc
+        if (Fixes.precise(loc)) {
+            prevFix?.let { p -> if (!loc.hasBearing() && p.distanceTo(loc) >= 3f) loc.bearing = p.bearingTo(loc).let { if (it < 0) it + 360f else it } }
+            if (prevFix == null || prevFix!!.distanceTo(loc) >= 3f) prevFix = loc
+        }
+        if (lastLocation == null && b.status.text == getString(R.string.fix_wait)) status(null)
         lastLocation = loc
         map?.locationComponent?.let { if (it.isLocationComponentActivated) it.forceLocationUpdate(loc) }
         val kmh = if (loc.hasSpeed()) loc.speed * 3.6 else 0.0
@@ -437,7 +445,11 @@ class MapActivity : AppCompatActivity(), LocationListener {
     }
 
     @Deprecated("Deprecated in Java") override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
-    override fun onProviderEnabled(provider: String) {}
+    /** Location switched back on while the map is open: listen again, the old registration may stay silent. */
+    override fun onProviderEnabled(provider: String) {
+        (getSystemService(LOCATION_SERVICE) as LocationManager).removeUpdates(this)
+        startLocation()
+    }
     override fun onProviderDisabled(provider: String) {}
 
     /**
@@ -832,7 +844,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
     // ---------- navigation (done by NavService; this screen shows it) ----------
 
     private fun startNav() {
-        if (!hasLocation()) { askPermissions.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)); return }
+        if (!hasLocation()) { askPermissions.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)); return }
         journey?.let { NavService.startTransit(this, it); return }
         val t = trip ?: return
         NavService.start(this, t, mode)
@@ -960,7 +972,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
     private fun toggleRecording() {
         if (RecordService.state.value.running) RecordService.stop(this)
         else {
-            if (!hasLocation()) { askPermissions.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)); return }
+            if (!hasLocation()) { askPermissions.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)); return }
             RecordService.start(this, mode)
         }
     }
