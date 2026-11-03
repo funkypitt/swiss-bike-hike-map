@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.1 — 2026-11-03
+
+* Stopped in navigation, the map no longer spins round: standing still, the course the GPS
+  gives and the few metres the position wanders point anywhere. Below riding pace (6.5 km/h on
+  the bike, 3 km/h on foot) the last course taken while moving is kept.
+* The route to follow is much thicker and stands out more: magenta over a dark edge and a white
+  casing, wider as the map zooms in (17 px at street level instead of 6).
+
 ## 0.9.0 — 2026-11-03
 
 * Navigation: the arrow sits low on the screen again, three quarters of the way down the map

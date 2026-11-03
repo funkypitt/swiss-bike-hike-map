@@ -177,8 +177,11 @@ object MapStyle {
                 .put("text-offset", JSONArray().put(0).put(1.1)).put("text-max-width", 9).put("text-optional", true))
             .put("paint", JSONObject().put("text-color", "#000000").put("text-halo-color", "#FFFFFF").put("text-halo-width", 1.8)))
         merged.put(line("track-line", SRC_TRACK, "#000000", 3.0, JSONArray().put(1).put(2)))
-        merged.put(line("route-casing", SRC_ROUTE, "#FFFFFF", 10.0, null))
-        merged.put(line("route-line", SRC_ROUTE, MAGENTA, 6.0, null))
+        // The route to follow: thick, and thicker as one zooms in (the navigation view sits at zoom 16–17),
+        // magenta over a dark edge and a white casing so it stands out on every background.
+        merged.put(line("route-casing", SRC_ROUTE, "#FFFFFF", 0.0, null).also { it.getJSONObject("paint").put("line-width", byZoom(10.0, 18.0, 30.0)) })
+        merged.put(line("route-edge", SRC_ROUTE, "#5A0032", 0.0, null).also { it.getJSONObject("paint").put("line-width", byZoom(7.0, 13.0, 22.0)) })
+        merged.put(line("route-line", SRC_ROUTE, MAGENTA, 0.0, null).also { it.getJSONObject("paint").put("line-width", byZoom(5.0, 10.0, 17.0)) })
         // A public-transport journey: the rides in their colour over a white casing, the walks dotted.
         merged.put(line("journey-casing", SRC_JOURNEY, "#FFFFFF", 10.0, null))
         merged.put(line("journey-ride", SRC_JOURNEY, JSONArray().put("get").put("c"), 6.0, null)
@@ -236,6 +239,10 @@ object MapStyle {
             .put("layout", JSONObject().put("line-cap", if (dash == null) "round" else "butt").put("line-join", "round").put("visibility", "none"))
             .put("paint", paint)
     }
+
+    /** A width growing with the zoom: at 10, 14 and 18. */
+    private fun byZoom(z10: Double, z14: Double, z18: Double) = JSONArray().put("interpolate").put(JSONArray().put("linear")).put(JSONArray().put("zoom"))
+        .put(10).put(z10).put(14).put(z14).put(18).put(z18)
 
     private fun line(id: String, src: String, color: Any, width: Double, dash: JSONArray?): JSONObject {
         val paint = JSONObject().put("line-color", color).put("line-width", width)

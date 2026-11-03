@@ -433,15 +433,30 @@ class MapActivity : AppCompatActivity(), LocationListener {
         lc.renderMode = if (nav) RenderMode.GPS else RenderMode.COMPASS
     }
 
+    /** The last course taken while really moving (null = none yet). */
+    private var heldBearing: Float? = null
+
     override fun onLocationChanged(loc: Location) {
         // The satellites rule: a rough fix (fused / network) only counts while they are silent.
         if (Fixes.shadowed(loc, lastGpsAt)) return
         if (Fixes.isGps(loc)) lastGpsAt = System.currentTimeMillis()
-        // Some receivers give no course when slow or just started: take it from the last few metres.
-        if (Fixes.precise(loc)) {
-            prevFix?.let { p -> if (!loc.hasBearing() && p.distanceTo(loc) >= 3f) loc.bearing = p.bearingTo(loc).let { if (it < 0) it + 360f else it } }
-            if (prevFix == null || prevFix!!.distanceTo(loc) >= 3f) prevFix = loc
+        // The course only means something while moving: standing still, the receiver's course and the
+        // few metres the position wanders point anywhere, and the heading-up map spun round. Below
+        // walking/riding pace the last good course is kept.
+        val minSpeed = if (mode == Mode.BIKE) 1.8f else 0.8f
+        // without a speed from the receiver: the pace over the last metres
+        val speed = if (loc.hasSpeed()) loc.speed else prevFix?.let { p ->
+            val dt = (loc.time - p.time) / 1000f
+            if (dt in 0.5f..30f) p.distanceTo(loc) / dt else 0f
+        } ?: 0f
+        val moving = speed >= minSpeed && (!loc.hasAccuracy() || loc.accuracy <= 30f)
+        if (moving && loc.hasBearing()) heldBearing = loc.bearing
+        else if (moving && Fixes.precise(loc)) {
+            // some receivers give no course when slow or just started: take it from the last metres
+            prevFix?.let { p -> if (p.distanceTo(loc) >= 5f) heldBearing = p.bearingTo(loc).let { if (it < 0) it + 360f else it } }
         }
+        if (Fixes.precise(loc) && (prevFix == null || prevFix!!.distanceTo(loc) >= 5f)) prevFix = loc
+        heldBearing?.let { loc.bearing = it } ?: loc.removeBearing()
         if (lastLocation == null && b.status.text == getString(R.string.fix_wait)) status(null)
         lastLocation = loc
         map?.locationComponent?.let { if (it.isLocationComponentActivated) it.forceLocationUpdate(loc) }
