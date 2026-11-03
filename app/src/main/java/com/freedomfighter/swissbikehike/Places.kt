@@ -45,13 +45,20 @@ class Places private constructor(private val b: ByteBuffer) {
         BAKERY("bakery", R.string.cat_bakery, FOOD_G, "●"),
         GROCERY("grocery", R.string.cat_grocery, FOOD_G, "●"),
         RESTAURANT("restaurant", R.string.cat_restaurant, FOOD_G, "●"),
+        CAFE("cafe", R.string.cat_cafe, FOOD_G, "●"),
+        BAR("bar", R.string.cat_bar, FOOD_G, "●"),
+        FAST_FOOD("fast_food", R.string.cat_fast_food, FOOD_G, "●"),
         CAMPING("camping", R.string.cat_camping, SLEEP_G, "▲"),
         LODGING("lodging", R.string.cat_lodging, SLEEP_G, "■"),
         PHARMACY("pharmacy", R.string.cat_pharmacy, SERVICE_G, "✚"),
         HOSPITAL("hospital", R.string.cat_hospital, SERVICE_G, "✚"),
         INFO("info", R.string.cat_info, SERVICE_G, "i"),
         SIGHT("sight", R.string.cat_sight, SERVICE_G, "★"),
-        ATM("atm", R.string.cat_atm, SERVICE_G, "$");
+        ATM("atm", R.string.cat_atm, SERVICE_G, "$"),
+        BANK("bank", R.string.cat_bank, SERVICE_G, "$"),
+        POST("post", R.string.cat_post, SERVICE_G, "✉"),
+        HAIRDRESSER("hairdresser", R.string.cat_hairdresser, SHOP_G, "✂"),
+        SHOP("shop", R.string.cat_shop, SHOP_G, "■");
 
         companion object { fun of(key: String): Cat? = entries.firstOrNull { it.key == key } }
     }
@@ -60,9 +67,9 @@ class Places private constructor(private val b: ByteBuffer) {
         private const val MAGIC = 0x50484253 // "SBHP" little-endian
         private const val CELL = 0.02
         private const val LAT0 = 45.0; private const val LON0 = 5.0
-        const val WATER_G = 0; const val REST_G = 1; const val BIKE_G = 2; const val FOOD_G = 3; const val SLEEP_G = 4; const val SERVICE_G = 5
+        const val WATER_G = 0; const val REST_G = 1; const val BIKE_G = 2; const val FOOD_G = 3; const val SLEEP_G = 4; const val SERVICE_G = 5; const val SHOP_G = 6
         /** One colour per group, for the dots on the map. */
-        val GROUP_COLOURS = arrayOf("#1E6FD9", "#4F8A1F", "#D4380D", "#D98E00", "#7A3E9D", "#444444")
+        val GROUP_COLOURS = arrayOf("#1E6FD9", "#4F8A1F", "#D4380D", "#D98E00", "#7A3E9D", "#444444", "#C2185B")
 
         fun open(f: File): Places {
             val ch = RandomAccessFile(f, "r").channel
@@ -76,6 +83,45 @@ class Places private constructor(private val b: ByteBuffer) {
         fun distance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double =
             hypot((lat2 - lat1) * 110_540.0, (lon2 - lon1) * 111_320.0 * cos(Math.toRadians(lat1)))
 
+        /** The commonest kinds of the shops that have no category of ours, named in the phone's language. */
+        val SHOP_KINDS: Map<String, Int> = mapOf(
+            "clothes" to R.string.shop_clothes,
+            "car_repair" to R.string.shop_car_repair,
+            "car" to R.string.shop_car,
+            "florist" to R.string.shop_florist,
+            "jewelry" to R.string.shop_jewelry,
+            "kiosk" to R.string.shop_kiosk,
+            "optician" to R.string.shop_optician,
+            "shoes" to R.string.shop_shoes,
+            "furniture" to R.string.shop_furniture,
+            "electronics" to R.string.shop_electronics,
+            "gift" to R.string.shop_gift,
+            "interior_decoration" to R.string.shop_interior_decoration,
+            "travel_agency" to R.string.shop_travel_agency,
+            "second_hand" to R.string.shop_second_hand,
+            "books" to R.string.shop_books,
+            "massage" to R.string.shop_massage,
+            "wine" to R.string.shop_wine,
+            "chemist" to R.string.shop_chemist,
+            "newsagent" to R.string.shop_newsagent,
+            "mall" to R.string.shop_mall,
+            "mobile_phone" to R.string.shop_mobile_phone,
+            "doityourself" to R.string.shop_doityourself,
+            "pet" to R.string.shop_pet,
+            "alcohol" to R.string.shop_alcohol,
+            "cosmetics" to R.string.shop_cosmetics,
+            "stationery" to R.string.shop_stationery,
+            "toys" to R.string.shop_toys,
+            "hardware" to R.string.shop_hardware)
+
+        /** What a shop of no category of ours sells, in words (« Books »); the OpenStreetMap value when unnamed here. */
+        fun shopKind(ctx: Context, kind: String): String =
+            SHOP_KINDS[kind]?.let { ctx.getString(it) } ?: kind.replace('_', ' ').replaceFirstChar { it.titlecase() }
+
+        /** The category as a person reads it; for such a shop, what it sells instead (« Books »). */
+        fun categoryText(ctx: Context, p: Place): String =
+            p.extras["shop"]?.let { shopKind(ctx, it) } ?: ctx.getString(p.cat.label)
+
         /** The extra tags as lines a person reads: hours, phone, website, address, altitude… */
         fun describe(ctx: Context, p: Place): List<String> {
             val x = p.extras
@@ -87,7 +133,7 @@ class Places private constructor(private val b: ByteBuffer) {
             x["cap"]?.let { out.add(ctx.getString(R.string.place_capacity, it)) }
             if (x["fee"] == "yes") out.add(ctx.getString(R.string.place_fee))
             x["op"]?.let { out.add(it) }
-            listOfNotNull(x["addr"], x["city"]).filter { it.isNotBlank() }.joinToString(", ").takeIf { it.isNotBlank() }?.let { out.add(it) }
+            listOfNotNull(x["addr"], listOfNotNull(x["pc"], x["city"]).joinToString(" ")).filter { it.isNotBlank() }.joinToString(", ").takeIf { it.isNotBlank() }?.let { out.add(it) }
             x["tel"]?.let { out.add(it) }
             x["web"]?.let { out.add(it.removePrefix("https://").removePrefix("http://").removeSuffix("/")) }
             return out
@@ -191,6 +237,19 @@ class Places private constructor(private val b: ByteBuffer) {
         }
         out.sortBy { it.metres }
         return out
+    }
+
+    /**
+     * The places around a point whose cuisine or kind of shop holds the word (« pizza », « sushi »,
+     * « books »…, or one of `kinds` of shop), nearest first, within `radiusM`.
+     */
+    fun nearbyTagged(lat: Double, lon: Double, word: String, kinds: Set<String> = emptySet(), radiusM: Double = 5000.0, limit: Int = 15): List<Found> {
+        val w = Transit.fold(word)
+        if (w.length < 3) return emptyList()
+        return within(lat, lon, radiusM, null).filter { f ->
+            val x = f.place.extras
+            x["shop"] in kinds || listOfNotNull(x["cuisine"], x["shop"]).any { Transit.fold(it.replace('_', ' ')).contains(w) }
+        }.take(limit)
     }
 
     /** Folds every name once (a second or two for the country), so the first search answers at once. */

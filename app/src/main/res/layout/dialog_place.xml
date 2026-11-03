@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A place's card: what is known about it, then what can be done with it. Filled by PlaceCard. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@color/paper">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:paddingStart="20dp" android:paddingEnd="20dp" android:paddingTop="18dp" android:paddingBottom="4dp">
+        <TextView android:id="@+id/pTitle" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textSize="22sp" android:textStyle="bold" android:textColor="@color/ink"/>
+        <TextView android:id="@+id/pCategory" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textSize="15sp" android:textColor="@color/grey" android:layout_marginTop="2dp"/>
+        <TextView android:id="@+id/pStatus" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textSize="18sp" android:textStyle="bold" android:layout_marginTop="10dp"/>
+        <TextView android:id="@+id/pHours" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textSize="15sp" android:textColor="@color/ink" android:fontFamily="monospace" android:layout_marginTop="4dp"
+            android:lineSpacingExtra="2dp"/>
+        <TextView android:id="@+id/pLines" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textSize="17sp" android:textColor="@color/ink" android:layout_marginTop="10dp" android:lineSpacingExtra="4dp"
+            android:textIsSelectable="true"/>
+        <TextView android:id="@+id/pWhere" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textSize="14sp" android:textColor="@color/grey" android:layout_marginTop="8dp" android:textIsSelectable="true"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal"
+            android:baselineAligned="false" android:layout_marginTop="14dp">
+            <TextView android:id="@+id/pCall" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="52dp" android:minHeight="52dp" android:autoSizeMaxTextSize="15sp" android:text="@string/place_call"/>
+            <TextView android:id="@+id/pContact" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="52dp" android:minHeight="52dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="15sp" android:text="@string/place_contact"/>
+            <TextView android:id="@+id/pCopy" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="52dp" android:minHeight="52dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="15sp" android:text="@string/place_copy"/>
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal"
+            android:baselineAligned="false" android:layout_marginTop="6dp">
+            <TextView android:id="@+id/pWeb" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="52dp" android:minHeight="52dp" android:autoSizeMaxTextSize="15sp" android:text="@string/place_web"/>
+            <TextView android:id="@+id/pShare" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="52dp" android:minHeight="52dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="15sp" android:text="@string/share"/>
+            <TextView android:id="@+id/pDirectory" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="52dp" android:minHeight="52dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="15sp" android:text="@string/place_directory"/>
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

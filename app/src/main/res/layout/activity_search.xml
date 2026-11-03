@@ -19,6 +19,8 @@
         android:singleLine="true"/>
     <TextView android:id="@+id/credit" android:layout_width="match_parent" android:layout_height="wrap_content"
         android:textSize="12sp" android:textColor="@color/grey" android:paddingTop="6dp" android:visibility="gone"/>
+    <TextView android:id="@+id/btnShowAll" style="@style/Btn" android:layout_width="match_parent" android:layout_height="48dp"
+        android:minHeight="48dp" android:layout_marginTop="8dp" android:autoSizeMaxTextSize="15sp" android:visibility="gone"/>
     <LinearLayout android:id="@+id/favRow" android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="horizontal" android:baselineAligned="false" android:layout_marginTop="8dp" android:visibility="gone">
         <TextView android:id="@+id/btnImport" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"

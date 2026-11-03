@@ -34,9 +34,11 @@ the app was called Swiss Bike-Hike Map; the package name has not changed.)
   platforms), to share as text, keep in the app, show on the map, or follow at once with GO.
   On the transit map a tap on any stop dot lists its lines with their next departure.
 * **GPX**: follow a track as it is (turns read off its shape), or record your own.
-* **FIND**: what is around you by category, offline (drinking water, shelters, huts, picnic and
-  fire places, bike shops and repair stations, bakeries, farm shops, restaurants, campsites…
-  from OpenStreetMap, a 3 MB pack), places and addresses (GeoAdmin), typed coordinates (WGS84,
+* **FIND**: what is around you by category or by word, offline (drinking water, shelters, huts,
+  picnic and fire places, bike shops and repair stations, bakeries, cafés, restaurants, bars,
+  shops, post offices, campsites… from OpenStreetMap, a 5 MB pack), shown as a list or as numbered
+  dots on the map; a tap opens the place's card: open or closed now, the week's hours, address,
+  phone (CALL), website, and CONTACT (adds it to your contacts), COPY, SHARE; places and addresses (GeoAdmin), typed coordinates (WGS84,
   LV95, LV03), people and firms from the search.ch directory with your own free key, which also
   completes a place with its phone and address; public-transport stops, and your favourites,
   which you can import and export (GPX, KML, GeoJSON, CSV). The places can be drawn on the map

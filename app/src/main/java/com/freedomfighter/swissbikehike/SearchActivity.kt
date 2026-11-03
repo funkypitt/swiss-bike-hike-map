@@ -48,10 +48,17 @@ class SearchActivity : AppCompatActivity() {
         const val EXTRA_NEAR_LAT = "near_lat"; const val EXTRA_NEAR_LON = "near_lon"; const val EXTRA_NEAR_GPS = "near_gps"
         const val EXTRA_CENTRE_LAT = "centre_lat"; const val EXTRA_CENTRE_LON = "centre_lon"
         private const val NEARBY_M = 2000.0
+        /** Set with RESULT_OK when the list is to be shown on the map: the places are in `results`. */
+        const val EXTRA_RESULTS = "results"
+        /** A place of a result list drawn on the map; `placeIndex` = its index in the places pack. */
+        class Result(val label: String, val at: LatLng, val placeIndex: Int, val detail: String)
+        /** The list handed to the map by SHOW ON THE MAP (kept in memory: an Intent is too small for it). */
+        var results: List<Result>? = null
+        var resultsTitle: String = ""
     }
     private enum class Tab { PLACES, PEOPLE, STOPS, FAVS }
     private class Hit(val label: String, val lat: Double, val lon: Double, val kind: String = Favourites.PLACE, var detail: String = "",
-                      val place: Place? = null, val metres: Double = -1.0, var extraLine: String = "")
+                      val place: Place? = null, val metres: Double = -1.0, var extraLine: String = "", var dir: Directory.Hit? = null)
 
     private lateinit var b: ActivitySearchBinding
     private val hits = ArrayList<Hit>()
@@ -118,6 +125,7 @@ class SearchActivity : AppCompatActivity() {
         b.btnFavs.setOnClickListener { setTab(Tab.FAVS) }
         b.btnImport.setOnClickListener { pickFile.launch(arrayOf("*/*")) }
         b.btnExport.setOnClickListener { exportFavs() }
+        b.btnShowAll.setOnClickListener { showAllOnMap() }
         b.query.doAfterTextChanged { text ->
             val q = text?.toString()?.trim() ?: ""
             when (tab) {
@@ -162,7 +170,24 @@ class SearchActivity : AppCompatActivity() {
         b.query.requestFocus()
     }
 
-    private fun clear() { hits.clear(); dirHits.clear(); adapter.clear() }
+    private fun clear() { hits.clear(); dirHits.clear(); adapter.clear(); updateShowAll() }
+
+    /** SHOW ON THE MAP (N) under the field, when a list holds several places of the pack. */
+    private fun updateShowAll() {
+        val n = if (tab == Tab.PLACES) hits.count { it.place != null } else 0
+        b.btnShowAll.visibility = if (n >= 2) View.VISIBLE else View.GONE
+        if (n >= 2) b.btnShowAll.text = getString(R.string.results_show, n)
+    }
+
+    /** Back to the map with every place of the list drawn there: a tap on one opens its card. */
+    private fun showAllOnMap() {
+        val list = hits.filter { it.place != null }
+        if (list.isEmpty()) return
+        results = list.map { h -> Result(h.label, LatLng(h.lat, h.lon), h.place!!.index, h.detail) }
+        resultsTitle = category?.let { getString(it.label) } ?: (b.query.text?.toString()?.trim() ?: "")
+        setResult(Activity.RESULT_OK, Intent().putExtra(EXTRA_RESULTS, true))
+        finish()
+    }
 
     private fun setTab(t: Tab) {
         tab = t
@@ -206,7 +231,7 @@ class SearchActivity : AppCompatActivity() {
 
     /** The list of categories (query empty): one tap lists what is around. */
     private fun showCategories() {
-        hits.clear(); dirHits.clear(); adapter.clear()
+        hits.clear(); dirHits.clear(); adapter.clear(); updateShowAll()
         b.credit.text = placesCredit()
         if (!PlacesPack.isReady(this)) { adapter.add(getString(R.string.places_pack_missing)); return }
         adapter.addAll(categories.map { c -> c.glyph + "  " + getString(c.label) })
@@ -223,6 +248,7 @@ class SearchActivity : AppCompatActivity() {
             hits.clear(); hits.addAll(found.map { hitOf(it) })
             adapter.clear(); adapter.add(getString(R.string.back_categories))
             adapter.addAll(hits.map { row(it) })
+            updateShowAll()
             b.credit.text = PlacesPack.CREDIT + " · " + getString(if (nearIsGps) R.string.around_you else R.string.around_map) + " · " + getString(R.string.place_directory_more)
         }
     }
@@ -238,7 +264,7 @@ class SearchActivity : AppCompatActivity() {
     private fun hitOf(f: Places.Found): Hit {
         val p = f.place
         val lines = Places.describe(this, p)
-        val detail = (listOf(getString(p.cat.label)) + lines).joinToString(" · ")
+        val detail = (listOf(Places.categoryText(this, p)) + lines).joinToString(" · ")
         return Hit(p.label(this), p.at.latitude, p.at.longitude, Favourites.POI, detail, p, f.metres)
     }
 
@@ -246,8 +272,11 @@ class SearchActivity : AppCompatActivity() {
     private fun row(h: Hit): String {
         val p = h.place ?: return h.label
         val head = p.cat.glyph + "  " + h.label + (if (h.metres >= 0) "   " + Fmt.dist(h.metres) else "")
-        val lines = (if (h.label == getString(p.cat.label)) emptyList() else listOf(getString(p.cat.label))) + Places.describe(this, p).take(2) +
-            (if (h.extraLine.isNotBlank()) listOf(h.extraLine) else emptyList())
+        // open or closed now, when the hours can be read; else the hours as written
+        val status = PlaceCard.statusLine(this, p.extras["oh"])
+        val desc = Places.describe(this, p).filter { status == null || it != p.extras["oh"] }
+        val lines = (if (h.label == getString(p.cat.label)) emptyList() else listOf(Places.categoryText(this, p))) + listOfNotNull(status) +
+            desc.take(if (status != null) 1 else 2) + (if (h.extraLine.isNotBlank()) listOf(h.extraLine) else emptyList())
         return if (lines.isEmpty()) head else head + "\n" + lines.joinToString(" · ")
     }
 
@@ -258,12 +287,12 @@ class SearchActivity : AppCompatActivity() {
         val q = b.query.text?.toString()?.trim() ?: ""
         if (category != null) {
             if (pos == 0) { category = null; showCategories(); return }
-            rowHit(pos)?.let { finishWith(it) }; return
+            rowHit(pos)?.let { if (it.place != null) showPlace(it) else finishWith(it) }; return
         }
         if (q.length < 2 && PlacesPack.isReady(this)) { categories.getOrNull(pos)?.let { showNearby(it) }; return }
         // the directory's own rows follow the hits: a tap on one places it through GeoAdmin
-        if (pos >= hits.size) dirHits.getOrNull(pos - hits.size)?.let { pick(it) }
-        else hits.getOrNull(pos)?.let { finishWith(it) }
+        if (pos >= hits.size) dirHits.getOrNull(pos - hits.size)?.let { showDirectory(it) }
+        else hits.getOrNull(pos)?.let { if (it.place != null) showPlace(it) else finishWith(it) }
     }
 
     /**
@@ -273,60 +302,46 @@ class SearchActivity : AppCompatActivity() {
     private suspend fun searchAll(q: String) {
         val pack = PlacesPack.open(this)
         val fq = Transit.fold(q)
-        val catHits = ArrayList<Hit>(); val nameHits = ArrayList<Hit>()
+        val catHits = ArrayList<Hit>(); val nameHits = ArrayList<Hit>(); val tagHits = ArrayList<Hit>()
         adapter.clear(); adapter.add("…")
         val cats = categories.filter { c -> val l = Transit.fold(getString(c.label)); l.contains(fq) || (fq.length >= 4 && l.split(Regex("[ ,]+")).any { it.startsWith(fq) }) }.toSet()
         // GeoAdmin is asked while the pack is searched
         val geoJob = lifecycleScope.async { runCatching { searchPlaces(q, limit = if (cats.isEmpty()) 20 else 8) } }
         if (pack != null) withContext(Dispatchers.Default) {
             if (cats.isNotEmpty()) catHits.addAll(nearbyOf(pack, cats, 12).map { hitOf(it) })
+            // a cuisine or a kind of shop around (« pizza », « sushi », « books »)
+            val kinds = Places.SHOP_KINDS.filter { (_, res) -> Transit.fold(getString(res)).let { it.contains(fq) || (fq.length >= 4 && it.split(' ').any { w -> w.startsWith(fq) }) } }.keys
+            tagHits.addAll(pack.nearbyTagged(near.latitude, near.longitude, q, kinds).map { hitOf(it) }.filter { t -> catHits.none { it.place?.index == t.place?.index } })
             nameHits.addAll(pack.search(q, near.latitude, near.longitude, 15).map { hitOf(it) })
         }
         val geo = geoJob.await()
-        val found = catHits + geo.getOrDefault(emptyList()) + nameHits.filter { n -> catHits.none { it.place?.index == n.place?.index } }
+        val around = catHits + tagHits
+        val found = around + geo.getOrDefault(emptyList()) + nameHits.filter { n -> around.none { it.place?.index == n.place?.index } }
         hits.clear(); hits.addAll(found); dirHits.clear()
         adapter.clear(); adapter.addAll(found.map { row(it) })
+        updateShowAll()
         if (geo.isFailure && found.isEmpty()) adapter.add(getString(R.string.search_no_answer))
     }
 
-    /** The details of a place of the pack, with what can be done: pin it, call, open its site, or ask the directory. */
+    /** The card of a place of the pack (hours, phone, address…): PIN puts it on the map. */
     private fun showPlace(h: Hit) {
         val p = h.place ?: return
-        val lines = (if (p.name.isBlank()) emptyList() else listOf(getString(p.cat.label))) + Places.describe(this, p) +
-            (if (h.extraLine.isNotBlank()) listOf(h.extraLine) else emptyList()) + listOf(Favourites.coordsName(p.at.latitude, p.at.longitude))
-        val tel = p.extras["tel"]; val web = p.extras["web"]
-        val d = AlertDialog.Builder(this).setTitle(h.label).setMessage(lines.joinToString("\n"))
-            .setPositiveButton(R.string.place_pin) { _, _ -> finishWith(h) }
-        when {
-            tel != null -> d.setNeutralButton(R.string.place_call) { _, _ -> dial(tel) }
-            Directory.enabled(this) -> d.setNeutralButton(R.string.place_directory) { _, _ -> completeFromDirectory(h) }
+        val info = PlaceInfo.of(this, p)
+        h.dir?.let { e ->
+            if (info.phone.isNullOrBlank()) info.phone = e.phone.ifBlank { null }
+            if (info.street.isBlank()) { info.street = e.street; info.zip = e.zip; info.city = e.city.ifBlank { info.city } }
         }
-        if (web != null) d.setNegativeButton(R.string.place_web) { _, _ -> runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(if (web.startsWith("http")) web else "https://$web"))) } }
-        else d.setNegativeButton(R.string.cancel, null)
-        d.show()
+        PlaceCard.show(this, info, if (nearIsGps) near else null, R.string.place_pin to { finishWith(h) })
     }
 
-    private fun dial(tel: String) { runCatching { startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + tel.replace(" ", "")))) } }
-
-    /** Asks search.ch for this place (name and town): the entries found, each one a call away; the first phone goes into the row. */
-    private fun completeFromDirectory(h: Hit) {
-        val p = h.place ?: return
-        if (p.name.isBlank()) return
-        lifecycleScope.launch {
-            val found = withContext(Dispatchers.IO) { runCatching { Directory.search(this@SearchActivity, p.name, p.extras["city"] ?: "") } }
-            found.onFailure { e -> Toast.makeText(this@SearchActivity, (e.message ?: "no answer").take(120), Toast.LENGTH_LONG).show() }
-            found.onSuccess { list ->
-                if (list.isEmpty()) { Toast.makeText(this@SearchActivity, R.string.place_directory_none, Toast.LENGTH_LONG).show(); return@onSuccess }
-                list.firstOrNull { it.phone.isNotBlank() }?.let { enrich(h, it) }
-                AlertDialog.Builder(this@SearchActivity).setTitle(Directory.CREDIT)
-                    .setItems(list.map { e -> listOf(e.name, e.address, e.phone).filter { it.isNotBlank() }.joinToString("\n") }.toTypedArray()) { _, i -> list[i].phone.takeIf { it.isNotBlank() }?.let { dial(it) } }
-                    .setPositiveButton(R.string.place_pin) { _, _ -> finishWith(h) }.show()
-            }
-        }
+    /** The card of a directory entry (person or business): ON THE MAP places it through GeoAdmin. */
+    private fun showDirectory(e: Directory.Hit) {
+        PlaceCard.show(this, PlaceInfo.of(e), null, R.string.place_on_map to { pick(e) })
     }
 
     /** Adds the directory's phone and address to a hit of the pack, and refreshes its row. */
     private fun enrich(h: Hit, e: Directory.Hit) {
+        h.dir = e
         h.extraLine = listOf(e.phone, e.address).filter { it.isNotBlank() }.joinToString(" · ")
         if (h.extraLine.isNotBlank() && !h.detail.contains(e.phone)) h.detail = h.detail + " · " + h.extraLine
         val pos = hits.indexOf(h); if (pos < 0) return
@@ -368,7 +383,7 @@ class SearchActivity : AppCompatActivity() {
     private fun onRow(pos: Int) {
         when (tab) {
             Tab.PLACES -> pickPlaceRow(pos)
-            Tab.PEOPLE -> dirHits.getOrNull(pos)?.let { pick(it) }
+            Tab.PEOPLE -> dirHits.getOrNull(pos)?.let { showDirectory(it) }
             Tab.STOPS -> hits.getOrNull(pos)?.let { finishWith(it) }
             Tab.FAVS -> favs.getOrNull(pos)?.let { finishWith(Hit(it.name, it.lat, it.lon, it.kind, it.detail)) }
         }

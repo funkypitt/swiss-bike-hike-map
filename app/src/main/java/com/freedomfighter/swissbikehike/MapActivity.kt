@@ -80,6 +80,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
     }
     private val searchLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
         if (r.resultCode == Activity.RESULT_OK) r.data?.let { d ->
+            if (d.getBooleanExtra(SearchActivity.EXTRA_RESULTS, false)) { showResults(); return@let }
             val p = LatLng(d.getDoubleExtra(SearchActivity.EXTRA_LAT, 0.0), d.getDoubleExtra(SearchActivity.EXTRA_LON, 0.0))
             addStop(Stop(p, d.getStringExtra(SearchActivity.EXTRA_LABEL) ?: Favourites.coordsName(p.latitude, p.longitude),
                 d.getStringExtra(SearchActivity.EXTRA_KIND) ?: Favourites.PLACE, d.getStringExtra(SearchActivity.EXTRA_DETAIL) ?: ""))
@@ -165,7 +166,8 @@ class MapActivity : AppCompatActivity(), LocationListener {
         b.btnNav.setOnClickListener { startNav() }
         b.btnRec.setOnClickListener { toggleRecording() }
         b.btnSave.setOnClickListener { toggleFavourite() }
-        b.pinLabel.setOnClickListener { stops.lastOrNull()?.let { share(it.name, it.at) } }
+        b.pinLabel.setOnClickListener { stops.lastOrNull()?.let { s -> if (!showPlaceAt(s.at, s.name, pin = false)) share(s.name, s.at) } }
+        b.btnResultsClose.setOnClickListener { clearResults() }
         b.btnDrop.setOnClickListener { if (trip?.fromGpx == true) clearTrip() else dropLastStop() }
         b.btnDepartures.setOnClickListener { stops.lastOrNull()?.let { showDepartures(it) } }
 
@@ -196,8 +198,15 @@ class MapActivity : AppCompatActivity(), LocationListener {
                 val pt = m.projection.toScreenLocation(p)
                 val r = 28f * resources.displayMetrics.density
                 val box = RectF(pt.x - r, pt.y - r, pt.x + r, pt.y + r)
-                if (!nav && prefs.placesOnMap) m.queryRenderedFeatures(box, "places").firstOrNull()?.let { f ->
+                // a search result or a place dot: its card (hours, phone, address…), PIN from there
+                m.queryRenderedFeatures(box, "results").firstOrNull()?.let { f ->
                     val g = f.geometry() as? Point ?: return@let
+                    if (showPlaceAt(LatLng(g.latitude(), g.longitude()), f.getStringProperty("n") ?: "", pin = !nav)) return@addOnMapClickListener true
+                }
+                if (prefs.placesOnMap) m.queryRenderedFeatures(box, "places").firstOrNull()?.let { f ->
+                    val g = f.geometry() as? Point ?: return@let
+                    if (showPlaceAt(LatLng(g.latitude(), g.longitude()), f.getStringProperty("n") ?: "", pin = !nav)) return@addOnMapClickListener true
+                    if (nav) return@let
                     addStop(Stop(LatLng(g.latitude(), g.longitude()), f.getStringProperty("n") ?: "", Favourites.POI, f.getStringProperty("d") ?: ""))
                     return@addOnMapClickListener true
                 }
@@ -292,6 +301,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
                 journey?.let { drawJourney(it) }
                 RecordService.state.value.let { if (it.running) drawTrack(it.points) }
                 refreshPlaces()
+                showResults(fit = false)
             }
         }
     }
@@ -350,7 +360,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
                     Feature.fromGeometry(Point.fromLngLat(p.at.longitude, p.at.latitude)).also { f ->
                         f.addStringProperty("n", p.label(this@MapActivity))
                         f.addStringProperty("c", Places.GROUP_COLOURS[p.cat.group])
-                        f.addStringProperty("d", (listOf(getString(p.cat.label)) + Places.describe(this@MapActivity, p)).joinToString(" · "))
+                        f.addStringProperty("d", (listOf(Places.categoryText(this@MapActivity, p)) + Places.describe(this@MapActivity, p)).joinToString(" · "))
                     }
                 }
             }
@@ -466,6 +476,9 @@ class MapActivity : AppCompatActivity(), LocationListener {
         follow = f
         lc.forceLocationUpdate(loc)
         val zoom = if (nav) maxOf(m.cameraPosition.zoom, NAV_ZOOM) else m.cameraPosition.zoom
+        // In navigation the camera's padding puts the position low on the screen, the way ahead above it.
+        // (MapLibre's map.setPadding only moves the compass and logo now: the camera needs its own padding.)
+        m.moveCamera(CameraUpdateFactory.paddingTo(if (nav && f == 2) navPadding() else doubleArrayOf(0.0, 0.0, 0.0, 0.0)))
         // The component animates to the position itself when tracking starts; an animateCamera of our
         // own would cancel that transition and the tracking with it. Already tracking = already centred.
         when (f) {
@@ -474,6 +487,19 @@ class MapActivity : AppCompatActivity(), LocationListener {
             else -> lc.setCameraMode(if (mode == Mode.BIKE) CameraMode.TRACKING_GPS else CameraMode.TRACKING_COMPASS, 600L, zoom, null, 0.0, null)
         }
         updateFollowButton()
+    }
+
+    /**
+     * The camera padding of the navigation view: the position three quarters of the way down the
+     * part of the map that the panels at the top leave free, so about four fifths of what is seen
+     * lies ahead.
+     */
+    private fun navPadding(): DoubleArray {
+        val h = b.map.height.toDouble()
+        val free = b.strips.bottom.toDouble().coerceIn(0.0, h * 0.5)
+        val y = free + (h - free) * 0.75
+        // the camera centre is the middle of the padded area: (top + h) / 2 = y
+        return doubleArrayOf(0.0, (2 * y - h).coerceAtLeast(0.0), 0.0, 0.0)
     }
 
     private fun zoomBy(d: Double) {
@@ -492,6 +518,47 @@ class MapActivity : AppCompatActivity(), LocationListener {
     // ---------- stops, favourites, sharing ----------
 
     /** Every point put on the map is a stop; the last one is the destination. A new stop voids the computed trip. */
+    // ---------- search results on the map, place cards ----------
+
+    /** The list handed over by SHOW ON THE MAP: numbered red dots, the view fitted to them (and to the position when close). */
+    private fun showResults(fit: Boolean = true) {
+        val list = SearchActivity.results ?: return
+        val feats = list.mapIndexed { i, r ->
+            Feature.fromGeometry(Point.fromLngLat(r.at.longitude, r.at.latitude)).also { f ->
+                f.addStringProperty("k", (i + 1).toString()); f.addStringProperty("n", r.label)
+            }
+        }
+        style?.getSourceAs<GeoJsonSource>(MapStyle.SRC_RESULTS)?.setGeoJson(FeatureCollection.fromFeatures(feats))
+        b.resultsLabel.text = getString(R.string.results_strip, list.size, SearchActivity.resultsTitle)
+        b.resultsStrip.visibility = View.VISIBLE
+        if (!fit) return
+        if (follow > 0) { follow = 0; map?.locationComponent?.cameraMode = CameraMode.NONE; updateFollowButton() }
+        val pts = list.map { it.at } + listOfNotNull(lastLocation?.let { l -> LatLng(l.latitude, l.longitude) }
+            ?.takeIf { p -> list.any { it.at.distanceTo(p) < 5000 } })
+        if (pts.size == 1) map?.animateCamera(CameraUpdateFactory.newLatLngZoom(pts[0], 16.0)) else fitTo(pts)
+    }
+
+    private fun clearResults() {
+        SearchActivity.results = null
+        style?.getSourceAs<GeoJsonSource>(MapStyle.SRC_RESULTS)?.setGeoJson(FeatureCollection.fromFeatures(emptyList()))
+        b.resultsStrip.visibility = View.GONE
+    }
+
+    /**
+     * The card of the pack's place at this point (within a few metres, the same name when one is
+     * given); `pin` adds PIN to it. False when the pack has no such place.
+     */
+    private fun showPlaceAt(at: LatLng, name: String, pin: Boolean): Boolean {
+        val pack = PlacesPack.open(this) ?: return false
+        val p = pack.nearby(at.latitude, at.longitude, 8.0, null, 10, maxM = 8.0)
+            .firstOrNull { name.isBlank() || it.place.label(this) == name }?.place ?: return false
+        val from = lastLocation?.let { LatLng(it.latitude, it.longitude) }
+        PlaceCard.show(this, PlaceInfo.of(this, p), from, if (pin) R.string.place_pin to {
+            addStop(Stop(p.at, p.label(this), Favourites.POI, (listOf(Places.categoryText(this, p)) + Places.describe(this, p)).joinToString(" · ")))
+        } else null)
+        return true
+    }
+
     private fun addStop(s: Stop) {
         if (trip?.fromGpx == true) clearTrip()
         stops.add(s)
@@ -929,17 +996,16 @@ class MapActivity : AppCompatActivity(), LocationListener {
         b.lAlt.text = getString(R.string.eta)
         b.vAlt.text = "--:--"
         b.lDist.text = getString(R.string.togo)
-        // The position sits in the lower part of the screen, so most of the map shows the way ahead.
-        map?.setPadding(0, (b.map.height * 0.45).toInt(), 0, 0)
         follow = 0 // so that the tracking transition below runs even if the map was already following
         applyPuck()
-        setFollow(2)
+        // the panels change height now: place the position once they are laid out
+        b.strips.post { setFollow(2) }
     }
 
     private fun exitNavUi() {
         nav = false
         applyPuck()
-        map?.setPadding(0, 0, 0, 0)
+        map?.let { it.locationComponent.cancelPaddingWhileTrackingAnimation(); it.moveCamera(CameraUpdateFactory.paddingTo(0.0, 0.0, 0.0, 0.0)) }
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         b.navPanel.visibility = View.GONE
         b.transitPanel.visibility = View.GONE

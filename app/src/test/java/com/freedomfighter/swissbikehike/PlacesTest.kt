@@ -10,7 +10,7 @@ class PlacesTest {
 
     @Test fun readsHeaderAndCategories() {
         val p = pack()
-        assertEquals(8, p.nPlaces)
+        assertEquals(10, p.nPlaces)
         assertTrue(p.built.startsWith("20"))
         // a shelter of a bus stop and a node without our keys are not in; the toilets south of the border neither
         assertEquals(0, (0 until p.nPlaces).count { p.cat(it) == Places.Cat.SHELTER })
@@ -59,10 +59,23 @@ class PlacesTest {
         assertTrue(p.search("", 46.52, 6.63).isEmpty())
     }
 
+    @Test fun cafesShopsAndContactDetails() {
+        val p = pack()
+        val cafe = p.search("romand", 46.52, 6.63).single().place
+        assertEquals(Places.Cat.CAFE, cafe.cat)
+        assertEquals("info@example.org", cafe.extras["mail"])
+        assertEquals("1003", cafe.extras["pc"])
+        val shop = p.search("librairie", 46.52, 6.63).single().place
+        assertEquals(Places.Cat.SHOP, shop.cat)
+        assertEquals("books", shop.extras["shop"])
+        // a vacant shop is not a place
+        assertEquals(1, p.nearby(46.52, 6.63, 1000.0, setOf(Places.Cat.SHOP), 10).size)
+    }
+
     @Test fun boxLimitsAndFilters() {
         val p = pack()
         val all = p.inBox(46.51, 6.62, 46.54, 6.65, null)
-        assertEquals(7, all.size)
+        assertEquals(9, all.size)
         assertEquals(1, p.inBox(46.51, 6.62, 46.54, 6.65, setOf(Places.Cat.BIKE_SHOP)).size)
         assertEquals(2, p.inBox(46.51, 6.62, 46.54, 6.65, null, 2).size)
     }

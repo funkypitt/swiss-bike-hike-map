@@ -54,7 +54,10 @@ CATS = [
     ("outdoor", lambda t: _in(t, "shop", "outdoor", "sports")),
     ("bakery", lambda t: _in(t, "shop", "bakery")),
     ("grocery", lambda t: _in(t, "shop", "supermarket", "convenience", "greengrocer", "farm", "general", "cheese", "dairy", "deli", "butcher", "health_food")),
-    ("restaurant", lambda t: _in(t, "amenity", "restaurant", "cafe", "fast_food", "pub", "biergarten", "food_court", "ice_cream")),
+    ("restaurant", lambda t: _in(t, "amenity", "restaurant")),
+    ("cafe", lambda t: _in(t, "amenity", "cafe", "ice_cream") or _in(t, "shop", "pastry", "confectionery", "chocolate", "coffee", "tea")),
+    ("bar", lambda t: _in(t, "amenity", "bar", "pub", "biergarten", "nightclub")),
+    ("fast_food", lambda t: _in(t, "amenity", "fast_food", "food_court")),
     ("camping", lambda t: _in(t, "tourism", "camp_site", "caravan_site")),
     ("lodging", lambda t: _in(t, "tourism", "hotel", "guest_house", "hostel", "motel", "chalet")),
     ("pharmacy", lambda t: _in(t, "amenity", "pharmacy")),
@@ -62,6 +65,11 @@ CATS = [
     ("info", lambda t: _in(t, "tourism", "information") and _in(t, "information", "office", "visitor_centre")),
     ("sight", lambda t: _in(t, "tourism", "attraction") or _in(t, "historic", "castle", "ruins", "monument")),
     ("atm", lambda t: _in(t, "amenity", "atm") or (_in(t, "amenity", "bank") and t.get("atm") == "yes")),
+    ("post", lambda t: _in(t, "amenity", "post_office")),
+    ("bank", lambda t: _in(t, "amenity", "bank")),
+    ("hairdresser", lambda t: _in(t, "shop", "hairdresser", "beauty", "barber")),
+    # every other shop that has a name (vacant, disused and nameless ones say nothing to a passer-by)
+    ("shop", lambda t: "shop" in t and t["shop"] not in ("vacant", "no", "yes") and "name" in t),
 ]
 
 # extra tags kept with a place, as "short=value" lines; the app shows them in the place's detail
@@ -76,6 +84,8 @@ EXTRAS = [
     ("op", ("operator",)),
     ("type", ("shelter_type", "information", "network")),
     ("cap", ("capacity",)),
+    ("mail", ("email", "contact:email")),
+    ("pc", ("addr:postcode",)),
 ]
 
 def category(t):
@@ -84,8 +94,10 @@ def category(t):
             return i
     return -1
 
-def extras(t):
+def extras(t, cat):
     out = []
+    if CATS[cat][0] == "shop":
+        out.append("shop=" + t["shop"][:40])   # what kind of shop (clothes, books, florist…): the app names it
     for short, keys in EXTRAS:
         for k in keys:
             v = t.get(k)
@@ -174,7 +186,7 @@ def main():
         if not (south <= lat <= north and west <= lon <= east):
             continue
         name = t.get("name") or t.get("name:fr") or t.get("name:de") or t.get("name:it") or ""
-        places.append((cell_key(lat, lon), int(round(lat * 1e6)), int(round(lon * 1e6)), S(name[:80]), S(extras(t)), c))
+        places.append((cell_key(lat, lon), int(round(lat * 1e6)), int(round(lon * 1e6)), S(name[:80]), S(extras(t, c)), c))
         counts[c] += 1
     log("objects with the keys:", seen, "places kept:", len(places))
     for (k, _), n in zip(CATS, counts):

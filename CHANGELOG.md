@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.9.0 — 2026-11-03
+
+* Navigation: the arrow sits low on the screen again, three quarters of the way down the map
+  under the panels, so what is seen is the way ahead. The map's old padding call only moved the
+  compass in MapLibre 13; the camera now gets its own padding.
+* Search around you like a city map: cafés, bars, fast food, shops (what they sell, in your
+  language), post offices, banks and hairdressers join the places (183 000 places, 5 MB pack);
+  a word also finds a cuisine or a kind of shop around (« pizza », « sushi », « fleuriste »).
+  SHOW ON THE MAP draws the list as numbered red dots; × clears them.
+* A tap on a place (in the list, on a result dot, on a place dot, or on the pinned place's
+  name) opens its card: open or closed now (« Open · closes at 19:00 »), the week's hours,
+  address, phone, e-mail, website, position and distance; CALL (the phone app, number typed in),
+  CONTACT (the contacts app's new-contact form, filled in: name, phone, e-mail, address,
+  website, hours in the notes), COPY, WEBSITE, SHARE, SEARCH.CH (completes it with your key),
+  PIN. People and firms of the directory get the same card (ON THE MAP places them).
+* The list rows say whether a place is open now.
+
 ## 0.8.2 — 2026-11-02
 
 * The position dot appears indoors too. The map listened to the satellites only, which say

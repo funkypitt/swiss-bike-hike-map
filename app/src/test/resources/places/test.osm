@@ -10,6 +10,9 @@
   <node id="8" lat="46.7000" lon="7.9000"><tag k="tourism" v="alpine_hut"/><tag k="name" v="Berghütte Test"/><tag k="ele" v="2345"/><tag k="operator" v="SAC"/></node>
   <node id="9" lat="46.5260" lon="6.6360"><tag k="amenity" v="toilets"/><tag k="fee" v="no"/></node>
   <node id="10" lat="46.5270" lon="6.6370"><tag k="amenity" v="shelter"/><tag k="shelter_type" v="public_transport"/></node>
+  <node id="15" lat="46.5205" lon="6.6305"><tag k="amenity" v="cafe"/><tag k="name" v="Café Romand"/><tag k="contact:email" v="info@example.org"/><tag k="addr:postcode" v="1003"/><tag k="addr:city" v="Lausanne"/><tag k="opening_hours" v="Mo-Fr 07:00-19:00; Sa 08:00-14:00"/></node>
+  <node id="16" lat="46.5215" lon="6.6315"><tag k="shop" v="books"/><tag k="name" v="Librairie Test"/></node>
+  <node id="17" lat="46.5225" lon="6.6325"><tag k="shop" v="vacant"/></node>
   <node id="11" lat="46.5300" lon="6.6400"/>
   <node id="12" lat="46.5300" lon="6.6420"/>
   <node id="13" lat="46.5320" lon="6.6420"/>
