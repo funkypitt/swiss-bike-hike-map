@@ -17,4 +17,6 @@ object Fmt {
         else -> String.format(Locale.US, "%.0f km", m / 1000)
     }
     fun mb(bytes: Long): String = String.format(Locale.US, "%.0f MB", bytes / 1e6)
+    /** MB below a gigabyte, GB with one decimal above. */
+    fun size(bytes: Long): String = if (bytes >= 1e9) String.format(Locale.US, "%.1f GB", bytes / 1e9) else mb(bytes)
 }

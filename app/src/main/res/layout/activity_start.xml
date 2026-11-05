@@ -50,6 +50,10 @@
             android:gravity="center" android:layout_marginTop="12dp" android:lineSpacingExtra="4dp"/>
     </LinearLayout>
 
+    <TextView android:id="@+id/offHint" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:textSize="15sp" android:textColor="@color/paper" android:textStyle="bold" android:gravity="center" android:paddingTop="10dp"
+        android:paddingStart="16dp" android:paddingEnd="16dp" android:minHeight="40dp" android:visibility="gone"/>
+
     <TextView android:id="@+id/footer" android:layout_width="match_parent" android:layout_height="wrap_content"
         android:text="@string/attribution" android:textSize="11sp" android:textColor="@color/grey"
         android:gravity="center" android:padding="10dp"/>

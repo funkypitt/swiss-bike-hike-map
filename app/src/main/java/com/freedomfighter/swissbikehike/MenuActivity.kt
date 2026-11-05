@@ -39,22 +39,16 @@ class MenuActivity : AppCompatActivity() {
         setContentView(b.root)
         Insets.pad(b.root)
         prefs = Prefs(this)
-        b.btnUpdateAll.setOnClickListener { updateAll() }
         b.btnFollowGpx.setOnClickListener { pickGpx.launch(arrayOf("*/*")) }
         b.btnSharePos.setOnClickListener { sharePosition() }
         b.btnNight.setOnClickListener {
             prefs.night = when (prefs.night) { Night.OFF -> Night.ON; Night.ON -> Night.AUTO; else -> Night.OFF }
             updateNightButton()
         }
-        b.btnSegments.setOnClickListener { Segments.download(this, Segments.names); refreshSegments(); Toast.makeText(this, R.string.downloading_wifi, Toast.LENGTH_SHORT).show() }
-        b.btnTimetable.setOnClickListener { Timetable.download(this); refreshTimetable(); Toast.makeText(this, R.string.downloading_wifi, Toast.LENGTH_SHORT).show() }
-        b.btnPlaces.setOnClickListener { PlacesPack.download(this); refreshPlaces(); Toast.makeText(this, R.string.downloading_wifi, Toast.LENGTH_SHORT).show() }
         b.btnPlacesMap.setOnClickListener { prefs.placesOnMap = !prefs.placesOnMap; updatePlacesMapButton() }
-        b.btnCountry.setOnClickListener { saveCountry() }
-        b.btnPacks.setOnClickListener { if (PackWorker.state(this)?.isFinished == false) { PackWorker.pause(this); prefs.packStatus = getString(R.string.packs_paused) } else PackWorker.enqueue(this); lifecycleScope.launch { kotlinx.coroutines.delay(600); refreshAreasInfo() } }
-        b.btnOfflineArea.setOnClickListener { saveArea() }
-        b.btnOfflineRefresh.setOnClickListener { refreshAreas() }
-        b.btnOfflineDelete.setOnClickListener { deleteAreas() }
+        b.btnOffMain.setOnClickListener { offMain() }
+        b.btnOffDelete.setOnClickListener { if (Offline.wanted(this).isNotEmpty()) offCancel() else offDelete() }
+        b.btnOffOld.setOnClickListener { offDeleteOld() }
         b.dirKey.setText(prefs.directoryKey)
         b.btnDirSave.setOnClickListener {
             prefs.directoryKey = b.dirKey.text.toString()
@@ -68,8 +62,8 @@ class MenuActivity : AppCompatActivity() {
 
     private var ticking = false
     override fun onResume() {
-        super.onResume(); refreshSegments(); refreshAreasInfo(); refreshTrips(); refreshTimetable(); refreshPlaces()
-        if (!ticking) { ticking = true; lifecycleScope.launch { while (ticking) { kotlinx.coroutines.delay(3000); if (lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) { refreshAreasInfo(); if (Timetable.downloading(this@MenuActivity) >= 0 || Timetable.unpacking) refreshTimetable(false); if (PlacesPack.downloading(this@MenuActivity) >= 0 || PlacesPack.unpacking) refreshPlaces(false) } } } }
+        super.onResume(); refreshTrips(); refreshOffline(askServer = true)
+        if (!ticking) { ticking = true; lifecycleScope.launch { while (ticking) { kotlinx.coroutines.delay(1500); if (lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) tick() } } }
     }
     override fun onPause() { super.onPause(); ticking = false }
 
@@ -117,237 +111,234 @@ class MenuActivity : AppCompatActivity() {
         }
     }
 
-    // ---- routing data ----
 
-    private fun refreshSegments() {
-        val st = Segments.status(this)
-        fun line(s: Segments.Status, tail: String) = "${s.name}  " + when {
-            s.waitingWifi -> getString(R.string.dl_waiting_wifi)
-            s.downloading >= 0 -> getString(R.string.seg_downloading, s.downloading)
-            s.failure.isNotBlank() && !s.present -> getString(R.string.dl_failed, s.failure)
-            else -> tail
-        }
-        b.segInfo.text = st.joinToString("\n") { s -> line(s, if (s.present) "${Fmt.mb(s.size)}  ${date(s.modified)}" else getString(R.string.seg_missing)) } + "\n" + getString(R.string.seg_checking)
-        segmentsState = when {
-            st.any { it.waitingWifi } -> getString(R.string.dl_waiting_wifi)
-            st.any { it.downloading >= 0 } -> getString(R.string.seg_downloading, st.maxOf { it.downloading })
-            st.any { it.failure.isNotBlank() && !it.present } -> getString(R.string.dl_failed, st.first { it.failure.isNotBlank() }.failure)
-            else -> ""
-        }
-        segmentsMissing = st.any { !it.present }; updateAllInfo()
+    // ---- Switzerland offline: one download, one update ----
+
+    /** What the server said this time the menu was open: is there newer data? (null = not asked, or no answer) */
+    private val newer = mutableMapOf<Offline.Part, Boolean?>()
+    private var asked = false
+    private var asking = false
+    private var mapBytes = 0L
+    private var mapComplete = false
+    private var oldCount = 0
+    private var oldBytes = 0L
+
+    private var wasInRun = false
+    /** Every 1.5 s while the menu shows: the job's progress from its notes (cheap); the tile database only when a run has just ended. */
+    private fun tick() {
+        val inRun = Offline.wanted(this).isNotEmpty()
+        if (wasInRun && !inRun) { asked = false; newer.clear(); refreshOffline(true) } else renderOffline()
+        wasInRun = inRun
+    }
+
+    private fun refreshOffline(askServer: Boolean) {
         lifecycleScope.launch {
-            val server = Segments.serverDates()
-            val lines = st.map { s ->
-                val srv = server[s.name]
-                val tail = when {
-                    !s.present -> getString(R.string.seg_missing)
-                    srv == null -> "${Fmt.mb(s.size)}  ${date(s.modified)}  " + getString(R.string.server_unreachable)
-                    srv > s.modified -> "${Fmt.mb(s.size)}  ${date(s.modified)}  " + getString(R.string.seg_newer, date(srv))
-                    else -> "${Fmt.mb(s.size)}  ${date(s.modified)}  " + getString(R.string.seg_up_to_date)
-                }
-                line(s, tail)
-            }
-            b.segInfo.text = lines.joinToString("\n")
-            segmentsMissing = st.any { !it.present }
-            segmentsNewer = st.any { s -> s.present && (server[s.name] ?: 0L) > s.modified }
-            updateAllInfo()
+            val st = OfflineMaps.country(this@MenuActivity)?.let { OfflineMaps.status(it) }
+            mapBytes = st?.completedResourceSize ?: 0L
+            mapComplete = st?.isComplete == true && !Offline.mapRefreshing(this@MenuActivity)
+            if (!Offline.mapRefreshing(this@MenuActivity)) Offline.setMapComplete(this@MenuActivity, mapComplete)
+            val old = OfflineMaps.legacy(this@MenuActivity)
+            oldCount = old.size
+            oldBytes = old.sumOf { OfflineMaps.status(it)?.completedResourceSize ?: 0L }
+            renderOffline()
+            if (askServer && !asked) { asked = true; askServers(); renderOffline() }
         }
     }
 
-    // ---- public-transport timetable ----
-
-    private fun refreshTimetable(askServer: Boolean = true) {
-        val pct = Timetable.downloading(this)
-        val l = Timetable.local(this)
-        val fail = Timetable.failure(this)
-        timetableState = when {
-            Timetable.unpacking -> getString(R.string.dl_unpacking)
-            Timetable.waitingWifi(this) -> getString(R.string.dl_waiting_wifi)
-            pct >= 0 -> getString(R.string.timetable_downloading, pct)
-            fail.isNotBlank() -> getString(R.string.dl_failed, fail)
-            else -> ""
+    /** One small request per part on the phone: is the server's copy newer? */
+    private suspend fun askServers() {
+        asking = true; renderOffline()
+        val ctx = this
+        if (Timetable.file(ctx).exists()) newer[Offline.Part.TIMETABLE] = Timetable.remote()?.let { Timetable.newer(Timetable.local(ctx), it) }
+        if (PlacesPack.file(ctx).exists()) newer[Offline.Part.PLACES] = PlacesPack.remote()?.let { PlacesPack.newer(PlacesPack.local(ctx), it) }
+        if (Segments.isReady(ctx)) {
+            val dates = Segments.names.map { Offline.serverModified(Segments.url(it)) }
+            newer[Offline.Part.ROUTING] = if (dates.any { it == null }) null
+                else Segments.names.zip(dates).any { (n, d) -> d!! > Segments.file(ctx, n).lastModified() + 60_000L }
         }
-        val base = when {
-            timetableState.isNotBlank() -> timetableState + (if (l != null) "\n" + getString(R.string.timetable_info, l.version, Fmt.mb(l.bytes), l.built) else "")
-            l == null -> getString(R.string.timetable_missing)
-            else -> getString(R.string.timetable_info, l.version, Fmt.mb(l.bytes), l.built)
-        }
-        updateAllInfo()
-        b.timetableInfo.text = base + "\n" + getString(R.string.timetable_hint) + (if (askServer) "\n" + getString(R.string.timetable_checking) else "")
-        if (!askServer) return
-        lifecycleScope.launch {
-            val r = Timetable.remote()
-            val tail = when {
-                r == null -> "\n" + getString(R.string.server_unreachable)
-                l == null -> "\n" + getString(R.string.timetable_newer, r.version + " · " + Fmt.mb(r.bytes))
-                r.version > l.version || (l.built.isNotBlank() && r.built > l.built) -> "\n" + getString(R.string.timetable_newer, r.version + " · " + r.built)
-                else -> "\n" + getString(R.string.timetable_up_to_date)
+        if (mapComplete) {
+            val sig = OfflineMaps.signature(ctx)
+            newer[Offline.Part.MAP] = when {
+                sig == null -> null
+                Offline.mapSignature(ctx).isBlank() -> { Offline.setMapSignature(ctx, sig); false } // first look: this is the version on the phone
+                else -> sig != Offline.mapSignature(ctx)
             }
-            b.timetableInfo.text = base + "\n" + getString(R.string.timetable_hint) + tail
-            timetableNewer = r != null && (l == null || r.version > l.version || (l.built.isNotBlank() && r.built > l.built))
-            updateAllInfo()
         }
+        for ((p, n) in newer) if (n == false) Offline.setChecked(ctx, p)
+        asking = false
     }
 
-    // ---- places (OpenStreetMap) ----
+    private fun present(p: Offline.Part) = if (p == Offline.Part.MAP) mapComplete else Offline.present(this, p)
 
-    private fun refreshPlaces(askServer: Boolean = true) {
-        val pct = PlacesPack.downloading(this)
-        val l = PlacesPack.local(this)
-        val fail = PlacesPack.failure(this)
-        placesState = when {
-            PlacesPack.unpacking -> getString(R.string.dl_unpacking)
-            PlacesPack.waitingWifi(this) -> getString(R.string.dl_waiting_wifi)
-            pct >= 0 -> getString(R.string.timetable_downloading, pct)
-            fail.isNotBlank() -> getString(R.string.dl_failed, fail)
-            else -> ""
-        }
-        val base = when {
-            placesState.isNotBlank() -> placesState + (if (l != null) "\n" + getString(R.string.places_info, l.version, Fmt.mb(l.bytes), l.built) else "")
-            l == null -> getString(R.string.places_missing)
-            else -> getString(R.string.places_info, l.version, Fmt.mb(l.bytes), l.built)
-        }
-        updateAllInfo()
-        val hint = "\n" + PlacesPack.CREDIT + "\n" + getString(R.string.places_map_hint)
-        b.placesInfo.text = base + hint + (if (askServer) "\n" + getString(R.string.timetable_checking) else "")
-        if (!askServer) return
-        lifecycleScope.launch {
-            val r = PlacesPack.remote()
-            val tail = when {
-                r == null -> "\n" + getString(R.string.server_unreachable)
-                l == null -> "\n" + getString(R.string.timetable_newer, r.built + " · " + Fmt.mb(r.bytes))
-                r.built > l.built -> "\n" + getString(R.string.timetable_newer, r.built)
-                else -> "\n" + getString(R.string.timetable_up_to_date)
-            }
-            b.placesInfo.text = base + hint + tail
-            placesNewer = r != null && (l == null || r.built > l.built)
-            updateAllInfo()
-        }
+    private fun bytes(p: Offline.Part): Long = when (p) {
+        Offline.Part.TIMETABLE -> Timetable.file(this).length()
+        Offline.Part.PLACES -> PlacesPack.file(this).length()
+        Offline.Part.ROUTING -> Segments.bytes(this)
+        Offline.Part.MAP -> mapBytes
     }
 
-    // ---- offline areas ----
-
-    private fun refreshAreasInfo() {
-        lifecycleScope.launch {
-            val regions = OfflineMaps.list(this@MenuActivity)
-            var missing = false
-            val lines = regions.map { r ->
-                val st = OfflineMaps.status(r)
-                val size = st?.completedResourceSize ?: 0L
-                val done = st?.completedResourceCount ?: 0L
-                val total = st?.requiredResourceCount ?: 0L
-                if (st?.isComplete == false) missing = true
-                "${OfflineMaps.name(r)}  ${Fmt.mb(size)}  " + (if (st?.isComplete == true) getString(R.string.area_complete) else getString(R.string.area_tiles, done, total))
-            }
-            val job = PackWorker.state(this@MenuActivity)
-            val jobLine = when (job) {
-                WorkInfo.State.RUNNING -> prefs.packStatus.ifBlank { getString(R.string.packs_starting) }
-                WorkInfo.State.ENQUEUED, WorkInfo.State.BLOCKED -> getString(R.string.packs_waiting)
-                else -> if (missing) getString(R.string.packs_incomplete) else prefs.packStatus
-            }
-            val last = prefs.offlineRefreshStatus
-            b.offlineInfo.text = (if (lines.isEmpty()) getString(R.string.no_saved_area) else lines.joinToString("\n")) +
-                (if (jobLine.isNotBlank()) "\n\n$jobLine" else "") +
-                (if (last.isNotBlank()) "\n$last" else "") +
-                "\n\n" + getString(R.string.refresh_hint)
-            areasCount = regions.size; areasMissing = missing; areasJob = job
-            updateAllInfo()
-            val active = job == WorkInfo.State.RUNNING || job == WorkInfo.State.ENQUEUED || job == WorkInfo.State.BLOCKED
-            b.btnPacks.visibility = if (active || missing) View.VISIBLE else View.GONE
-            b.btnPacks.text = getString(if (active) R.string.menu_pause_packs else R.string.menu_resume_packs)
-        }
+    private fun due(): List<Offline.Part> = Offline.Part.entries.filter { p ->
+        present(p) && Policy.due(p, Offline.updated(this, p), System.currentTimeMillis(), newer[p] == true)
     }
+    private fun missing(): List<Offline.Part> = Offline.Part.entries.filter { !present(it) }
+    private fun missingBytes(): Long = missing().sumOf { if (it == Offline.Part.MAP) (it.estimate - mapBytes).coerceAtLeast(0L) else it.estimate }
 
-    private fun saveCountry() {
-        val styleFile = MapStyle.styleFile(this)
-        if (!styleFile.exists()) { Toast.makeText(this, R.string.open_map_first, Toast.LENGTH_SHORT).show(); return }
-        val wifi = OfflineMaps.unmetered(this)
-        AlertDialog.Builder(this).setTitle(R.string.menu_country)
-            .setMessage(getString(R.string.country_confirm) + if (!wifi) "\n\n" + getString(R.string.country_not_wifi) else "")
-            .setPositiveButton(R.string.download) { _, _ ->
-                lifecycleScope.launch {
-                    if (OfflineMaps.list(this@MenuActivity).none { OfflineMaps.name(it) == OfflineMaps.COUNTRY_NAME })
-                        OfflineMaps.create(this@MenuActivity, styleFile, OfflineMaps.COUNTRY, OfflineMaps.COUNTRY_NAME, OfflineMaps.COUNTRY_MAX_ZOOM)
-                    else PackWorker.enqueue(this@MenuActivity)
-                    refreshAreasInfo()
+    private fun renderOffline() {
+        val wanted = Offline.wanted(this)
+        val job = Offline.jobState(this)
+        val paused = Offline.paused(this)
+        val running = job == WorkInfo.State.RUNNING
+        val current = Offline.current(this)
+        val due = due()
+
+        b.offInfo.text = Offline.Part.entries.joinToString("\n") { p ->
+            val name = getString(p.label)
+            val pct = (Offline.fraction(this, p).coerceAtLeast(0.0) * 100).toInt()
+            val state = when {
+                p in wanted && paused -> getString(R.string.off_s_paused, pct)
+                p in wanted && running && current == p -> getString(R.string.off_s_downloading, pct)
+                p in wanted && p == wanted.first() && !running && !OfflineMaps.unmetered(this) -> getString(R.string.dl_waiting_wifi)
+                p in wanted -> getString(R.string.off_s_queued)
+                !present(p) && p == Offline.Part.MAP && mapBytes > 0 -> getString(R.string.off_s_partial, Fmt.size(mapBytes))
+                !present(p) -> getString(R.string.off_s_missing)
+                else -> Fmt.size(bytes(p)) + " · " + date(Offline.updated(this, p)) + when {
+                    p in due -> " · " + getString(R.string.off_s_due)
+                    newer[p] == true -> " · " + getString(R.string.off_s_newer_later)
+                    newer[p] == false -> " · " + getString(R.string.off_s_current)
+                    asking -> " · " + getString(R.string.off_s_checking)
+                    p in newer -> " · " + getString(R.string.off_s_unknown)
+                    else -> ""
                 }
             }
+            "• $name — $state"
+        } + "\n" + PlacesPack.CREDIT + " · swisstopo · ASTRA · brouter.de · opentransportdata.swiss"
+
+        val inRun = Offline.run(this).isNotEmpty() && wanted.isNotEmpty()
+        b.offBar.visibility = if (inRun) View.VISIBLE else View.GONE
+        if (inRun) b.offBar.progress = Offline.overall(this).coerceAtLeast(0)
+        val fail = wanted.map { Offline.failure(this, it) }.firstOrNull { it.isNotBlank() }
+        val state = when {
+            !inRun -> ""
+            paused -> getString(R.string.off_paused, Offline.overall(this)) + (fail?.let { "\n" + getString(R.string.dl_failed, it) } ?: "")
+            running -> getString(R.string.off_running, Offline.overall(this)) + "\n" + Offline.line(this)
+            job != null && !OfflineMaps.unmetered(this) -> getString(R.string.off_wait_wifi, Offline.overall(this))
+            job != null -> getString(R.string.off_wait_retry, Offline.overall(this)) + (Offline.line(this).takeIf { it.isNotBlank() }?.let { "\n$it" } ?: "")
+            else -> getString(R.string.off_paused, Offline.overall(this)) + (fail?.let { "\n" + getString(R.string.dl_failed, it) } ?: "")
+        }
+        b.offState.visibility = if (state.isBlank()) View.GONE else View.VISIBLE
+        b.offState.text = state
+
+        val miss = missing()
+        b.btnOffMain.text = when {
+            inRun && job != null && !paused -> getString(R.string.off_pause)
+            inRun -> getString(R.string.off_resume)
+            miss.size == Offline.Part.entries.size -> getString(R.string.off_download_size, Fmt.size(missingBytes()))
+            miss.isNotEmpty() -> getString(R.string.off_complete_size, Fmt.size(missingBytes()))
+            due.isNotEmpty() -> getString(R.string.off_update_n, due.joinToString(", ") { getString(it.label).lowercase(Locale.getDefault()) })
+            else -> getString(R.string.off_up_to_date)
+        }
+        val quiet = !inRun && miss.isEmpty() && due.isEmpty()
+        b.btnOffMain.setBackgroundResource(if (quiet) R.drawable.btn else R.drawable.btn_active)
+        b.btnOffMain.setTextColor(androidx.appcompat.content.res.AppCompatResources.getColorStateList(this, if (quiet) R.drawable.btn_text else R.drawable.btn_active_text))
+        val stopped = inRun && (paused || job == null)
+        b.btnOffDelete.visibility = if (stopped || (!inRun && Offline.Part.entries.any { present(it) || (it == Offline.Part.MAP && mapBytes > 0) })) View.VISIBLE else View.GONE
+        b.btnOffDelete.text = getString(if (stopped) R.string.off_cancel else R.string.off_delete)
+        b.btnOffOld.visibility = if (oldCount > 0 && !inRun) View.VISIBLE else View.GONE
+        b.btnOffOld.text = getString(R.string.off_delete_old, oldCount, Fmt.size(oldBytes))
+    }
+
+    private fun offMain() {
+        val wanted = Offline.wanted(this)
+        val job = Offline.jobState(this)
+        val inRun = Offline.run(this).isNotEmpty() && wanted.isNotEmpty()
+        when {
+            inRun && job != null && !Offline.paused(this) -> Offline.pause(this)
+            inRun -> Offline.resume(this)
+            missing().isNotEmpty() -> confirmDownload()
+            due().isNotEmpty() -> confirmUpdate(due())
+            else -> confirmFresh()
+        }
+        lifecycleScope.launch { kotlinx.coroutines.delay(400); renderOffline() }
+    }
+
+    private fun wifiNote(need: Long): String {
+        val free = runCatching { android.os.StatFs((getExternalFilesDir(null) ?: filesDir).path).availableBytes }.getOrDefault(-1L)
+        return (if (!OfflineMaps.unmetered(this)) "\n\n" + getString(R.string.off_not_wifi) else "") +
+            (if (free in 0 until need) "\n\n" + getString(R.string.off_no_space_now, Fmt.size(need), Fmt.size(free)) else "")
+    }
+
+    private fun confirmDownload() {
+        val miss = missing()
+        val lines = miss.joinToString("\n") { "• " + getString(it.label) + " — ≈ " + Fmt.size(if (it == Offline.Part.MAP) (it.estimate - mapBytes).coerceAtLeast(0L) else it.estimate) }
+        AlertDialog.Builder(this).setTitle(R.string.off_head)
+            .setMessage(getString(R.string.off_download_msg, lines) + wifiNote(missingBytes()))
+            .setPositiveButton(R.string.download) { _, _ -> Offline.start(this, miss); notifyPermission(); renderOffline() }
             .setNegativeButton(R.string.cancel, null).show()
     }
 
-    private fun saveArea() {
-        val bounds = prefs.lastBounds ?: run { Toast.makeText(this, R.string.open_map_first, Toast.LENGTH_SHORT).show(); return }
-        val styleFile = MapStyle.styleFile(this)
-        if (!styleFile.exists()) { Toast.makeText(this, R.string.open_map_first, Toast.LENGTH_SHORT).show(); return }
-        val name = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date())
-        lifecycleScope.launch { OfflineMaps.create(this@MenuActivity, styleFile, bounds, name); refreshAreasInfo() }
-    }
-
-    private fun refreshAreas(quiet: Boolean = false) {
-        lifecycleScope.launch {
-            val regions = OfflineMaps.list(this@MenuActivity)
-            if (regions.isEmpty()) { if (!quiet) Toast.makeText(this@MenuActivity, R.string.no_saved_area, Toast.LENGTH_SHORT).show(); return@launch }
-            // the current style goes into the packs too, so they follow the app
-            val styleFile = MapStyle.styleFile(this@MenuActivity)
-            if (styleFile.exists()) {
-                val now = System.currentTimeMillis() / 1000
-                OfflineMaps.manager(this@MenuActivity).putResourceWithUrl(OfflineMaps.STYLE_URL, styleFile.readBytes(), now, now + 3650L * 86400, null, false)
-            }
-            for (r in regions) OfflineMaps.refresh(r)
-            prefs.offlineRefreshed = System.currentTimeMillis()
-            prefs.offlineRefreshStatus = getString(R.string.refresh_asked, regions.size, SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date()))
-            PackWorker.enqueue(this@MenuActivity)
-            if (!quiet) Toast.makeText(this@MenuActivity, R.string.downloading_wifi, Toast.LENGTH_SHORT).show()
-            refreshAreasInfo()
-        }
-    }
-
-    // ---- everything offline, in one button ----
-
-    private var areasCount = 0; private var areasMissing = false; private var areasJob: WorkInfo.State? = null
-    private var segmentsNewer = false; private var segmentsMissing = false
-    private var timetableNewer = false; private var placesNewer = false
-    private var segmentsState = ""; private var timetableState = ""; private var placesState = ""
-
-    /** One line per kind of offline data, under the big button: what is there, what the server has newer. */
-    private fun updateAllInfo() {
-        val maps = when {
-            areasCount == 0 -> getString(R.string.all_maps_none)
-            areasJob == WorkInfo.State.RUNNING || areasJob == WorkInfo.State.ENQUEUED || areasJob == WorkInfo.State.BLOCKED -> getString(R.string.all_maps_running, areasCount)
-            areasMissing -> getString(R.string.all_maps_incomplete, areasCount)
-            else -> getString(R.string.all_maps_ok, areasCount)
-        }
-        val seg = when { segmentsState.isNotBlank() -> getString(R.string.all_routing_state, segmentsState); segmentsMissing -> getString(R.string.all_routing_missing); segmentsNewer -> getString(R.string.all_routing_newer); else -> getString(R.string.all_routing_ok) }
-        val tt = when { timetableState.isNotBlank() -> getString(R.string.all_timetable_state, timetableState); !Timetable.isReady(this) -> getString(R.string.all_timetable_missing); timetableNewer -> getString(R.string.all_timetable_newer); else -> getString(R.string.all_timetable_ok) }
-        val pl = when { placesState.isNotBlank() -> getString(R.string.all_places_state, placesState); !PlacesPack.isReady(this) -> getString(R.string.all_places_missing); placesNewer -> getString(R.string.all_places_newer); else -> getString(R.string.all_places_ok) }
-        b.allInfo.text = "• $maps\n• $seg\n• $tt\n• $pl"
-    }
-
-    /** Refreshes every saved area, fetches the routing data and the timetable again: all of it, after one yes. */
-    private fun updateAll() {
-        val wifi = OfflineMaps.unmetered(this)
-        AlertDialog.Builder(this).setTitle(R.string.menu_update_all)
-            .setMessage(getString(R.string.update_all_confirm) + if (!wifi) "\n\n" + getString(R.string.country_not_wifi) else "")
-            .setPositiveButton(R.string.download) { _, _ ->
-                refreshAreas(quiet = true)
-                Segments.download(this, Segments.names)
-                Timetable.download(this)
-                PlacesPack.download(this)
-                Toast.makeText(this, R.string.downloading_wifi, Toast.LENGTH_LONG).show()
-                refreshSegments(); refreshTimetable(); refreshPlaces(); refreshAreasInfo()
-            }
+    private fun confirmUpdate(due: List<Offline.Part>) {
+        val lines = due.joinToString("\n") { "• " + getString(it.label) + " — " + getString(when (it) {
+            Offline.Part.TIMETABLE -> R.string.off_why_timetable
+            Offline.Part.PLACES -> R.string.off_why_places
+            Offline.Part.ROUTING -> R.string.off_why_routing
+            Offline.Part.MAP -> R.string.off_why_map
+        }) }
+        AlertDialog.Builder(this).setTitle(R.string.off_update)
+            .setMessage(getString(R.string.off_update_msg, lines) + wifiNote(0))
+            .setPositiveButton(R.string.off_update) { _, _ -> Offline.start(this, due); notifyPermission(); renderOffline() }
             .setNegativeButton(R.string.cancel, null).show()
     }
 
-    private fun deleteAreas() {
-        AlertDialog.Builder(this).setMessage(R.string.delete_areas_q)
+    private fun confirmFresh() {
+        AlertDialog.Builder(this).setTitle(R.string.off_up_to_date)
+            .setMessage(getString(R.string.off_fresh_msg) + wifiNote(0))
+            .setPositiveButton(R.string.off_fresh_go) { _, _ -> Offline.start(this, Offline.Part.entries, fresh = true); notifyPermission(); renderOffline() }
+            .setNegativeButton(R.string.cancel, null).show()
+    }
+
+    private fun offDelete() {
+        AlertDialog.Builder(this).setMessage(R.string.off_delete_q)
             .setPositiveButton(R.string.delete) { _, _ ->
                 lifecycleScope.launch {
+                    Offline.pause(this@MenuActivity); Offline.clearRun(this@MenuActivity)
                     for (r in OfflineMaps.list(this@MenuActivity)) OfflineMaps.delete(r)
-                    PackWorker.pause(this@MenuActivity)
-                    prefs.packStatus = ""
-                    refreshAreasInfo()
+                    Offline.setMapComplete(this@MenuActivity, false); Offline.setMapRefreshing(this@MenuActivity, false)
+                    Segments.delete(this@MenuActivity); Timetable.delete(this@MenuActivity); PlacesPack.delete(this@MenuActivity)
+                    newer.clear()
+                    refreshOffline(false)
                 }
             }.setNegativeButton(R.string.cancel, null).show()
+    }
+
+    /** Gives up a paused run: what is complete stays, the unfinished part goes. */
+    private fun offCancel() {
+        AlertDialog.Builder(this).setMessage(R.string.off_cancel_q)
+            .setPositiveButton(R.string.off_cancel) { _, _ ->
+                lifecycleScope.launch {
+                    val wanted = Offline.wanted(this@MenuActivity)
+                    Offline.pause(this@MenuActivity); Offline.clearRun(this@MenuActivity)
+                    if (Offline.Part.MAP in wanted && !mapComplete) {
+                        OfflineMaps.country(this@MenuActivity)?.let { OfflineMaps.delete(it) }
+                        Offline.setMapRefreshing(this@MenuActivity, false)
+                    }
+                    for (p in listOf(Timetable, PlacesPack)) p.part(this@MenuActivity).let { it.delete(); java.io.File(it.path + ".tag").delete() }
+                    for (n in Segments.names) Segments.part(this@MenuActivity, n).let { it.delete(); java.io.File(it.path + ".tag").delete() }
+                    refreshOffline(false)
+                }
+            }.setNegativeButton(R.string.cancel, null).show()
+    }
+
+    private fun offDeleteOld() {
+        AlertDialog.Builder(this).setMessage(getString(R.string.off_delete_old_q, oldCount))
+            .setPositiveButton(R.string.delete) { _, _ ->
+                lifecycleScope.launch { for (r in OfflineMaps.legacy(this@MenuActivity)) OfflineMaps.delete(r); refreshOffline(false) }
+            }.setNegativeButton(R.string.cancel, null).show()
+    }
+
+    /** The progress lives in a notification: ask for the right to show it (Android 13+), once. */
+    private fun notifyPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
+            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 3)
+        Toast.makeText(this, R.string.downloading_wifi, Toast.LENGTH_SHORT).show()
     }
 }

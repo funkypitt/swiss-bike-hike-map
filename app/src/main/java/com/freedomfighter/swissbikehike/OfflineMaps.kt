@@ -3,84 +3,111 @@ package com.freedomfighter.swissbikehike
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import org.json.JSONObject
 import org.maplibre.android.geometry.LatLngBounds
 import org.maplibre.android.offline.OfflineManager
 import org.maplibre.android.offline.OfflineRegion
-import org.maplibre.android.offline.OfflineRegionError
 import org.maplibre.android.offline.OfflineRegionStatus
 import org.maplibre.android.offline.OfflineTilePyramidRegionDefinition
-import java.io.File
 import java.nio.charset.StandardCharsets
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-/** Saved map areas: MapLibre offline packs of the whole style (vector base, paper, overlays) for a bounding box. */
+/**
+ * The offline map: one MapLibre pack of the whole country (zoom 8 to 14), of the map as the app
+ * draws it — swisstopo base map and relief, ASTRA cycling and mountain-bike routes. The closures
+ * are left out: they change every day and are only worth showing live.
+ * Packs saved by older versions (areas of the screen) are dropped once the country is complete.
+ */
 object OfflineMaps {
     const val MIN_ZOOM = 8.0
-    const val MAX_ZOOM = 15.0
+    const val MAX_ZOOM = 14.0
     /** The downloader only takes http(s) style URLs: the style is seeded into its database under this one. */
     const val STYLE_URL = "https://swiss-bike-hike.invalid/style.json"
     val COUNTRY: LatLngBounds = LatLngBounds.from(47.81, 10.50, 45.81, 5.95)
     const val COUNTRY_NAME = "Switzerland"
-    const val COUNTRY_MAX_ZOOM = 14.0
 
     fun manager(ctx: Context): OfflineManager = OfflineManager.getInstance(ctx).also {
         it.setOfflineMapboxTileCountLimit(2_000_000)
     }
 
-    suspend fun list(ctx: Context): List<OfflineRegion> = suspendCoroutine { cont ->
-        manager(ctx).listOfflineRegions(object : OfflineManager.ListOfflineRegionsCallback {
-            override fun onList(offlineRegions: Array<OfflineRegion>?) { cont.resume(offlineRegions?.toList() ?: emptyList()) }
-            override fun onError(error: String) { cont.resume(emptyList()) }
-        })
+    suspend fun list(ctx: Context): List<OfflineRegion> = withContext(Dispatchers.Main) {
+        suspendCoroutine { cont ->
+            manager(ctx).listOfflineRegions(object : OfflineManager.ListOfflineRegionsCallback {
+                override fun onList(offlineRegions: Array<OfflineRegion>?) { cont.resume(offlineRegions?.toList() ?: emptyList()) }
+                override fun onError(error: String) { cont.resume(emptyList()) }
+            })
+        }
     }
 
-    suspend fun status(r: OfflineRegion): OfflineRegionStatus? = suspendCoroutine { cont ->
-        r.getStatus(object : OfflineRegion.OfflineRegionStatusCallback {
-            override fun onStatus(status: OfflineRegionStatus?) { cont.resume(status) }
-            override fun onError(error: String?) { cont.resume(null) }
-        })
+    suspend fun status(r: OfflineRegion): OfflineRegionStatus? = withContext(Dispatchers.Main) {
+        suspendCoroutine { cont ->
+            r.getStatus(object : OfflineRegion.OfflineRegionStatusCallback {
+                override fun onStatus(status: OfflineRegionStatus?) { cont.resume(status) }
+                override fun onError(error: String?) { cont.resume(null) }
+            })
+        }
     }
 
     fun name(r: OfflineRegion): String = r.metadata?.let { String(it, StandardCharsets.UTF_8) } ?: "area"
 
-    /** Creates a pack for the bounds (nothing downloaded yet) and hands it to the pack job. */
-    suspend fun create(ctx: Context, styleFile: File, bounds: LatLngBounds, name: String, maxZoom: Double = MAX_ZOOM): OfflineRegion? {
-        val pixelRatio = ctx.resources.displayMetrics.density
+    suspend fun country(ctx: Context): OfflineRegion? = list(ctx).firstOrNull { name(it) == COUNTRY_NAME }
+    /** Areas saved by versions before 0.10. */
+    suspend fun legacy(ctx: Context): List<OfflineRegion> = list(ctx).filter { name(it) != COUNTRY_NAME }
+
+    /** The style the pack is made from: the app's map without the live-only closures. */
+    suspend fun packStyle(ctx: Context): String {
+        val s = JSONObject(MapStyle.build(MapStyle.baseStyle(ctx), false))
+        val sources = s.getJSONObject("sources")
+        val live = sources.keys().asSequence().filter { it.startsWith("closures") }.toList()
+        live.forEach { sources.remove(it) }
+        val old = s.getJSONArray("layers"); val layers = JSONArray()
+        for (i in 0 until old.length()) { val l = old.getJSONObject(i); if (l.optString("source") !in live) layers.put(l) }
+        s.put("layers", layers)
+        return s.toString()
+    }
+
+    /** Seeds the style and returns the country pack, made if missing (nothing downloaded here). */
+    suspend fun ensureCountry(ctx: Context, style: String): OfflineRegion? = withContext(Dispatchers.Main) {
         val now = System.currentTimeMillis() / 1000
-        manager(ctx).putResourceWithUrl(STYLE_URL, styleFile.readBytes(), now, now + 3650L * 86400, null, false)
-        val def = OfflineTilePyramidRegionDefinition(STYLE_URL, bounds, MIN_ZOOM, maxZoom, pixelRatio)
-        val region = suspendCoroutine<OfflineRegion?> { cont ->
-            manager(ctx).createOfflineRegion(def, name.toByteArray(StandardCharsets.UTF_8), object : OfflineManager.CreateOfflineRegionCallback {
-                override fun onCreate(offlineRegion: OfflineRegion) { cont.resume(offlineRegion) }
-                override fun onError(error: String) { cont.resume(null) }
+        manager(ctx).putResourceWithUrl(STYLE_URL, style.toByteArray(), now, now + 3650L * 86400, null, false)
+        country(ctx) ?: run {
+            val def = OfflineTilePyramidRegionDefinition(STYLE_URL, COUNTRY, MIN_ZOOM, MAX_ZOOM, ctx.resources.displayMetrics.density)
+            suspendCoroutine<OfflineRegion?> { cont ->
+                manager(ctx).createOfflineRegion(def, COUNTRY_NAME.toByteArray(StandardCharsets.UTF_8), object : OfflineManager.CreateOfflineRegionCallback {
+                    override fun onCreate(offlineRegion: OfflineRegion) { cont.resume(offlineRegion) }
+                    override fun onError(error: String) { cont.resume(null) }
+                })
+            }
+        }
+    }
+
+    /**
+     * What the map's servers say about their current version: the swisstopo tilesets' tiles.json
+     * validators, one tile of each ASTRA route layer over central Switzerland (any change of the
+     * routes there renews it), and the list of sources the app draws. Null when one cannot be reached.
+     */
+    suspend fun signature(ctx: Context): String? {
+        val style = JSONObject(MapStyle.baseStyle(ctx)).getJSONObject("sources")
+        val urls = style.keys().asSequence().mapNotNull { style.getJSONObject(it).optString("url").ifBlank { null } }.sorted().toList()
+        val probes = urls + listOf(
+            "https://wmts.geo.admin.ch/1.0.0/ch.astra.veloland/default/current/3857/9/266/180.png",
+            "https://wmts.geo.admin.ch/1.0.0/ch.astra.mountainbikeland/default/current/3857/9/266/180.png")
+        val parts = probes.map { Offline.validator(it) ?: return null }
+        return (urls + parts).joinToString("|")
+    }
+
+    /** Marks every tile of the pack stale: the next download pass asks the server about each (304 when unchanged). */
+    suspend fun invalidate(r: OfflineRegion): Boolean = withContext(Dispatchers.Main) {
+        suspendCoroutine { cont ->
+            r.invalidate(object : OfflineRegion.OfflineRegionInvalidateCallback {
+                override fun onInvalidate() { cont.resume(true) }
+                override fun onError(error: String) { cont.resume(false) }
             })
         }
-        if (region != null) PackWorker.enqueue(ctx)
-        return region
-    }
-
-    /** Packs that still miss tiles (interrupted, or marked stale by a refresh). */
-    suspend fun incomplete(ctx: Context): List<OfflineRegion> = list(ctx).filter { status(it)?.isComplete == false }
-
-    fun start(r: OfflineRegion, onProgress: (Long, Long, Boolean) -> Unit, onError: (String) -> Unit) {
-        r.setObserver(object : OfflineRegion.OfflineRegionObserver {
-            override fun onStatusChanged(status: OfflineRegionStatus) {
-                onProgress(status.completedResourceCount, status.requiredResourceCount, status.isComplete)
-                if (status.isComplete) r.setDownloadState(OfflineRegion.STATE_INACTIVE)
-            }
-            override fun onError(error: OfflineRegionError) { onError(error.message) }
-            override fun mapboxTileCountLimitExceeded(limit: Long) { onError("tile limit $limit") }
-        })
-        r.setDownloadState(OfflineRegion.STATE_ACTIVE)
-    }
-
-    /** Marks every tile of the pack stale so the next download pass fetches fresh ones. */
-    suspend fun refresh(r: OfflineRegion): Boolean = suspendCoroutine { cont ->
-        r.invalidate(object : OfflineRegion.OfflineRegionInvalidateCallback {
-            override fun onInvalidate() { cont.resume(true) }
-            override fun onError(error: String) { cont.resume(false) }
-        })
     }
 
     fun unmetered(ctx: Context): Boolean {
@@ -89,10 +116,12 @@ object OfflineMaps {
         return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
     }
 
-    suspend fun delete(r: OfflineRegion): Boolean = suspendCoroutine { cont ->
-        r.delete(object : OfflineRegion.OfflineRegionDeleteCallback {
-            override fun onDelete() { cont.resume(true) }
-            override fun onError(error: String) { cont.resume(false) }
-        })
+    suspend fun delete(r: OfflineRegion): Boolean = withContext(Dispatchers.Main) {
+        suspendCoroutine { cont ->
+            r.delete(object : OfflineRegion.OfflineRegionDeleteCallback {
+                override fun onDelete() { cont.resume(true) }
+                override fun onError(error: String) { cont.resume(false) }
+            })
+        }
     }
 }

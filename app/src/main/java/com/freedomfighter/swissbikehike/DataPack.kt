@@ -1,8 +1,6 @@
 package com.freedomfighter.swissbikehike
 
-import android.app.DownloadManager
 import android.content.Context
-import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -13,20 +11,20 @@ import java.util.zip.GZIPInputStream
 
 /**
  * A data pack built by the repository's workflows and kept on a rolling GitHub release: the
- * timetable, the places. Fetched over Wi-Fi with the system DownloadManager, as a .gz beside a
- * .json description, unpacked on a worker thread, checked, then put in place. Nothing is fetched
- * without the person asking (the menu's buttons).
+ * timetable, the places. Fetched by [OfflineWorker] (a .gz beside a .json description), unpacked,
+ * checked, then put in place. Nothing is fetched without the person asking.
  */
-abstract class DataPack(private val release: String, val name: String, private val key: String, private val titleRes: Int) {
+abstract class DataPack(private val release: String, val name: String, private val key: String, val part: Offline.Part) {
     private val base get() = "https://github.com/funkypitt/swiss-bike-hike-map/releases/download/$release/"
+    val gzUrl get() = "$base$name.gz"
 
     fun dir(ctx: Context): File = File(ctx.getExternalFilesDir(null) ?: ctx.filesDir, key).apply { mkdirs() }
     fun file(ctx: Context) = File(dir(ctx), name)
     protected fun meta(ctx: Context) = File(dir(ctx), "$name.json")
-    private fun part(ctx: Context) = File(dir(ctx), "$name.gz.part")
+    fun part(ctx: Context) = File(dir(ctx), "$name.gz.part")
 
     @Volatile var unpacking = false; private set
-    fun isReady(ctx: Context): Boolean { finalize(ctx); return file(ctx).exists() && !unpacking }
+    fun isReady(ctx: Context): Boolean = file(ctx).exists() && !unpacking
 
     /** What a pack says about itself: a version (feed date, count…), when it was built, its size. */
     class Info(val version: String, val built: String, val bytes: Long)
@@ -45,90 +43,47 @@ abstract class DataPack(private val release: String, val name: String, private v
         return if (m.exists()) runCatching { info(JSONObject(m.readText()), false) }.getOrNull() else null
     }
 
-    /** The description of the pack on the server, or null offline. */
-    suspend fun remote(): Info? = withContext(Dispatchers.IO) {
+    /** The server's description: its text, or null offline. */
+    suspend fun remoteText(): String? = withContext(Dispatchers.IO) {
         try {
             val c = URL("$base$name.json").openConnection() as HttpURLConnection
             c.connectTimeout = 8000; c.readTimeout = 8000; c.instanceFollowRedirects = true
             val text = c.inputStream.bufferedReader().readText(); c.disconnect()
-            info(JSONObject(text), true)
+            if (text.contains("\"built\"")) text else null
         } catch (e: Exception) { null }
     }
+    suspend fun remote(): Info? = remoteText()?.let { runCatching { info(JSONObject(it), true) }.getOrNull() }
+    fun parse(text: String, remote: Boolean): Info? = runCatching { info(JSONObject(text), remote) }.getOrNull()
 
-    /** Download progress in percent while one runs, else -1. */
-    fun downloading(ctx: Context): Int { finalize(ctx); return Downloads.state(ctx, Prefs(ctx).downloadId(key)).percent.coerceAtLeast(-1) }
-    fun waitingWifi(ctx: Context): Boolean = Downloads.state(ctx, Prefs(ctx).downloadId(key)).waitingWifi
-    /** Why the last download or unpacking failed, blank when it did not. */
-    fun failure(ctx: Context): String = Prefs(ctx).failure(key)
+    /** Is the server's pack newer than the phone's (or is there none on the phone)? */
+    fun newer(local: Info?, remote: Info): Boolean = local == null || remote.built > local.built ||
+        (local.built.isBlank() && remote.version > local.version)
 
-    /** Starts the download (Wi-Fi only) unless one is running; the description is fetched first, kept aside until the pack is in. */
-    fun download(ctx: Context) {
-        if (downloading(ctx) >= 0) return
-        val dm = ctx.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        part(ctx).delete()
-        Prefs(ctx).setFailure(key, "")
-        Thread { runCatching {
-            val cn = URL("$base$name.json").openConnection() as HttpURLConnection
-            cn.connectTimeout = 8000; cn.readTimeout = 8000
-            val text = cn.inputStream.bufferedReader().readText(); cn.disconnect()
-            if (text.contains("\"built\"")) File(dir(ctx), "$name.json.new").writeText(text)
-        } }.start()
-        val req = DownloadManager.Request(Uri.parse("$base$name.gz"))
-            .setTitle(ctx.getString(titleRes))
-            .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI)
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            .setDestinationInExternalFilesDir(ctx, null, "$key/$name.gz.part")
-        Prefs(ctx).setDownloadId(key, dm.enqueue(req))
-    }
-
-    /** Unpacks the downloaded .gz on a worker thread, checks it, puts it and its description in place. */
-    @Synchronized private fun unpack(ctx: Context) {
-        if (unpacking) return
+    /** Unpacks the downloaded .gz, checks it, puts it and its description in place. False = damaged (the .gz is dropped). */
+    fun install(ctx: Context, description: String?): Boolean {
+        val p = part(ctx); val tmp = File(dir(ctx), "$name.tmp")
         unpacking = true
-        Thread {
-            val app = ctx.applicationContext
-            val prefs = Prefs(app)
-            val p = part(app); val tmp = File(dir(app), "$name.tmp")
+        try {
             val ok = runCatching {
                 GZIPInputStream(p.inputStream().buffered()).use { i -> tmp.outputStream().buffered().use { o -> i.copyTo(o) } }
                 check(tmp)
             }.getOrDefault(false)
             if (ok) {
-                file(app).delete(); tmp.renameTo(file(app)); replaced()
-                File(dir(app), "$name.json.new").let { if (it.exists()) { meta(app).delete(); it.renameTo(meta(app)) } }
-            } else prefs.setFailure(key, app.getString(R.string.dl_bad_pack))
-            tmp.delete(); p.delete()
-            unpacking = false
-        }.start()
+                file(ctx).delete(); tmp.renameTo(file(ctx)); replaced()
+                if (description != null) meta(ctx).writeText(description)
+            }
+            return ok
+        } finally { tmp.delete(); p.delete(); unpacking = false }
     }
 
-    /** Hands a finished download to the unpacking, notes a failed one. Cheap when nothing is pending; safe to call often. */
-    fun finalize(ctx: Context) {
-        val prefs = Prefs(ctx)
-        val id = prefs.downloadId(key); if (id < 0) return
-        val dm = ctx.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        dm.query(DownloadManager.Query().setFilterById(id)).use { c ->
-            if (!c.moveToFirst()) { prefs.setDownloadId(key, -1); return }
-            when (c.getInt(c.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))) {
-                DownloadManager.STATUS_SUCCESSFUL -> {
-                    prefs.setDownloadId(key, -1)
-                    if (part(ctx).exists()) unpack(ctx)
-                }
-                DownloadManager.STATUS_FAILED -> {
-                    val reason = c.getInt(c.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON))
-                    prefs.setFailure(key, Downloads.reasonText(ctx, reason))
-                    prefs.setDownloadId(key, -1); part(ctx).delete()
-                }
-            }
-        }
-    }
+    fun delete(ctx: Context) { file(ctx).delete(); meta(ctx).delete(); part(ctx).delete(); replaced() }
 }
 
 /**
  * The offline timetable pack: built weekly from the official Swiss GTFS by the repository's
  * workflow (tools/make-transit.py), published on the rolling release "transit-data".
  */
-object Timetable : DataPack("transit-data", "switzerland.transit", "transit", R.string.menu_timetable) {
+object Timetable : DataPack("transit-data", "switzerland.transit", "transit", Offline.Part.TIMETABLE) {
     @Volatile private var cached: Transit? = null
     @Volatile private var cachedStamp = 0L
 
@@ -138,7 +93,6 @@ object Timetable : DataPack("transit-data", "switzerland.transit", "transit", R.
 
     /** The pack, opened once and kept; reopened after an update. */
     fun open(ctx: Context): Transit? {
-        finalize(ctx)
         val f = file(ctx)
         if (!f.exists() || unpacking) return null
         val c = cached
@@ -154,7 +108,7 @@ object Timetable : DataPack("transit-data", "switzerland.transit", "transit", R.
  * The offline pack of places (fountains, shelters, huts, shops…) from OpenStreetMap: built weekly
  * by tools/make-places.py, published on the rolling release "places-data".
  */
-object PlacesPack : DataPack("places-data", "switzerland.places", "places", R.string.menu_places) {
+object PlacesPack : DataPack("places-data", "switzerland.places", "places", Offline.Part.PLACES) {
     const val CREDIT = "© OpenStreetMap contributors"
     @Volatile private var cached: Places? = null
     @Volatile private var cachedStamp = 0L
@@ -164,7 +118,6 @@ object PlacesPack : DataPack("places-data", "switzerland.places", "places", R.st
     override fun replaced() { cached = null }
 
     fun open(ctx: Context): Places? {
-        finalize(ctx)
         val f = file(ctx)
         if (!f.exists() || unpacking) return null
         val c = cached

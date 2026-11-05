@@ -4,38 +4,25 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="vertical" android:padding="16dp">
 
-        <TextView android:id="@+id/btnUpdateAll" style="@style/Btn" android:layout_width="match_parent" android:layout_height="64dp" android:layout_marginTop="4dp" android:background="@drawable/btn_active" android:textColor="@drawable/btn_active_text" android:text="@string/menu_update_all"/>
-        <TextView android:id="@+id/allInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:lineSpacingExtra="4dp" android:paddingTop="8dp"/>
+        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="0dp" android:text="@string/off_head"/>
+        <TextView android:id="@+id/offInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="15sp" android:lineSpacingExtra="4dp"/>
+        <ProgressBar android:id="@+id/offBar" style="?android:attr/progressBarStyleHorizontal" android:layout_width="match_parent" android:layout_height="14dp"
+            android:layout_marginTop="10dp" android:max="100" android:progressTint="@color/ink" android:progressBackgroundTint="@color/grey" android:visibility="gone"/>
+        <TextView android:id="@+id/offState" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="15sp" android:lineSpacingExtra="4dp" android:paddingTop="6dp" android:visibility="gone"/>
+        <TextView android:id="@+id/btnOffMain" style="@style/Btn" android:layout_width="match_parent" android:layout_height="64dp" android:layout_marginTop="10dp" android:background="@drawable/btn_active" android:textColor="@drawable/btn_active_text" android:text="@string/off_download"/>
+        <TextView android:id="@+id/btnOffDelete" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/off_delete" android:visibility="gone"/>
+        <TextView android:id="@+id/btnOffOld" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:visibility="gone"/>
+        <TextView android:id="@+id/offPolicy" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="13sp" android:textColor="@color/grey" android:lineSpacingExtra="3dp" android:paddingTop="8dp" android:text="@string/off_policy"/>
 
         <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/menu_trip"/>
         <TextView android:id="@+id/btnFollowGpx" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:text="@string/menu_follow_gpx"/>
         <TextView android:id="@+id/btnSharePos" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_share_position"/>
         <TextView android:id="@+id/btnNight" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_night_off"/>
+        <TextView android:id="@+id/btnPlacesMap" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_places_map_off"/>
 
         <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/menu_trips"/>
         <TextView android:id="@+id/tripsInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:textColor="@color/grey" android:text="@string/menu_trips_empty"/>
         <LinearLayout android:id="@+id/tripsList" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"/>
-
-        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/menu_routing"/>
-        <TextView android:id="@+id/segInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="15sp" android:fontFamily="monospace" android:lineSpacingExtra="4dp"/>
-        <TextView android:id="@+id/btnSegments" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_download_update"/>
-
-        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/menu_timetable"/>
-        <TextView android:id="@+id/timetableInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="15sp" android:lineSpacingExtra="4dp"/>
-        <TextView android:id="@+id/btnTimetable" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_download_update"/>
-
-        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/menu_places"/>
-        <TextView android:id="@+id/placesInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="15sp" android:lineSpacingExtra="4dp"/>
-        <TextView android:id="@+id/btnPlaces" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_download_update"/>
-        <TextView android:id="@+id/btnPlacesMap" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_places_map_off"/>
-
-        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/menu_offline"/>
-        <TextView android:id="@+id/offlineInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="15sp" android:lineSpacingExtra="4dp"/>
-        <TextView android:id="@+id/btnPacks" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_resume_packs" android:visibility="gone"/>
-        <TextView android:id="@+id/btnCountry" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_country"/>
-        <TextView android:id="@+id/btnOfflineArea" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_save_area"/>
-        <TextView android:id="@+id/btnOfflineRefresh" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_refresh_areas"/>
-        <TextView android:id="@+id/btnOfflineDelete" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_delete_areas"/>
 
         <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/menu_people"/>
         <EditText android:id="@+id/dirKey" android:layout_width="match_parent" android:layout_height="56dp"

@@ -27,7 +27,7 @@ Everything is recycled:
 | Routing | [BRouter](https://github.com/abrensch/brouter) (MIT) embedded as the `brouter` module, OpenStreetMap data from brouter.de (profiles `trekking` and `hiking-mountain`) |
 | Turn instructions | BRouter's own voice hints (`turnInstructionMode`), read through `brouter/.../TurnHints.java` |
 | Search | GeoAdmin search API; people and firms through the search.ch directory with the person's own key |
-| Offline | MapLibre offline packs for the area on screen, zoom 8 to 15, refreshed from the menu only (0.6.1: nothing automatic at launch, it stalled the map) |
+| Offline | 0.10: one "Switzerland offline" run (`Offline.kt`, `OfflineWorker.kt`): timetable, places, routing files by HTTP Range/If-Range (resumable, 304 when unchanged), then one MapLibre pack of the country zoom 8–14 without the live closure layers (1.25 M resources). Map updates only when the swisstopo tiles.json / ASTRA probe-tile validators change, by invalidate + revalidation. Nothing automatic at launch (0.6.1: it stalled the map) |
 
 Data © swisstopo, © SchweizMobil, © OpenStreetMap contributors.
 

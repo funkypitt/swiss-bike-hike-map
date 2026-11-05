@@ -153,7 +153,7 @@ class RouteActivity : AppCompatActivity() {
         val to = f.to ?: run { Toast.makeText(this, R.string.route_need_to, Toast.LENGTH_SHORT).show(); return }
         val from = f.from ?: here?.let { Stop(it, getString(R.string.my_position)) } ?: run { Toast.makeText(this, R.string.route_no_position, Toast.LENGTH_LONG).show(); return }
         if (mode != Mode.TRANSIT && !Segments.isReady(this)) {
-            val pct = Segments.downloading(this)
+            val pct = Offline.percent(this, Offline.Part.ROUTING)
             status(if (pct >= 0) getString(R.string.seg_still_downloading, pct) else getString(R.string.need_data_msg) + "\n" + getString(R.string.route_data_menu))
             return
         }

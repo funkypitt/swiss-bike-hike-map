@@ -43,11 +43,13 @@ the app was called Swiss Bike-Hike Map; the package name has not changed.)
   completes a place with its phone and address; public-transport stops, and your favourites,
   which you can import and export (GPX, KML, GeoJSON, CSV). The places can be drawn on the map
   as coloured dots.
-* **Offline**: save the area on screen or the whole country in one button (about 2.5 GB); the
-  download survives the app being closed and the phone restarting, waits for Wi-Fi, and shows
-  its progress in the menu and in a notification with PAUSE. Nothing is downloaded by itself:
-  one button at the top of the menu updates every offline thing (saved areas, routing data,
-  timetable) when you decide.
+* **Offline**: one option, all of Switzerland — map, routing, places and timetable (about
+  2.9 GB) — in one download with a progress bar in the menu and in a notification with PAUSE.
+  It waits for Wi-Fi, resumes where it stopped after a lost connection, a closed app or a
+  restart, and stops with the reason when the phone lacks room. Updates follow how often things
+  change: the timetable weekly, places and routing monthly, the map only when swisstopo or ASTRA
+  publish a new one (then unchanged tiles are only checked). Nothing is downloaded by itself; a
+  line on the first screen says when an update is worth it.
 * **Night map** by hand or after sunset; share a place or your position as text; six languages
   (en, fr, de, es, pt, ru).
 * Permissions: location, notifications (guidance and downloads), vibration. What leaves the phone:

@@ -61,16 +61,14 @@
         <activity android:name=".MenuActivity" />
         <activity android:name=".RouteActivity" />
 
-        <receiver android:name=".SegmentReceiver" android:exported="true">
-            <intent-filter><action android:name="android.intent.action.DOWNLOAD_COMPLETE"/></intent-filter>
-        </receiver>
+        <receiver android:name=".OfflineReceiver" android:exported="false"/>
 
         <service
             android:name=".RecordService"
             android:exported="false"
             android:foregroundServiceType="location" />
         <service android:name=".NavService" android:foregroundServiceType="location" android:exported="false" />
-        <!-- WorkManager's foreground service carries the map pack download on API 34+ -->
+        <!-- WorkManager's foreground service carries the offline download on API 34+ -->
         <service android:name="androidx.work.impl.foreground.SystemForegroundService"
             android:foregroundServiceType="dataSync" tools:node="merge" />
     </application>

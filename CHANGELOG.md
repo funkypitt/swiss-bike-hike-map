@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.10.0 — 2026-11-05
+
+* Offline is now one option: **Switzerland offline**, at the top of the menu — map, routing,
+  places and timetable of the whole country (about 2.9 GB) in one download. Saving the area on
+  screen is gone; areas saved by older versions can be deleted in one button and are dropped
+  once the whole map is in.
+* One download manager for all of it: a progress bar in the menu and in one notification with
+  PAUSE; it waits for Wi-Fi, resumes exactly where it stopped after a lost connection, a closed
+  app or a restart (files by byte ranges, the map by the tiles it still lacks), and stops with
+  the reason when the phone has not the room. A paused download never restarts by itself; it can
+  be resumed or cancelled (what is complete stays).
+* Updates fit daily use: the timetable is worth fetching every week, places and routing every
+  month, the map only when swisstopo or ASTRA publish a new one — then every tile is only
+  checked and just the changed ones fetched. One small request per part tells whether the server
+  has something newer; UPDATE fetches only what is due. A line on the first screen says when an
+  update is worth it (from the dates on the phone, no network).
+* The offline map no longer carries the closures layers (they change daily and only make sense
+  live): 1.25 M resources instead of 1.37 M.
+
 ## 0.9.1 — 2026-11-03
 
 * Stopped in navigation, the map no longer spins round: standing still, the course the GPS

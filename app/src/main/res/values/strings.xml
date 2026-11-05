@@ -10,7 +10,6 @@
 
     <!-- map screen -->
     <string name="go">GO</string>
-    <string name="clear">CLEAR</string>
     <string name="nav">NAV</string>
     <string name="stop_nav">STOP</string>
     <string name="rec">REC</string>
@@ -24,7 +23,6 @@
     <string name="dist">DIST km</string>
     <string name="togo">TO GO km</string>
     <string name="stop_n">Stop %1$d</string>
-    <string name="stop_reached">Stop %1$d reached: %2$s</string>
     <string name="then">then</string>
     <string name="arrived">ARRIVED</string>
     <string name="off_route">Off route, rerouting…</string>
@@ -41,7 +39,6 @@
     <string name="need_data_msg">Routing for Switzerland needs two files from brouter.de (about 450 MB), downloaded once. Use Wi-Fi.</string>
     <string name="download">DOWNLOAD</string>
     <string name="later">LATER</string>
-    <string name="downloading_bg">Downloading in the background</string>
     <string name="downloading_wifi">Downloading over Wi-Fi</string>
     <string name="recording_notif">Recording your track</string>
     <string name="saved">Saved to Documents/Swiss Bikers and Pedestrians Map/%1$s</string>
@@ -84,31 +81,6 @@
     <string name="menu_trips">TRIPS (navigation history)</string>
     <string name="menu_trips_empty">Every navigated trip is kept here, with its track. Tap one to see it, hold to remove it.</string>
     <string name="trip_remove_q">Remove the trip to %1$s?</string>
-    <string name="menu_routing">ROUTING DATA (OpenStreetMap via brouter.de)</string>
-    <string name="menu_download_update">DOWNLOAD / UPDATE</string>
-    <string name="seg_downloading">downloading %1$d%%</string>
-    <string name="seg_missing">missing</string>
-    <string name="seg_checking">checking brouter.de…</string>
-    <string name="seg_newer">→ newer on server: %1$s</string>
-    <string name="seg_up_to_date">up to date</string>
-    <string name="menu_offline">OFFLINE MAPS (swisstopo)</string>
-    <string name="menu_country">SAVE ALL OF SWITZERLAND</string>
-    <string name="country_confirm">The whole country, zoom 8 to 14: about 2.5 GB, a few hours. Keep the phone plugged in; the download goes on in the background with a notification.</string>
-    <string name="country_not_wifi">You are not on Wi-Fi.</string>
-    <string name="country_channel">Offline map download</string>
-    <string name="menu_save_area">SAVE THE AREA LAST SHOWN</string>
-    <string name="menu_refresh_areas">REFRESH SAVED AREAS</string>
-    <string name="menu_delete_areas">DELETE SAVED AREAS</string>
-    <string name="no_saved_area">No saved area. Zoom the map to the area you want, then save it here (zoom 8 to 15).</string>
-    <string name="area_complete">complete</string>
-    <string name="area_tiles">%1$d / %2$d tiles</string>
-    <string name="area_saving">Saving %1$s: %2$d / %3$d tiles</string>
-    <string name="area_saved">Saved %1$s (%2$d tiles)</string>
-    <string name="area_refreshing">Refreshing %1$s: %2$d / %3$d tiles</string>
-    <string name="area_refreshed">Refreshed %1$s</string>
-    <string name="open_map_first">Open the map first</string>
-    <string name="delete_areas_q">Delete every saved area?</string>
-    <string name="error_x">Error: %1$s</string>
     <string name="menu_people">PEOPLE &amp; FIRMS (search.ch)</string>
     <string name="menu_save_key">SAVE THE KEY</string>
     <string name="menu_order_key">ORDER A FREE KEY ON SEARCH.CH</string>
@@ -119,16 +91,6 @@
     <string name="nav_channel">Navigation</string>
     <string name="nav_starting">Navigation starting…</string>
     <string name="eta_short">arrival %1$s</string>
-    <string name="packs_title">Saving maps</string>
-    <string name="packs_starting">Map download starting…</string>
-    <string name="packs_waiting">Map download waiting for Wi-Fi (it resumes by itself)</string>
-    <string name="packs_paused">Map download paused; press RESUME to go on</string>
-    <string name="packs_done">Every saved area is complete</string>
-    <string name="packs_incomplete">Some areas are incomplete: press RESUME</string>
-    <string name="packs_progress">%1$s: %2$d %% (%3$d / %4$d tiles)</string>
-    <string name="packs_error">%1$s: stopped (%2$s), retrying later</string>
-    <string name="menu_resume_packs">RESUME THE MAP DOWNLOAD</string>
-    <string name="menu_pause_packs">PAUSE THE MAP DOWNLOAD</string>
     <string name="pause">PAUSE</string>
 
     <!-- public transport -->
@@ -144,14 +106,8 @@
     <string name="no_journey">No journey found</string>
     <string name="planning">Looking for journeys…</string>
     <string name="need_timetable_title">Timetable</string>
-    <string name="need_timetable_msg">No connection, and the timetable pack is not on the phone. Over Wi-Fi, MENU › PUBLIC TRANSPORT TIMETABLE fetches it (about 15 MB), so journeys can be planned without a connection.</string>
-    <string name="menu_timetable">PUBLIC TRANSPORT TIMETABLE (opentransportdata.swiss)</string>
+    <string name="need_timetable_msg">No connection, and the timetable is not on the phone. Over Wi-Fi, DOWNLOAD fetches it (about 15 MB), so journeys can be planned without a connection.</string>
     <string name="timetable_missing">Not on the phone: journeys and departures need a connection (transport.opendata.ch).</string>
-    <string name="timetable_info">Timetable %1$s · %2$s · built %3$s</string>
-    <string name="timetable_newer">→ newer pack on the server (%1$s)</string>
-    <string name="timetable_up_to_date">up to date</string>
-    <string name="timetable_downloading">downloading %1$d%%</string>
-    <string name="timetable_checking">checking the server…</string>
     <string name="offline_timetable">offline timetable</string>
     <string name="realtime">real time</string>
     <string name="nav_walk_to">WALK to %1$s</string>
@@ -174,21 +130,6 @@
     <string name="kind_lift">Lift</string>
     <string name="transit_short">TRANSIT</string>
     <string name="kind_metro">Metro</string>
-    <string name="refresh_hint">Nothing is downloaded by itself. REFRESH SAVED AREAS fetches fresh tiles when you decide; the progress shows here and in a notification, PAUSE stops it, RESUME goes on.</string>
-    <string name="refresh_asked">Refresh asked for %1$d area(s) on %2$s</string>
-    <string name="timetable_hint">Nothing is downloaded by itself: when a newer pack is reported here, press DOWNLOAD / UPDATE. The progress shows here and in the system\'s download notification.</string>
-    <string name="menu_update_all">UPDATE ALL OFFLINE DATA</string>
-    <string name="update_all_confirm">Fetches fresh tiles for every saved area, the routing data (about 450 MB), the timetable (about 15 MB) and the places (about 5 MB), over Wi-Fi. The progress shows in the menu and in the notifications; nothing else is downloaded without you.</string>
-    <string name="all_maps_none">Maps: no saved area</string>
-    <string name="all_maps_running">Maps: %1$d area(s), download running</string>
-    <string name="all_maps_incomplete">Maps: %1$d area(s), some incomplete</string>
-    <string name="all_maps_ok">Maps: %1$d area(s) complete</string>
-    <string name="all_routing_missing">Routing data: missing</string>
-    <string name="all_routing_newer">Routing data: newer on the server</string>
-    <string name="all_routing_ok">Routing data: up to date</string>
-    <string name="all_timetable_missing">Timetable: not on the phone</string>
-    <string name="all_timetable_newer">Timetable: newer on the server</string>
-    <string name="all_timetable_ok">Timetable: up to date</string>
 
     <!-- robustness: downloads and failures in words -->
     <string name="dl_no_space">not enough space on the phone</string>
@@ -210,8 +151,6 @@
     <string name="live_failed_offline_used">Live timetable unavailable (%1$s): offline timetable used, no real-time delays</string>
     <string name="nav_replan_failed">No new journey found: go on with the next step</string>
     <string name="search_no_answer">No answer from the search server; check the connection</string>
-    <string name="all_routing_state">Routing data: %1$s</string>
-    <string name="all_timetable_state">Timetable: %1$s</string>
     <string name="set_destination">DESTINATION</string>
 
     <!-- route planner -->
@@ -235,11 +174,10 @@
     <string name="route_no_position">No GPS position yet: choose a start with FIND or ON THE MAP</string>
     <string name="route_pick_from">Press long on the map: the START</string>
     <string name="route_pick_to">Press long on the map: the DESTINATION</string>
-    <string name="route_data_menu">MENU › UPDATE ALL OFFLINE DATA fetches it.</string>
+    <string name="route_data_menu">MENU › SWITZERLAND OFFLINE fetches it.</string>
     <string name="step_walk">walk %1$s (%2$s)</string>
     <string name="step_straight">%1$s</string>
     <string name="minutes_n">%1$d min</string>
-    <string name="dl_unpacking">unpacking…</string>
     <string name="transit_multi_hint">Public transport: the journey goes through your stops in order; only the first leg offers a choice of times.</string>
     <!-- places from OpenStreetMap -->
     <string name="cat_water">Drinking water</string>
@@ -267,8 +205,7 @@
     <string name="cat_info">Tourist information</string>
     <string name="cat_sight">Sight, castle</string>
     <string name="cat_atm">Cash machine</string>
-    <string name="places_pack_missing">Fountains, shelters, huts, shops… are not on the phone yet: MENU › PLACES fetches them (about 5 MB), then they can be searched without a connection.</string>
-    <string name="places_pick">Pick a category, or type a name</string>
+    <string name="places_pack_missing">Fountains, shelters, huts, shops… are not on the phone yet: MENU › SWITZERLAND OFFLINE fetches them, then they can be searched without a connection.</string>
     <string name="around_you">around you</string>
     <string name="around_map">around the map centre</string>
     <string name="back_categories">‹ CATEGORIES</string>
@@ -281,15 +218,8 @@
     <string name="place_directory_none">Not in the directory</string>
     <string name="place_directory_more">Tap a place for its card (hours, phone, address); with your search.ch key, the directory completes it.</string>
     <string name="menu_places">PLACES (OpenStreetMap)</string>
-    <string name="places_missing">Not on the phone: fountains, shelters, huts, shops… need this pack (about 5 MB).</string>
-    <string name="places_info">%1$s places · %2$s · built %3$s</string>
     <string name="menu_places_map_off">PLACES ON THE MAP: OFF</string>
     <string name="menu_places_map_on">PLACES ON THE MAP: ON</string>
-    <string name="places_map_hint">ON draws the places of the pack as coloured dots from zoom 13 (blue water, green rest, red bike, amber food, purple lodging, grey services); a tap on a dot pins it.</string>
-    <string name="all_places_missing">Places: not on the phone</string>
-    <string name="all_places_newer">Places: newer on the server</string>
-    <string name="all_places_ok">Places: up to date</string>
-    <string name="all_places_state">Places: %1$s</string>
     <string name="places_zoom_in">Zoom in to see the places (from zoom 13)</string>
     <string name="places_offer_msg">Fountains, shelters, huts, shops… from OpenStreetMap are not on the phone yet: about 5 MB, over Wi-Fi. Then they show on the map and in FIND without a connection.</string>
     <string name="cat_cafe">Café, tea room</string>
@@ -343,4 +273,64 @@
     <string name="shop_stationery">Stationery</string>
     <string name="shop_toys">Toys</string>
     <string name="shop_hardware">Hardware</string>
+    <string name="off_part_timetable">Timetable</string>
+    <string name="off_part_places">Places</string>
+    <string name="off_part_routing">Routing</string>
+    <string name="off_part_map">Map</string>
+    <string name="off_head">SWITZERLAND OFFLINE</string>
+    <string name="off_download">DOWNLOAD ALL OF SWITZERLAND</string>
+    <string name="off_download_size">DOWNLOAD ALL OF SWITZERLAND · ≈ %1$s</string>
+    <string name="off_complete_size">DOWNLOAD THE REST · ≈ %1$s</string>
+    <string name="off_update_n">UPDATE: %1$s</string>
+    <string name="off_update">UPDATE</string>
+    <string name="off_up_to_date">UP TO DATE</string>
+    <string name="off_pause">PAUSE</string>
+    <string name="off_resume">RESUME</string>
+    <string name="off_delete">DELETE THE OFFLINE DATA</string>
+    <string name="off_delete_q">Delete the map, routing, places and timetable from the phone? Routes (GO) need the routing data again afterwards.</string>
+    <string name="off_delete_old">DELETE THE OLD SAVED AREAS (%1$d · %2$s)</string>
+    <string name="off_delete_old_q">Delete the %1$d area(s) saved by an older version? The map of all Switzerland replaces them.</string>
+    <string name="off_policy">Updates follow how often things change: the timetable every week, places and routing every month, the map when swisstopo or ASTRA publish a new one (unchanged tiles are only checked, not fetched again). Nothing is downloaded without you; a line on the first screen says when something is worth updating.</string>
+    <string name="off_s_paused">paused at %1$d%%</string>
+    <string name="off_s_downloading">downloading %1$d%%</string>
+    <string name="off_s_queued">waiting its turn</string>
+    <string name="off_s_partial">incomplete (%1$s)</string>
+    <string name="off_s_missing">not on the phone</string>
+    <string name="off_s_due">update due</string>
+    <string name="off_s_newer_later">newer on the server, not needed yet</string>
+    <string name="off_s_current">up to date</string>
+    <string name="off_s_checking">checking…</string>
+    <string name="off_s_unknown">server not reached</string>
+    <string name="off_paused">Paused at %1$d%%. RESUME goes on from there.</string>
+    <string name="off_running">%1$d%% done</string>
+    <string name="off_wait_wifi">%1$d%% done — waiting for Wi-Fi; it goes on by itself.</string>
+    <string name="off_wait_retry">%1$d%% done — goes on in a moment (connection lost, or battery low).</string>
+    <string name="off_not_wifi">You are not on Wi-Fi: it starts as soon as you are.</string>
+    <string name="off_no_space_now">Not enough room on the phone: %1$s needed, %2$s free.</string>
+    <string name="off_download_msg">Everything for using the app without a network, all of Switzerland:\n%1$s\n\nOver Wi-Fi only. The map takes a few hours, best with the phone charging; you can use the app meanwhile. The notification shows the progress and has PAUSE. If Wi-Fi drops or the phone restarts, it goes on by itself.</string>
+    <string name="off_update_msg">Worth updating now:\n%1$s\n\nOver Wi-Fi only, in the background, with the progress in the notification.</string>
+    <string name="off_why_timetable">this week\'s timetable (≈ 15 MB)</string>
+    <string name="off_why_places">a month of OpenStreetMap changes (≈ 5 MB)</string>
+    <string name="off_why_routing">a month of OpenStreetMap changes (≈ 450 MB)</string>
+    <string name="off_why_map">swisstopo or ASTRA published a new map: every tile is checked, only the changed ones are fetched (a few hours, little data)</string>
+    <string name="off_fresh_msg">Everything on the phone is current. Check it all again anyway? Files are fetched only if the server has newer ones; every map tile is checked (a few hours over Wi-Fi, little data).</string>
+    <string name="off_fresh_go">CHECK EVERYTHING</string>
+    <string name="off_hint">Offline data worth updating: %1$s. Tap to open the menu.</string>
+    <string name="off_channel">Switzerland offline</string>
+    <string name="off_title">Switzerland offline</string>
+    <string name="off_title_pct">Switzerland offline · %1$d%%</string>
+    <string name="off_starting">Starting…</string>
+    <string name="off_checking">%1$s: asking the server…</string>
+    <string name="off_unpacking">%1$s: unpacking…</string>
+    <string name="off_line_bytes">%1$s: %2$s of %3$s</string>
+    <string name="off_line_tiles">%1$s: %2$s / %3$s tiles (%4$s)</string>
+    <string name="off_retrying">Interrupted (%1$s); goes on by itself</string>
+    <string name="off_interrupted">interrupted</string>
+    <string name="off_stopped">Paused: %1$s</string>
+    <string name="off_no_space">not enough room on the phone (%1$s needed, %2$s free)</string>
+    <string name="off_done">Switzerland offline is ready. Updated: %1$s.</string>
+    <string name="off_done_nothing">Switzerland offline: everything was already current.</string>
+    <string name="off_hint_paused">Switzerland offline is paused at %1$d%%. Tap to open the menu and resume.</string>
+    <string name="off_cancel">CANCEL THE DOWNLOAD</string>
+    <string name="off_cancel_q">Cancel the download? What is already complete stays on the phone; the unfinished part is deleted.</string>
 </resources>

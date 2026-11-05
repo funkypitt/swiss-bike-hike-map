@@ -314,10 +314,10 @@ class MapActivity : AppCompatActivity(), LocationListener {
     /** The ◆ button: the dots on or off; without the pack on the phone, the offer to fetch it (3 MB, Wi-Fi). */
     private fun togglePlaces() {
         if (!prefs.placesOnMap && !PlacesPack.isReady(this)) {
-            val pct = PlacesPack.downloading(this)
-            if (pct >= 0) { Toast.makeText(this, getString(R.string.timetable_downloading, pct), Toast.LENGTH_SHORT).show(); return }
+            val pct = Offline.percent(this, Offline.Part.PLACES)
+            if (pct >= 0) { Toast.makeText(this, getString(R.string.off_s_downloading, pct), Toast.LENGTH_SHORT).show(); return }
             AlertDialog.Builder(this).setTitle(R.string.menu_places).setMessage(R.string.places_offer_msg)
-                .setPositiveButton(R.string.download) { _, _ -> PlacesPack.download(this); prefs.placesOnMap = true; updatePlacesButton(); Toast.makeText(this, R.string.downloading_wifi, Toast.LENGTH_LONG).show(); watchPlacesPack() }
+                .setPositiveButton(R.string.download) { _, _ -> Offline.start(this, listOf(Offline.Part.PLACES)); prefs.placesOnMap = true; updatePlacesButton(); Toast.makeText(this, R.string.downloading_wifi, Toast.LENGTH_LONG).show(); watchPlacesPack() }
                 .setNegativeButton(R.string.later, null).show()
             return
         }
@@ -332,7 +332,8 @@ class MapActivity : AppCompatActivity(), LocationListener {
             repeat(120) {
                 kotlinx.coroutines.delay(2000)
                 if (PlacesPack.isReady(this@MapActivity)) { refreshPlaces(); return@launch }
-                if (PlacesPack.failure(this@MapActivity).isNotBlank()) { Toast.makeText(this@MapActivity, PlacesPack.failure(this@MapActivity), Toast.LENGTH_LONG).show(); return@launch }
+                val fail = Offline.failure(this@MapActivity, Offline.Part.PLACES)
+                if (fail.isNotBlank()) { Toast.makeText(this@MapActivity, fail, Toast.LENGTH_LONG).show(); return@launch }
             }
         }
     }
@@ -682,10 +683,10 @@ class MapActivity : AppCompatActivity(), LocationListener {
         if (stops.isEmpty()) return
         if (mode == Mode.TRANSIT) { planTransit(); return }
         if (!Segments.isReady(this)) {
-            val pct = Segments.downloading(this)
+            val pct = Offline.percent(this, Offline.Part.ROUTING)
             if (pct >= 0) { Toast.makeText(this, getString(R.string.seg_still_downloading, pct), Toast.LENGTH_LONG).show(); return }
-            val failed = Segments.status(this).firstOrNull { it.failure.isNotBlank() }?.failure
-            if (failed != null) Toast.makeText(this, getString(R.string.seg_failed_hint, failed), Toast.LENGTH_LONG).show()
+            val failed = Offline.failure(this, Offline.Part.ROUTING)
+            if (failed.isNotBlank()) Toast.makeText(this, getString(R.string.seg_failed_hint, failed), Toast.LENGTH_LONG).show()
             askForData(); return
         }
         val from = lastLocation?.let { LatLng(it.latitude, it.longitude) } ?: run {
@@ -813,7 +814,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
 
     private fun askForTimetable() {
         AlertDialog.Builder(this).setTitle(R.string.need_timetable_title).setMessage(R.string.need_timetable_msg)
-            .setPositiveButton(R.string.download) { _, _ -> Timetable.download(this); Toast.makeText(this, R.string.downloading_wifi, Toast.LENGTH_LONG).show() }
+            .setPositiveButton(R.string.download) { _, _ -> Offline.start(this, listOf(Offline.Part.TIMETABLE)); Toast.makeText(this, R.string.downloading_wifi, Toast.LENGTH_LONG).show() }
             .setNegativeButton(R.string.later, null).show()
     }
 
@@ -1038,7 +1039,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
         AlertDialog.Builder(this)
             .setTitle(R.string.need_data_title)
             .setMessage(R.string.need_data_msg)
-            .setPositiveButton(R.string.download) { _, _ -> Segments.download(this); Toast.makeText(this, R.string.downloading_bg, Toast.LENGTH_LONG).show() }
+            .setPositiveButton(R.string.download) { _, _ -> Offline.start(this, listOf(Offline.Part.ROUTING)); Toast.makeText(this, R.string.downloading_wifi, Toast.LENGTH_LONG).show() }
             .setNegativeButton(R.string.later, null)
             .show()
     }
