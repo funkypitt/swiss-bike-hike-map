@@ -43,14 +43,40 @@ abstract class DataPack(private val release: String, val name: String, private v
         return if (m.exists()) runCatching { info(JSONObject(m.readText()), false) }.getOrNull() else null
     }
 
-    /** The server's description: its text, or null offline. */
-    suspend fun remoteText(): String? = withContext(Dispatchers.IO) {
-        try {
-            val c = URL("$base$name.json").openConnection() as HttpURLConnection
-            c.connectTimeout = 8000; c.readTimeout = 8000; c.instanceFollowRedirects = true
-            val text = c.inputStream.bufferedReader().readText(); c.disconnect()
-            if (text.contains("\"built\"")) text else null
-        } catch (e: Exception) { null }
+    /**
+     * The server's description: its text, or null offline. GitHub's direct release links sometimes
+     * answer after 10 s, or 504 for one file while the next one works (seen 2026-11-05 on
+     * switzerland.transit.json for hours): each try asks the direct link, then the same file through
+     * GitHub's API, and the download job makes `tries` tries.
+     */
+    suspend fun remoteText(tries: Int = 1): String? = withContext(Dispatchers.IO) {
+        for (i in 1..tries) {
+            for (ask in listOf({ get("$base$name.json") }, { viaApi() })) {
+                val text = runCatching { ask() }.getOrNull()
+                if (text != null && text.contains("\"built\"")) return@withContext text
+            }
+            if (i < tries) kotlinx.coroutines.delay(if (i == 1) 3_000L else 10_000L)
+        }
+        null
+    }
+
+    private fun get(url: String, accept: String? = null): String? {
+        val c = URL(url).openConnection() as HttpURLConnection
+        c.connectTimeout = 20_000; c.readTimeout = 20_000; c.instanceFollowRedirects = true
+        c.setRequestProperty("User-Agent", "SwissBikersPedestriansMap")
+        if (accept != null) c.setRequestProperty("Accept", accept)
+        return try { if (c.responseCode == 200) c.inputStream.bufferedReader().readText() else null } finally { c.disconnect() }
+    }
+
+    /** The description through api.github.com: the release by its tag, then the asset as bytes. */
+    private fun viaApi(): String? {
+        val rel = get("https://api.github.com/repos/funkypitt/swiss-bike-hike-map/releases/tags/$release", "application/vnd.github+json") ?: return null
+        val assets = JSONObject(rel).getJSONArray("assets")
+        for (i in 0 until assets.length()) {
+            val a = assets.getJSONObject(i)
+            if (a.optString("name") == "$name.json") return get(a.getString("url"), "application/octet-stream")
+        }
+        return null
     }
     suspend fun remote(): Info? = remoteText()?.let { runCatching { info(JSONObject(it), true) }.getOrNull() }
     fun parse(text: String, remote: Boolean): Info? = runCatching { info(JSONObject(text), remote) }.getOrNull()

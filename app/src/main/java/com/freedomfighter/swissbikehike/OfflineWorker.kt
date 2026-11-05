@@ -44,9 +44,12 @@ class OfflineWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ct
         if (Offline.paused(app) || Offline.wanted(app).isEmpty()) return Result.success()
         try { setForeground(foreground(app.getString(R.string.off_starting), -1)) } catch (e: Exception) { return Result.retry() }
         try {
+            // a part that fails for now (server slow, connection lost) waits for the next round
+            // instead of holding up the others behind it
+            val later = mutableSetOf<Offline.Part>()
             while (true) {
                 if (Offline.paused(app)) return Result.success()
-                val part = Offline.wanted(app).firstOrNull() ?: break
+                val part = Offline.wanted(app).firstOrNull { it !in later } ?: break
                 try {
                     if (get(part)) fetched += part
                     Offline.done(app, part)
@@ -58,10 +61,11 @@ class OfflineWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ct
                         finished(app.getString(R.string.off_stopped, s.why))
                         return Result.failure()
                     }
-                    Offline.setProgress(app, part, 0, 0, app.getString(R.string.off_retrying, s.why))
-                    return Result.retry()
+                    Offline.setLine(app, app.getString(R.string.off_retrying, s.why))
+                    later += part
                 }
             }
+            if (later.isNotEmpty()) return Result.retry()
         } catch (e: CancellationException) {
             if (!Offline.paused(app)) Offline.setLine(app, app.getString(R.string.off_interrupted))  // the count stays: the bytes are kept
             throw e
@@ -93,7 +97,7 @@ class OfflineWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ct
     private suspend fun pack(p: DataPack): Boolean {
         val part = p.part
         progress(part, 0, 0, app.getString(R.string.off_checking, app.getString(part.label)))
-        val text = p.remoteText() ?: throw Stop(app.getString(R.string.server_unreachable), false)
+        val text = p.remoteText(tries = 4) ?: throw Stop(app.getString(R.string.server_unreachable), false)
         val remote = p.parse(text, true) ?: throw Stop(app.getString(R.string.server_unreachable), false)
         if (p.file(app).exists() && !p.part(app).exists() && !p.newer(p.local(app), remote)) { Offline.setChecked(app, part); return false }
         space(p.dir(app), remote.bytes * 5)

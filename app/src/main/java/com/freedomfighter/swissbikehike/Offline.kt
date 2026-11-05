@@ -115,7 +115,7 @@ object Offline {
         val net = if (mobile(ctx)) NetworkType.NOT_ROAMING else NetworkType.UNMETERED
         val req = OneTimeWorkRequestBuilder<OfflineWorker>()
             .setConstraints(Constraints.Builder().setRequiredNetworkType(net).setRequiresBatteryNotLow(true).build())
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 1, TimeUnit.MINUTES)
+            .setBackoffCriteria(BackoffPolicy.LINEAR, 1, TimeUnit.MINUTES)  // 1, 2, 3… min: a slow server is no reason to wait hours
             .build()
         // APPEND: a part asked for while the job is ending is picked up by the next one in the chain
         // REPLACE when the network rule changed: the queued or running job carries the old one
@@ -227,7 +227,7 @@ object Offline {
         if (have == 0L) { part.delete(); tag.delete() }
         val c = URL(url).openConnection() as HttpURLConnection
         try {
-            c.connectTimeout = 15_000; c.readTimeout = 30_000; c.instanceFollowRedirects = true
+            c.connectTimeout = 20_000; c.readTimeout = 30_000; c.instanceFollowRedirects = true
             if (have > 0) { c.setRequestProperty("Range", "bytes=$have-"); c.setRequestProperty("If-Range", tag.readText()) }
             else {
                 if (!etag.isNullOrBlank()) c.setRequestProperty("If-None-Match", etag)

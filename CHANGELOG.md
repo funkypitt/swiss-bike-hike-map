@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.11.1 — 2026-11-05
+
+* The timetable (first step of Switzerland offline) no longer stalls when GitHub is slow: its
+  description file is asked patiently (four tries, longer waits) and, when GitHub's direct link
+  answers 504, through GitHub's API instead (seen for hours on 2026-11-05).
+* A part that fails for now no longer holds up the others: the job goes on with the next part
+  and comes back to it; after a failure the job retries every 1, 2, 3… minutes instead of
+  doubling the wait each time.
+
 ## 0.11.0 — 2026-11-05
 
 * Offline downloads can use mobile data when you allow it: MENU › ALSO OVER MOBILE DATA (off
