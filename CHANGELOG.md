@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.11.2 — 2026-11-05
+
+* The closures and diversions of SwitzerlandMobility are sharp at every zoom: they were an
+  enlarged image of zoom 14 (a thick, blurry line across the houses that looked hand-drawn);
+  they are now asked up to zoom 18 at screen resolution and follow the streets.
+* A tap on a closure or a diversion (BIKE and WALK) opens its notice: kind, place, reason,
+  duration, the official text, the source, and a link to the SwitzerlandMobility page.
+* The BIKE and WALK legends name them: diversions thick amber, closures red.
+
 ## 0.11.1 — 2026-11-05
 
 * The timetable (first step of Switzerland offline) no longer stalls when GitHub is slow: its

@@ -210,7 +210,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
                     addStop(Stop(LatLng(g.latitude(), g.longitude()), f.getStringProperty("n") ?: "", Favourites.POI, f.getStringProperty("d") ?: ""))
                     return@addOnMapClickListener true
                 }
-                if (mode != Mode.TRANSIT) return@addOnMapClickListener false
+                if (mode != Mode.TRANSIT) { showClosuresAt(p); return@addOnMapClickListener false }
                 val f = m.queryRenderedFeatures(box, "pt-stops").firstOrNull() ?: return@addOnMapClickListener false
                 val g = f.geometry() as? Point ?: return@addOnMapClickListener false
                 val id = f.getProperty("station_id")?.asString ?: ""
@@ -646,6 +646,43 @@ class MapActivity : AppCompatActivity(), LocationListener {
                 if (!nav && stops.none { it.at.distanceTo(s.at) < 20 }) dlg.setNeutralButton(R.string.set_destination) { _, _ -> addStop(s); map?.animateCamera(CameraUpdateFactory.newLatLngZoom(s.at, maxOf(map?.cameraPosition?.zoom ?: 15.0, 15.0))) }
                 dlg.show()
             }
+        }
+    }
+
+    /**
+     * A tap in BIKE or WALK: the closures and diversions drawn there (live ASTRA layers, raster, so they
+     * are asked to GeoAdmin). Silent when there is nothing, when offline, or when the layer is not drawn yet.
+     */
+    private var closureAsk = 0
+    private fun showClosuresAt(p: LatLng) {
+        val m = map ?: return
+        if (m.cameraPosition.zoom < 10.0) return
+        val layers = if (mode == Mode.BIKE) listOf(Closures.BIKE, Closures.MTB) else listOf(Closures.WALK)
+        val d = resources.displayMetrics.density
+        val w = (b.map.width / d).toInt().coerceAtLeast(1)
+        val h = (b.map.height / d).toInt().coerceAtLeast(1)
+        val box = m.projection.visibleRegion.latLngBounds
+        val ask = ++closureAsk
+        lifecycleScope.launch {
+            val found = Closures.at(layers, p.latitude, p.longitude, box.longitudeWest, box.latitudeSouth,
+                box.longitudeEast, box.latitudeNorth, w, h, 16) ?: return@launch
+            if (ask != closureAsk || found.isEmpty() || isFinishing) return@launch
+            val c = found.first()
+            val body = buildString {
+                if (c.reason.isNotBlank()) append(getString(R.string.closure_reason, c.reason)).append('\n')
+                if (c.duration.isNotBlank()) append(getString(R.string.closure_duration, c.duration)).append('\n')
+                if (c.text.isNotBlank()) append('\n').append(c.text).append('\n')
+                if (found.size > 1) append('\n').append(getString(R.string.closure_more, found.size - 1)).append('\n')
+                append('\n').append(getString(R.string.closure_source, c.source.ifBlank { "SuisseMobile" }))
+            }
+            val dlg = AlertDialog.Builder(this@MapActivity)
+                .setTitle(listOf(c.kind, c.title).filter { it.isNotBlank() }.joinToString(" · "))
+                .setMessage(body.trim()).setPositiveButton(android.R.string.ok, null)
+            val link = c.link.ifBlank { getString(R.string.closure_page) }
+            dlg.setNeutralButton(R.string.closure_link) { _, _ ->
+                runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link))) }
+            }
+            dlg.show()
         }
     }
 

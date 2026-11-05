@@ -1,10 +1,10 @@
 <resources>
     <string name="bike">ВЕЛО</string>
     <string name="walk">ПЕШКОМ</string>
-    <string name="legend_bike">Официальные веломаршруты <b>синим</b>\nМаршруты для горных велосипедов <b>оранжевым</b></string>
+    <string name="legend_bike">Официальные веломаршруты <b>синим</b>\nМаршруты для горных велосипедов <b>оранжевым</b>\nОбъезды толстой <b>янтарной</b> линией, закрытия <b>красным</b> (нажмите)</string>
     <string name="transit">ОБЩЕСТВЕННЫЙ ТРАНСПОРТ</string>
     <string name="legend_transit">Железные дороги <b>красным</b> · трамваи и метро <b>зелёным</b>\nКанатные дороги <b>фиолетовым</b> · суда <b>синим</b> · остановки точками</string>
-    <string name="legend_walk"><b>Жёлтая</b> пешеходная тропа\n<b>Бело-красно-белая</b> горная тропа\n<b>Бело-сине-белая</b> альпийская тропа\nОстановки транспорта точками</string>
+    <string name="legend_walk"><b>Жёлтая</b> пешеходная тропа\n<b>Бело-красно-белая</b> горная тропа\n<b>Бело-сине-белая</b> альпийская тропа\nОстановки транспорта точками\nОбъезды толстой <b>янтарной</b> линией, закрытия <b>красным</b> (нажмите)</string>
     <string name="attribution">Карта © swisstopo · Маршруты и места © участники OpenStreetMap · Расписание © opentransportdata.swiss</string>
     <string name="go">СТАРТ</string>
     <string name="nav">НАВ</string>
@@ -339,4 +339,10 @@
     <string name="off_roaming">Вы в роуминге: загрузка ждёт Wi-Fi или домашнюю сеть.</string>
     <string name="off_net_wifi">Только по Wi-Fi</string>
     <string name="off_net_mobile">По Wi-Fi или мобильным данным (никогда в роуминге)</string>
+    <string name="closure_reason">Причина: %1$s</string>
+    <string name="closure_duration">Срок: %1$s</string>
+    <string name="closure_source">Источник: %1$s</string>
+    <string name="closure_more">И ещё %1$d здесь</string>
+    <string name="closure_link">ПОДРОБНЕЕ</string>
+    <string name="closure_page">https://schweizmobil.ch/en/closures-diversions</string>
 </resources>

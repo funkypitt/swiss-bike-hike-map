@@ -2,8 +2,8 @@
     <string name="app_name">Swiss Bikers and Pedestrians Map</string>
     <string name="bike">BIKE</string>
     <string name="walk">WALK</string>
-    <string name="legend_bike">Official cycling routes in <b>blue</b>\nMountain-bike routes in <b>orange</b></string>
-    <string name="legend_walk"><b>Yellow</b> hiking trail\n<b>White-red-white</b> mountain trail\n<b>White-blue-white</b> alpine trail\nPublic-transport stops as dots</string>
+    <string name="legend_bike">Official cycling routes in <b>blue</b>\nMountain-bike routes in <b>orange</b>\nDiversions thick <b>amber</b>, closures <b>red</b> (tap)</string>
+    <string name="legend_walk"><b>Yellow</b> hiking trail\n<b>White-red-white</b> mountain trail\n<b>White-blue-white</b> alpine trail\nPublic-transport stops as dots\nDiversions thick <b>amber</b>, closures <b>red</b> (tap)</string>
     <string name="transit">PUBLIC TRANSPORT</string>
     <string name="legend_transit"><b>Red</b> railways · <b>green</b> trams and metros\n<b>Purple</b> lifts · <b>blue</b> boats · stops as dots</string>
     <string name="attribution">Map © swisstopo · Routing and places © OpenStreetMap contributors · Timetable © opentransportdata.swiss</string>
@@ -346,4 +346,10 @@
     <string name="off_roaming">You are roaming: it waits for Wi-Fi or your home network.</string>
     <string name="off_net_wifi">Over Wi-Fi only</string>
     <string name="off_net_mobile">Over Wi-Fi or mobile data (never roaming)</string>
+    <string name="closure_reason">Reason: %1$s</string>
+    <string name="closure_duration">Duration: %1$s</string>
+    <string name="closure_source">Source: %1$s</string>
+    <string name="closure_more">And %1$d more here</string>
+    <string name="closure_link">MORE</string>
+    <string name="closure_page">https://schweizmobil.ch/en/closures-diversions</string>
 </resources>

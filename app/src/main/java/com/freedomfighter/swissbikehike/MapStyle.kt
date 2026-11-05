@@ -17,8 +17,10 @@ import java.net.URL
 object MapStyle {
     const val STYLE_URL = "https://vectortiles.geo.admin.ch/styles/ch.swisstopo.basemap.vt/style.json"
     private const val WMTS = "https://wmts.geo.admin.ch/1.0.0/%s/default/current/3857/{z}/{x}/{y}.%s"
+    // Closures: 512 px drawn at 192 dpi (MapServer's MAP_RESOLUTION scales the symbols) shown as 256 tiles,
+    // asked up to z18 so the line stays on the streets instead of a blurred upscale of a z14 image.
     private const val WMS = "https://wms.geo.admin.ch/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=%s" +
-        "&CRS=EPSG:3857&BBOX={bbox-epsg-3857}&WIDTH=256&HEIGHT=256&FORMAT=image/png&TRANSPARENT=true&STYLES="
+        "&CRS=EPSG:3857&BBOX={bbox-epsg-3857}&WIDTH=512&HEIGHT=512&MAP_RESOLUTION=192&FORMAT=image/png&TRANSPARENT=true&STYLES="
 
     /** Layers of the swisstopo style that are noise for a sport map. */
     private val clutter = setOf(
@@ -79,9 +81,9 @@ object MapStyle {
         // --- sources ---
         sources.put("veloland", raster(WMTS.format("ch.astra.veloland", "png"), 128, 16))
         sources.put("mtbland", raster(WMTS.format("ch.astra.mountainbikeland", "png"), 128, 16))
-        sources.put("closures-walk", raster(WMS.format("ch.astra.wanderland-sperrungen_umleitungen"), 256, 14))
-        sources.put("closures-bike", raster(WMS.format("ch.astra.veloland-sperrungen_umleitungen"), 256, 14))
-        sources.put("closures-mtb", raster(WMS.format("ch.astra.mountainbikeland-sperrungen_umleitungen"), 256, 14))
+        sources.put("closures-walk", raster(WMS.format("ch.astra.wanderland-sperrungen_umleitungen"), 256, 18))
+        sources.put("closures-bike", raster(WMS.format("ch.astra.veloland-sperrungen_umleitungen"), 256, 18))
+        sources.put("closures-mtb", raster(WMS.format("ch.astra.mountainbikeland-sperrungen_umleitungen"), 256, 18))
         for (id in listOf(SRC_ROUTE, SRC_TRACK, SRC_PIN, SRC_JOURNEY, SRC_JOURNEY_PTS, SRC_PLACES, SRC_RESULTS))
             sources.put(id, JSONObject().put("type", "geojson").put("data", emptyCollection()))
 

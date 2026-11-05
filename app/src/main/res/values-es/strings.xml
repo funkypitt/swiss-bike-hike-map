@@ -1,10 +1,10 @@
 <resources>
     <string name="bike">BICI</string>
     <string name="walk">A PIE</string>
-    <string name="legend_bike">Rutas ciclistas oficiales en <b>azul</b>\nRutas de bicicleta de montaña en <b>naranja</b></string>
+    <string name="legend_bike">Rutas ciclistas oficiales en <b>azul</b>\nRutas de bicicleta de montaña en <b>naranja</b>\nDesvíos en <b>ámbar</b> grueso, cierres en <b>rojo</b> (tocar)</string>
     <string name="transit">TRANSPORTE PÚBLICO</string>
     <string name="legend_transit">Ferrocarriles en <b>rojo</b> · tranvías y metros en <b>verde</b>\nTeleféricos en <b>violeta</b> · barcos en <b>azul</b> · paradas como puntos</string>
-    <string name="legend_walk">Sendero <b>amarillo</b>\nSendero de montaña <b>blanco-rojo-blanco</b>\nSendero alpino <b>blanco-azul-blanco</b>\nParadas de transporte público como puntos</string>
+    <string name="legend_walk">Sendero <b>amarillo</b>\nSendero de montaña <b>blanco-rojo-blanco</b>\nSendero alpino <b>blanco-azul-blanco</b>\nParadas de transporte público como puntos\nDesvíos en <b>ámbar</b> grueso, cierres en <b>rojo</b> (tocar)</string>
     <string name="attribution">Mapa © swisstopo · Rutas y lugares © colaboradores de OpenStreetMap · Horarios © opentransportdata.swiss</string>
     <string name="go">IR</string>
     <string name="nav">NAV</string>
@@ -339,4 +339,10 @@
     <string name="off_roaming">Está en itinerancia: espera al wifi o a su red habitual.</string>
     <string name="off_net_wifi">Solo por wifi</string>
     <string name="off_net_mobile">Por wifi o datos móviles (nunca en itinerancia)</string>
+    <string name="closure_reason">Motivo: %1$s</string>
+    <string name="closure_duration">Duración: %1$s</string>
+    <string name="closure_source">Fuente: %1$s</string>
+    <string name="closure_more">Y %1$d más aquí</string>
+    <string name="closure_link">MÁS</string>
+    <string name="closure_page">https://schweizmobil.ch/en/closures-diversions</string>
 </resources>

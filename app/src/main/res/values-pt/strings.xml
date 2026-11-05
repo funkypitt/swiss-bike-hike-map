@@ -1,10 +1,10 @@
 <resources>
     <string name="bike">BICICLETA</string>
     <string name="walk">A PÉ</string>
-    <string name="legend_bike">Rotas ciclistas oficiais a <b>azul</b>\nRotas de BTT a <b>laranja</b></string>
+    <string name="legend_bike">Rotas ciclistas oficiais a <b>azul</b>\nRotas de BTT a <b>laranja</b>\nDesvios a <b>âmbar</b> grosso, encerramentos a <b>vermelho</b> (tocar)</string>
     <string name="transit">TRANSPORTES PÚBLICOS</string>
     <string name="legend_transit">Caminhos de ferro a <b>vermelho</b> · elétricos e metros a <b>verde</b>\nTeleféricos a <b>violeta</b> · barcos a <b>azul</b> · paragens como pontos</string>
-    <string name="legend_walk">Trilho <b>amarelo</b>\nTrilho de montanha <b>branco-vermelho-branco</b>\nTrilho alpino <b>branco-azul-branco</b>\nParagens de transportes públicos como pontos</string>
+    <string name="legend_walk">Trilho <b>amarelo</b>\nTrilho de montanha <b>branco-vermelho-branco</b>\nTrilho alpino <b>branco-azul-branco</b>\nParagens de transportes públicos como pontos\nDesvios a <b>âmbar</b> grosso, encerramentos a <b>vermelho</b> (tocar)</string>
     <string name="attribution">Mapa © swisstopo · Rotas e lugares © colaboradores do OpenStreetMap · Horários © opentransportdata.swiss</string>
     <string name="go">IR</string>
     <string name="nav">NAV</string>
@@ -339,4 +339,10 @@
     <string name="off_roaming">Está em roaming: espera pelo Wi-Fi ou pela sua rede habitual.</string>
     <string name="off_net_wifi">Só por Wi-Fi</string>
     <string name="off_net_mobile">Por Wi-Fi ou dados móveis (nunca em roaming)</string>
+    <string name="closure_reason">Motivo: %1$s</string>
+    <string name="closure_duration">Duração: %1$s</string>
+    <string name="closure_source">Fonte: %1$s</string>
+    <string name="closure_more">E mais %1$d aqui</string>
+    <string name="closure_link">MAIS</string>
+    <string name="closure_page">https://schweizmobil.ch/en/closures-diversions</string>
 </resources>
