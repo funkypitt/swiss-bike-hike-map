@@ -30,7 +30,7 @@ import kotlin.coroutines.resume
  * The one download job of Switzerland offline: fetches the parts asked for, smallest first
  * (timetable, places, routing, map), each resumable — files with HTTP ranges, the map with
  * MapLibre's pack, which only fetches the tiles it lacks. One notification with the overall
- * progress and PAUSE. Waits for Wi-Fi, survives a closed app and a restart, comes back by itself
+ * progress and PAUSE. Waits for Wi-Fi (or any network but roaming once mobile data is allowed), survives a closed app and a restart, comes back by itself
  * after a lost connection (WorkManager's backoff). A part the server has nothing newer for is
  * skipped after one small request.
  */
@@ -63,7 +63,7 @@ class OfflineWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ct
                 }
             }
         } catch (e: CancellationException) {
-            if (!Offline.paused(app)) Offline.setProgress(app, Offline.current(app) ?: Offline.Part.MAP, 0, 0, app.getString(R.string.off_interrupted))
+            if (!Offline.paused(app)) Offline.setLine(app, app.getString(R.string.off_interrupted))  // the count stays: the bytes are kept
             throw e
         }
         val run = Offline.run(app)

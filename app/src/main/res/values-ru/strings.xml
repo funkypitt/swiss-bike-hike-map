@@ -300,8 +300,8 @@
     <string name="off_wait_retry">Готово %1$d %% — скоро продолжится (связь потеряна или батарея разряжена).</string>
     <string name="off_not_wifi">Вы не в сети Wi-Fi: загрузка начнётся, как только подключитесь.</string>
     <string name="off_no_space_now">Не хватает места на телефоне: нужно %1$s, свободно %2$s.</string>
-    <string name="off_download_msg">Всё, чтобы пользоваться приложением без сети, по всей Швейцарии:\n%1$s\n\nТолько по Wi-Fi. Карта займёт несколько часов, лучше с телефоном на зарядке; приложением можно пользоваться. Уведомление показывает ход загрузки и кнопку ПАУЗА. Если Wi-Fi пропадёт или телефон перезагрузится, загрузка продолжится сама.</string>
-    <string name="off_update_msg">Стоит обновить:\n%1$s\n\nТолько по Wi-Fi, в фоне, ход загрузки — в уведомлении.</string>
+    <string name="off_download_msg">Всё, чтобы пользоваться приложением без сети, по всей Швейцарии:\n%1$s\n\n%2$s. Карта займёт несколько часов, лучше с телефоном на зарядке; приложением можно пользоваться. Уведомление показывает ход загрузки и кнопку ПАУЗА. Если связь пропадёт или телефон перезагрузится, загрузка продолжится сама.</string>
+    <string name="off_update_msg">Стоит обновить:\n%1$s\n\n%2$s, в фоне, ход загрузки — в уведомлении.</string>
     <string name="off_why_timetable">расписание этой недели (≈ 15 МБ)</string>
     <string name="off_why_places">месяц изменений OpenStreetMap (≈ 5 МБ)</string>
     <string name="off_why_routing">месяц изменений OpenStreetMap (≈ 450 МБ)</string>
@@ -326,4 +326,17 @@
     <string name="off_hint_paused">Швейцария офлайн на паузе на %1$d %%. Нажмите, чтобы открыть меню и продолжить.</string>
     <string name="off_cancel">ОТМЕНИТЬ ЗАГРУЗКУ</string>
     <string name="off_cancel_q">Отменить загрузку? То, что уже скачано полностью, останется на телефоне; незавершённая часть будет удалена.</string>
+    <string name="downloading_any">Загрузка</string>
+    <string name="dl_waiting_net">ожидание подключения</string>
+    <string name="off_wait_net">Готово %1$d %% — ожидание подключения (Wi-Fi или мобильные данные вне роуминга); продолжится само.</string>
+    <string name="off_mobile_off">ТАКЖЕ ПО МОБИЛЬНЫМ ДАННЫМ: ВЫКЛ</string>
+    <string name="off_mobile_on">ТАКЖЕ ПО МОБИЛЬНЫМ ДАННЫМ: ВКЛ</string>
+    <string name="off_mobile_title">Мобильные данные</string>
+    <string name="off_mobile_msg">Загрузки смогут идти и по мобильным данным, не только по Wi-Fi. Вся Швейцария офлайн — около %1$s: проверьте, что позволяет ваш тариф. Никогда в роуминге.</string>
+    <string name="off_mobile_yes">РАЗРЕШИТЬ</string>
+    <string name="off_mobile_now">ПО МОБИЛЬНЫМ ДАННЫМ</string>
+    <string name="off_on_mobile">Вы на мобильных данных: загрузка расходует трафик тарифа.</string>
+    <string name="off_roaming">Вы в роуминге: загрузка ждёт Wi-Fi или домашнюю сеть.</string>
+    <string name="off_net_wifi">Только по Wi-Fi</string>
+    <string name="off_net_mobile">По Wi-Fi или мобильным данным (никогда в роуминге)</string>
 </resources>

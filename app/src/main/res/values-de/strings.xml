@@ -300,8 +300,8 @@
     <string name="off_wait_retry">%1$d %% erledigt — geht gleich weiter (Verbindung verloren oder Akku schwach).</string>
     <string name="off_not_wifi">Sie sind nicht im WLAN: Es beginnt, sobald Sie es sind.</string>
     <string name="off_no_space_now">Nicht genug Platz auf dem Telefon: %1$s nötig, %2$s frei.</string>
-    <string name="off_download_msg">Alles, um die App ohne Netz zu nutzen, für die ganze Schweiz:\n%1$s\n\nNur über WLAN. Die Karte dauert einige Stunden, am besten mit dem Telefon am Ladegerät; die App bleibt währenddessen nutzbar. Die Benachrichtigung zeigt den Fortschritt und hat PAUSE. Fällt das WLAN aus oder startet das Telefon neu, geht es von selbst weiter.</string>
-    <string name="off_update_msg">Jetzt lohnt sich ein Update:\n%1$s\n\nNur über WLAN, im Hintergrund, Fortschritt in der Benachrichtigung.</string>
+    <string name="off_download_msg">Alles, um die App ohne Netz zu nutzen, für die ganze Schweiz:\n%1$s\n\n%2$s. Die Karte dauert einige Stunden, am besten mit dem Telefon am Ladegerät; die App bleibt währenddessen nutzbar. Die Benachrichtigung zeigt den Fortschritt und hat PAUSE. Fällt die Verbindung aus oder startet das Telefon neu, geht es von selbst weiter.</string>
+    <string name="off_update_msg">Jetzt lohnt sich ein Update:\n%1$s\n\n%2$s, im Hintergrund, Fortschritt in der Benachrichtigung.</string>
     <string name="off_why_timetable">der Fahrplan dieser Woche (≈ 15 MB)</string>
     <string name="off_why_places">ein Monat OpenStreetMap-Änderungen (≈ 5 MB)</string>
     <string name="off_why_routing">ein Monat OpenStreetMap-Änderungen (≈ 450 MB)</string>
@@ -326,4 +326,17 @@
     <string name="off_hint_paused">Die Schweiz offline ist bei %1$d %% pausiert. Tippen öffnet das Menü zum Fortsetzen.</string>
     <string name="off_cancel">DOWNLOAD ABBRECHEN</string>
     <string name="off_cancel_q">Download abbrechen? Was schon vollständig ist, bleibt auf dem Telefon; der unfertige Teil wird gelöscht.</string>
+    <string name="downloading_any">Wird geladen</string>
+    <string name="dl_waiting_net">wartet auf eine Verbindung</string>
+    <string name="off_wait_net">%1$d %% erledigt — wartet auf eine Verbindung (WLAN oder mobile Daten ohne Roaming); es geht von selbst weiter.</string>
+    <string name="off_mobile_off">AUCH ÜBER MOBILE DATEN: AUS</string>
+    <string name="off_mobile_on">AUCH ÜBER MOBILE DATEN: EIN</string>
+    <string name="off_mobile_title">Mobile Daten</string>
+    <string name="off_mobile_msg">Downloads dürfen dann auch mobile Daten nutzen, nicht nur WLAN. Die Schweiz offline umfasst insgesamt etwa %1$s: Prüfen Sie, was Ihr Abo erlaubt. Nie beim Roaming.</string>
+    <string name="off_mobile_yes">ERLAUBEN</string>
+    <string name="off_mobile_now">ÜBER MOBILE DATEN</string>
+    <string name="off_on_mobile">Sie nutzen mobile Daten: Der Download zählt zu Ihrem Abo.</string>
+    <string name="off_roaming">Sie sind im Roaming: Es wartet auf WLAN oder Ihr Heimnetz.</string>
+    <string name="off_net_wifi">Nur über WLAN</string>
+    <string name="off_net_mobile">Über WLAN oder mobile Daten (nie beim Roaming)</string>
 </resources>

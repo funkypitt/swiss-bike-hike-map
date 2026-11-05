@@ -300,8 +300,8 @@
     <string name="off_wait_retry">%1$d %% hecho — sigue en un momento (conexión perdida o batería baja).</string>
     <string name="off_not_wifi">No está en wifi: empezará en cuanto lo esté.</string>
     <string name="off_no_space_now">No hay espacio suficiente en el teléfono: se necesitan %1$s, hay %2$s libres.</string>
-    <string name="off_download_msg">Todo para usar la app sin red, en toda Suiza:\n%1$s\n\nSolo por wifi. El mapa tarda unas horas, mejor con el teléfono cargando; mientras tanto puede usar la app. La notificación muestra el progreso y tiene PAUSA. Si se corta el wifi o el teléfono se reinicia, sigue solo.</string>
-    <string name="off_update_msg">Conviene actualizar:\n%1$s\n\nSolo por wifi, en segundo plano, con el progreso en la notificación.</string>
+    <string name="off_download_msg">Todo para usar la app sin red, en toda Suiza:\n%1$s\n\n%2$s. El mapa tarda unas horas, mejor con el teléfono cargando; mientras tanto puede usar la app. La notificación muestra el progreso y tiene PAUSA. Si se corta la conexión o el teléfono se reinicia, sigue solo.</string>
+    <string name="off_update_msg">Conviene actualizar:\n%1$s\n\n%2$s, en segundo plano, con el progreso en la notificación.</string>
     <string name="off_why_timetable">el horario de esta semana (≈ 15 MB)</string>
     <string name="off_why_places">un mes de cambios en OpenStreetMap (≈ 5 MB)</string>
     <string name="off_why_routing">un mes de cambios en OpenStreetMap (≈ 450 MB)</string>
@@ -326,4 +326,17 @@
     <string name="off_hint_paused">Suiza sin conexión está en pausa al %1$d %%. Toque para abrir el menú y reanudar.</string>
     <string name="off_cancel">CANCELAR LA DESCARGA</string>
     <string name="off_cancel_q">¿Cancelar la descarga? Lo que ya está completo se queda en el teléfono; la parte sin terminar se borra.</string>
+    <string name="downloading_any">Descargando</string>
+    <string name="dl_waiting_net">esperando una conexión</string>
+    <string name="off_wait_net">%1$d %% hecho — esperando una conexión (wifi, o datos móviles fuera de itinerancia); seguirá solo.</string>
+    <string name="off_mobile_off">TAMBIÉN CON DATOS MÓVILES: NO</string>
+    <string name="off_mobile_on">TAMBIÉN CON DATOS MÓVILES: SÍ</string>
+    <string name="off_mobile_title">Datos móviles</string>
+    <string name="off_mobile_msg">Las descargas podrán usar también los datos móviles, no solo el wifi. Suiza sin conexión ocupa unos %1$s en total: compruebe lo que permite su tarifa. Nunca en itinerancia.</string>
+    <string name="off_mobile_yes">PERMITIR</string>
+    <string name="off_mobile_now">CON DATOS MÓVILES</string>
+    <string name="off_on_mobile">Está usando datos móviles: la descarga cuenta en su tarifa.</string>
+    <string name="off_roaming">Está en itinerancia: espera al wifi o a su red habitual.</string>
+    <string name="off_net_wifi">Solo por wifi</string>
+    <string name="off_net_mobile">Por wifi o datos móviles (nunca en itinerancia)</string>
 </resources>

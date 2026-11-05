@@ -307,8 +307,8 @@
     <string name="off_wait_retry">%1$d%% done — goes on in a moment (connection lost, or battery low).</string>
     <string name="off_not_wifi">You are not on Wi-Fi: it starts as soon as you are.</string>
     <string name="off_no_space_now">Not enough room on the phone: %1$s needed, %2$s free.</string>
-    <string name="off_download_msg">Everything for using the app without a network, all of Switzerland:\n%1$s\n\nOver Wi-Fi only. The map takes a few hours, best with the phone charging; you can use the app meanwhile. The notification shows the progress and has PAUSE. If Wi-Fi drops or the phone restarts, it goes on by itself.</string>
-    <string name="off_update_msg">Worth updating now:\n%1$s\n\nOver Wi-Fi only, in the background, with the progress in the notification.</string>
+    <string name="off_download_msg">Everything for using the app without a network, all of Switzerland:\n%1$s\n\n%2$s. The map takes a few hours, best with the phone charging; you can use the app meanwhile. The notification shows the progress and has PAUSE. If the connection drops or the phone restarts, it goes on by itself.</string>
+    <string name="off_update_msg">Worth updating now:\n%1$s\n\n%2$s, in the background, with the progress in the notification.</string>
     <string name="off_why_timetable">this week\'s timetable (≈ 15 MB)</string>
     <string name="off_why_places">a month of OpenStreetMap changes (≈ 5 MB)</string>
     <string name="off_why_routing">a month of OpenStreetMap changes (≈ 450 MB)</string>
@@ -333,4 +333,17 @@
     <string name="off_hint_paused">Switzerland offline is paused at %1$d%%. Tap to open the menu and resume.</string>
     <string name="off_cancel">CANCEL THE DOWNLOAD</string>
     <string name="off_cancel_q">Cancel the download? What is already complete stays on the phone; the unfinished part is deleted.</string>
+    <string name="downloading_any">Downloading</string>
+    <string name="dl_waiting_net">waiting for a connection</string>
+    <string name="off_wait_net">%1$d%% done — waiting for a connection (Wi-Fi, or mobile data outside roaming); it goes on by itself.</string>
+    <string name="off_mobile_off">ALSO OVER MOBILE DATA: OFF</string>
+    <string name="off_mobile_on">ALSO OVER MOBILE DATA: ON</string>
+    <string name="off_mobile_title">Mobile data</string>
+    <string name="off_mobile_msg">Downloads may then use mobile data too, not only Wi-Fi. Switzerland offline is about %1$s in all: check what your plan allows. Never while roaming.</string>
+    <string name="off_mobile_yes">ALLOW</string>
+    <string name="off_mobile_now">OVER MOBILE DATA</string>
+    <string name="off_on_mobile">You are on mobile data: the download counts against your plan.</string>
+    <string name="off_roaming">You are roaming: it waits for Wi-Fi or your home network.</string>
+    <string name="off_net_wifi">Over Wi-Fi only</string>
+    <string name="off_net_mobile">Over Wi-Fi or mobile data (never roaming)</string>
 </resources>

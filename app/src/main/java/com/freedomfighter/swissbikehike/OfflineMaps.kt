@@ -110,6 +110,14 @@ object OfflineMaps {
         }
     }
 
+    /** Any network with internet; `roaming = false` refuses a roaming one. */
+    fun connected(ctx: Context, roaming: Boolean = true): Boolean {
+        val cm = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val caps = cm.getNetworkCapabilities(cm.activeNetwork) ?: return false
+        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+            (roaming || caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_ROAMING))
+    }
+
     fun unmetered(ctx: Context): Boolean {
         val cm = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val caps = cm.getNetworkCapabilities(cm.activeNetwork) ?: return false

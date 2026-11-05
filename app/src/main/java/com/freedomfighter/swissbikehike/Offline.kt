@@ -95,13 +95,31 @@ object Offline {
     }
     internal fun fresh(ctx: Context, part: Part) = part.key in set(ctx, "fresh")
 
-    private fun enqueue(ctx: Context) {
+    /** The user's choice: also download over mobile data (off by default: Wi-Fi only). */
+    fun mobile(ctx: Context) = sp(ctx).getBoolean("mobile", false)
+
+    /** Changes the choice; a job already asked for is put back in the queue with the new network rule. */
+    fun setMobile(ctx: Context, on: Boolean) {
+        sp(ctx).edit().putBoolean("mobile", on).apply()
+        if (wanted(ctx).isNotEmpty() && !paused(ctx) && isActive(ctx)) enqueue(ctx, replace = true)
+    }
+
+    /** The network the job may use right now: Wi-Fi (or any unmetered one), or, once mobile data is allowed, any but roaming. */
+    fun networkOk(ctx: Context) = if (mobile(ctx)) OfflineMaps.connected(ctx, roaming = false) else OfflineMaps.unmetered(ctx)
+
+    /** The toast after a start: says which network will be used. */
+    fun startedText(ctx: Context) = if (mobile(ctx)) R.string.downloading_any else R.string.downloading_wifi
+
+    private fun enqueue(ctx: Context, replace: Boolean = false) {
+        // never in roaming: abroad a mobile megabyte can cost a lot
+        val net = if (mobile(ctx)) NetworkType.NOT_ROAMING else NetworkType.UNMETERED
         val req = OneTimeWorkRequestBuilder<OfflineWorker>()
-            .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.UNMETERED).setRequiresBatteryNotLow(true).build())
+            .setConstraints(Constraints.Builder().setRequiredNetworkType(net).setRequiresBatteryNotLow(true).build())
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 1, TimeUnit.MINUTES)
             .build()
         // APPEND: a part asked for while the job is ending is picked up by the next one in the chain
-        WorkManager.getInstance(ctx).enqueueUniqueWork(WORK, ExistingWorkPolicy.APPEND_OR_REPLACE, req)
+        // REPLACE when the network rule changed: the queued or running job carries the old one
+        WorkManager.getInstance(ctx).enqueueUniqueWork(WORK, if (replace) ExistingWorkPolicy.REPLACE else ExistingWorkPolicy.APPEND_OR_REPLACE, req)
     }
 
     fun jobState(ctx: Context): WorkInfo.State? = runCatching {
@@ -114,6 +132,7 @@ object Offline {
     internal fun setProgress(ctx: Context, part: Part, done: Long, total: Long, line: String) {
         sp(ctx).edit().putString("progress_${part.key}", "$done/$total").putString("line", line).putString("current", part.key).apply()
     }
+    internal fun setLine(ctx: Context, line: String) { sp(ctx).edit().putString("line", line).apply() }
     /** Fraction done of a part in the current run (0..1), -1 when it has not started. */
     fun fraction(ctx: Context, part: Part): Double {
         if (part.key in set(ctx, "run") && part.key !in set(ctx, "wanted")) return 1.0

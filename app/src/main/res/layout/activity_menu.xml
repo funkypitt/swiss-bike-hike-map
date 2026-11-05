@@ -12,6 +12,7 @@
         <TextView android:id="@+id/btnOffMain" style="@style/Btn" android:layout_width="match_parent" android:layout_height="64dp" android:layout_marginTop="10dp" android:background="@drawable/btn_active" android:textColor="@drawable/btn_active_text" android:text="@string/off_download"/>
         <TextView android:id="@+id/btnOffDelete" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/off_delete" android:visibility="gone"/>
         <TextView android:id="@+id/btnOffOld" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:visibility="gone"/>
+        <TextView android:id="@+id/btnOffMobile" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/off_mobile_off"/>
         <TextView android:id="@+id/offPolicy" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="13sp" android:textColor="@color/grey" android:lineSpacingExtra="3dp" android:paddingTop="8dp" android:text="@string/off_policy"/>
 
         <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/menu_trip"/>

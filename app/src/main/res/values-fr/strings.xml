@@ -300,8 +300,8 @@
     <string name="off_wait_retry">%1$d %% fait — reprend dans un instant (connexion perdue ou batterie faible).</string>
     <string name="off_not_wifi">Vous n\'êtes pas en Wi-Fi : cela commencera dès que vous le serez.</string>
     <string name="off_no_space_now">Pas assez de place sur le téléphone : %1$s nécessaires, %2$s libres.</string>
-    <string name="off_download_msg">Tout pour utiliser l\'app sans réseau, sur toute la Suisse :\n%1$s\n\nEn Wi-Fi seulement. La carte prend quelques heures, idéalement téléphone en charge ; l\'app reste utilisable pendant ce temps. La notification montre la progression et offre PAUSE. Si le Wi-Fi tombe ou si le téléphone redémarre, cela reprend tout seul.</string>
-    <string name="off_update_msg">Mise à jour conseillée :\n%1$s\n\nEn Wi-Fi seulement, en arrière-plan, progression dans la notification.</string>
+    <string name="off_download_msg">Tout pour utiliser l\'app sans réseau, sur toute la Suisse :\n%1$s\n\n%2$s. La carte prend quelques heures, idéalement téléphone en charge ; l\'app reste utilisable pendant ce temps. La notification montre la progression et offre PAUSE. Si la connexion tombe ou si le téléphone redémarre, cela reprend tout seul.</string>
+    <string name="off_update_msg">Mise à jour conseillée :\n%1$s\n\n%2$s, en arrière-plan, progression dans la notification.</string>
     <string name="off_why_timetable">l\'horaire de la semaine (≈ 15 Mo)</string>
     <string name="off_why_places">un mois de changements OpenStreetMap (≈ 5 Mo)</string>
     <string name="off_why_routing">un mois de changements OpenStreetMap (≈ 450 Mo)</string>
@@ -326,4 +326,17 @@
     <string name="off_hint_paused">La Suisse hors ligne est en pause à %1$d %%. Touchez pour ouvrir le menu et reprendre.</string>
     <string name="off_cancel">ANNULER LE TÉLÉCHARGEMENT</string>
     <string name="off_cancel_q">Annuler le téléchargement ? Ce qui est déjà complet reste sur le téléphone ; la partie inachevée est supprimée.</string>
+    <string name="downloading_any">Téléchargement en cours</string>
+    <string name="dl_waiting_net">en attente d\'une connexion</string>
+    <string name="off_wait_net">%1$d %% fait — en attente d\'une connexion (Wi-Fi, ou données mobiles hors itinérance) ; la suite vient toute seule.</string>
+    <string name="off_mobile_off">AUSSI PAR LES DONNÉES MOBILES : NON</string>
+    <string name="off_mobile_on">AUSSI PAR LES DONNÉES MOBILES : OUI</string>
+    <string name="off_mobile_title">Données mobiles</string>
+    <string name="off_mobile_msg">Les téléchargements pourront alors passer aussi par les données mobiles, pas seulement par le Wi-Fi. La Suisse hors ligne fait environ %1$s en tout : vérifiez ce que permet votre abonnement. Jamais en itinérance.</string>
+    <string name="off_mobile_yes">AUTORISER</string>
+    <string name="off_mobile_now">PAR LES DONNÉES MOBILES</string>
+    <string name="off_on_mobile">Vous êtes sur les données mobiles : le téléchargement compte dans votre abonnement.</string>
+    <string name="off_roaming">Vous êtes en itinérance : cela attend le Wi-Fi ou votre réseau habituel.</string>
+    <string name="off_net_wifi">En Wi-Fi seulement</string>
+    <string name="off_net_mobile">En Wi-Fi ou par les données mobiles (jamais en itinérance)</string>
 </resources>

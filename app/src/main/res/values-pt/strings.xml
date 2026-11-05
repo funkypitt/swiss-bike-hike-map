@@ -300,8 +300,8 @@
     <string name="off_wait_retry">%1$d %% feito — continua daqui a pouco (ligação perdida ou bateria fraca).</string>
     <string name="off_not_wifi">Não está em Wi-Fi: começa assim que estiver.</string>
     <string name="off_no_space_now">Espaço insuficiente no telemóvel: são precisos %1$s, há %2$s livres.</string>
-    <string name="off_download_msg">Tudo para usar a app sem rede, em toda a Suíça:\n%1$s\n\nSó por Wi-Fi. O mapa demora algumas horas, de preferência com o telemóvel a carregar; pode usar a app entretanto. A notificação mostra o progresso e tem PAUSA. Se o Wi-Fi cair ou o telemóvel reiniciar, continua sozinho.</string>
-    <string name="off_update_msg">Vale a pena atualizar:\n%1$s\n\nSó por Wi-Fi, em segundo plano, com o progresso na notificação.</string>
+    <string name="off_download_msg">Tudo para usar a app sem rede, em toda a Suíça:\n%1$s\n\n%2$s. O mapa demora algumas horas, de preferência com o telemóvel a carregar; pode usar a app entretanto. A notificação mostra o progresso e tem PAUSA. Se a ligação cair ou o telemóvel reiniciar, continua sozinho.</string>
+    <string name="off_update_msg">Vale a pena atualizar:\n%1$s\n\n%2$s, em segundo plano, com o progresso na notificação.</string>
     <string name="off_why_timetable">o horário desta semana (≈ 15 MB)</string>
     <string name="off_why_places">um mês de alterações no OpenStreetMap (≈ 5 MB)</string>
     <string name="off_why_routing">um mês de alterações no OpenStreetMap (≈ 450 MB)</string>
@@ -326,4 +326,17 @@
     <string name="off_hint_paused">A Suíça offline está em pausa a %1$d %%. Toque para abrir o menu e retomar.</string>
     <string name="off_cancel">CANCELAR A TRANSFERÊNCIA</string>
     <string name="off_cancel_q">Cancelar a transferência? O que já está completo fica no telemóvel; a parte por acabar é apagada.</string>
+    <string name="downloading_any">A descarregar</string>
+    <string name="dl_waiting_net">à espera de ligação</string>
+    <string name="off_wait_net">%1$d %% feito — à espera de ligação (Wi-Fi, ou dados móveis fora de roaming); continua sozinho.</string>
+    <string name="off_mobile_off">TAMBÉM POR DADOS MÓVEIS: NÃO</string>
+    <string name="off_mobile_on">TAMBÉM POR DADOS MÓVEIS: SIM</string>
+    <string name="off_mobile_title">Dados móveis</string>
+    <string name="off_mobile_msg">Os descarregamentos poderão usar também os dados móveis, não só o Wi-Fi. A Suíça offline tem cerca de %1$s no total: verifique o que o seu tarifário permite. Nunca em roaming.</string>
+    <string name="off_mobile_yes">PERMITIR</string>
+    <string name="off_mobile_now">POR DADOS MÓVEIS</string>
+    <string name="off_on_mobile">Está em dados móveis: o descarregamento conta no seu tarifário.</string>
+    <string name="off_roaming">Está em roaming: espera pelo Wi-Fi ou pela sua rede habitual.</string>
+    <string name="off_net_wifi">Só por Wi-Fi</string>
+    <string name="off_net_mobile">Por Wi-Fi ou dados móveis (nunca em roaming)</string>
 </resources>

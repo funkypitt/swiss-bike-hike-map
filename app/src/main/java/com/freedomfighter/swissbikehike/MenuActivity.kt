@@ -49,6 +49,7 @@ class MenuActivity : AppCompatActivity() {
         b.btnOffMain.setOnClickListener { offMain() }
         b.btnOffDelete.setOnClickListener { if (Offline.wanted(this).isNotEmpty()) offCancel() else offDelete() }
         b.btnOffOld.setOnClickListener { offDeleteOld() }
+        b.btnOffMobile.setOnClickListener { if (Offline.mobile(this)) { Offline.setMobile(this, false); renderOffline() } else confirmMobile(null) }
         b.dirKey.setText(prefs.directoryKey)
         b.btnDirSave.setOnClickListener {
             prefs.directoryKey = b.dirKey.text.toString()
@@ -197,7 +198,7 @@ class MenuActivity : AppCompatActivity() {
             val state = when {
                 p in wanted && paused -> getString(R.string.off_s_paused, pct)
                 p in wanted && running && current == p -> getString(R.string.off_s_downloading, pct)
-                p in wanted && p == wanted.first() && !running && !OfflineMaps.unmetered(this) -> getString(R.string.dl_waiting_wifi)
+                p in wanted && p == wanted.first() && !running && !Offline.networkOk(this) -> getString(if (Offline.mobile(this)) R.string.dl_waiting_net else R.string.dl_waiting_wifi)
                 p in wanted -> getString(R.string.off_s_queued)
                 !present(p) && p == Offline.Part.MAP && mapBytes > 0 -> getString(R.string.off_s_partial, Fmt.size(mapBytes))
                 !present(p) -> getString(R.string.off_s_missing)
@@ -221,7 +222,7 @@ class MenuActivity : AppCompatActivity() {
             !inRun -> ""
             paused -> getString(R.string.off_paused, Offline.overall(this)) + (fail?.let { "\n" + getString(R.string.dl_failed, it) } ?: "")
             running -> getString(R.string.off_running, Offline.overall(this)) + "\n" + Offline.line(this)
-            job != null && !OfflineMaps.unmetered(this) -> getString(R.string.off_wait_wifi, Offline.overall(this))
+            job != null && !Offline.networkOk(this) -> getString(if (Offline.mobile(this)) R.string.off_wait_net else R.string.off_wait_wifi, Offline.overall(this))
             job != null -> getString(R.string.off_wait_retry, Offline.overall(this)) + (Offline.line(this).takeIf { it.isNotBlank() }?.let { "\n$it" } ?: "")
             else -> getString(R.string.off_paused, Offline.overall(this)) + (fail?.let { "\n" + getString(R.string.dl_failed, it) } ?: "")
         }
@@ -245,6 +246,15 @@ class MenuActivity : AppCompatActivity() {
         b.btnOffDelete.text = getString(if (stopped) R.string.off_cancel else R.string.off_delete)
         b.btnOffOld.visibility = if (oldCount > 0 && !inRun) View.VISIBLE else View.GONE
         b.btnOffOld.text = getString(R.string.off_delete_old, oldCount, Fmt.size(oldBytes))
+        b.btnOffMobile.text = getString(if (Offline.mobile(this)) R.string.off_mobile_on else R.string.off_mobile_off)
+    }
+
+    /** Mobile data allowed only after the size and the cost are said; `then` runs once it is on (a start from a dialog). */
+    private fun confirmMobile(then: (() -> Unit)?) {
+        AlertDialog.Builder(this).setTitle(R.string.off_mobile_title)
+            .setMessage(getString(R.string.off_mobile_msg, Fmt.size(Offline.Part.entries.sumOf { it.estimate })))
+            .setPositiveButton(R.string.off_mobile_yes) { _, _ -> Offline.setMobile(this, true); then?.invoke(); renderOffline() }
+            .setNegativeButton(R.string.cancel, null).show()
     }
 
     private fun offMain() {
@@ -261,9 +271,17 @@ class MenuActivity : AppCompatActivity() {
         lifecycleScope.launch { kotlinx.coroutines.delay(400); renderOffline() }
     }
 
+    private fun netWords() = getString(if (Offline.mobile(this)) R.string.off_net_mobile else R.string.off_net_wifi)
+
     private fun wifiNote(need: Long): String {
         val free = runCatching { android.os.StatFs((getExternalFilesDir(null) ?: filesDir).path).availableBytes }.getOrDefault(-1L)
-        return (if (!OfflineMaps.unmetered(this)) "\n\n" + getString(R.string.off_not_wifi) else "") +
+        val note = when {
+            OfflineMaps.unmetered(this) -> ""
+            !Offline.mobile(this) -> getString(R.string.off_not_wifi)
+            OfflineMaps.connected(this, roaming = false) -> getString(R.string.off_on_mobile)
+            else -> getString(R.string.off_roaming)
+        }
+        return (if (note.isNotEmpty()) "\n\n$note" else "") +
             (if (free in 0 until need) "\n\n" + getString(R.string.off_no_space_now, Fmt.size(need), Fmt.size(free)) else "")
     }
 
@@ -271,9 +289,9 @@ class MenuActivity : AppCompatActivity() {
         val miss = missing()
         val lines = miss.joinToString("\n") { "• " + getString(it.label) + " — ≈ " + Fmt.size(if (it == Offline.Part.MAP) (it.estimate - mapBytes).coerceAtLeast(0L) else it.estimate) }
         AlertDialog.Builder(this).setTitle(R.string.off_head)
-            .setMessage(getString(R.string.off_download_msg, lines) + wifiNote(missingBytes()))
+            .setMessage(getString(R.string.off_download_msg, lines, netWords()) + wifiNote(missingBytes()))
             .setPositiveButton(R.string.download) { _, _ -> Offline.start(this, miss); notifyPermission(); renderOffline() }
-            .setNegativeButton(R.string.cancel, null).show()
+            .setNegativeButton(R.string.cancel, null).mobileChoice { Offline.start(this, miss); notifyPermission() }.show()
     }
 
     private fun confirmUpdate(due: List<Offline.Part>) {
@@ -284,16 +302,16 @@ class MenuActivity : AppCompatActivity() {
             Offline.Part.MAP -> R.string.off_why_map
         }) }
         AlertDialog.Builder(this).setTitle(R.string.off_update)
-            .setMessage(getString(R.string.off_update_msg, lines) + wifiNote(0))
+            .setMessage(getString(R.string.off_update_msg, lines, netWords()) + wifiNote(0))
             .setPositiveButton(R.string.off_update) { _, _ -> Offline.start(this, due); notifyPermission(); renderOffline() }
-            .setNegativeButton(R.string.cancel, null).show()
+            .setNegativeButton(R.string.cancel, null).mobileChoice { Offline.start(this, due); notifyPermission() }.show()
     }
 
     private fun confirmFresh() {
         AlertDialog.Builder(this).setTitle(R.string.off_up_to_date)
             .setMessage(getString(R.string.off_fresh_msg) + wifiNote(0))
             .setPositiveButton(R.string.off_fresh_go) { _, _ -> Offline.start(this, Offline.Part.entries, fresh = true); notifyPermission(); renderOffline() }
-            .setNegativeButton(R.string.cancel, null).show()
+            .setNegativeButton(R.string.cancel, null).mobileChoice { Offline.start(this, Offline.Part.entries, fresh = true); notifyPermission() }.show()
     }
 
     private fun offDelete() {
@@ -335,10 +353,15 @@ class MenuActivity : AppCompatActivity() {
             }.setNegativeButton(R.string.cancel, null).show()
     }
 
+    /** Off Wi-Fi with mobile data not allowed: a third button that allows it and starts now. */
+    private fun AlertDialog.Builder.mobileChoice(start: () -> Unit): AlertDialog.Builder =
+        if (OfflineMaps.unmetered(this@MenuActivity) || Offline.mobile(this@MenuActivity) || !OfflineMaps.connected(this@MenuActivity, roaming = false)) this
+        else setNeutralButton(R.string.off_mobile_now) { _, _ -> confirmMobile(start) }
+
     /** The progress lives in a notification: ask for the right to show it (Android 13+), once. */
     private fun notifyPermission() {
         if (android.os.Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 3)
-        Toast.makeText(this, R.string.downloading_wifi, Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, Offline.startedText(this), Toast.LENGTH_SHORT).show()
     }
 }

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.11.0 — 2026-11-05
+
+* Offline downloads can use mobile data when you allow it: MENU › ALSO OVER MOBILE DATA (off
+  by default; the size of Switzerland offline is said before it is switched on). Never while
+  roaming. Off Wi-Fi, the download and update dialogs offer OVER MOBILE DATA directly; a job
+  already waiting for Wi-Fi starts at once when mobile data is allowed. The dialogs and the
+  waiting line say which network will be used.
+
 ## 0.10.0 — 2026-11-05
 
 * Offline is now one option: **Switzerland offline**, at the top of the menu — map, routing,
