@@ -46,7 +46,7 @@
     <string name="places">LIEUX</string>
     <string name="people">ANNUAIRE</string>
     <string name="favourites">FAVORIS</string>
-    <string name="search_hint">Café, pizza, boulangerie, adresse, fontaine, cabane, coordonnées…</string>
+    <string name="search_hint">Lieu, adresse, arrêt, café, entreprise, personne, coordonnées…</string>
     <string name="search_people_hint">Nom, entreprise, puis Rechercher</string>
     <string name="directory_need_key">La recherche de personnes demande votre propre clé search.ch : collez-la dans MENU.</string>
     <string name="directory_nobody">Personne trouvée</string>
@@ -345,4 +345,28 @@
     <string name="closure_more">Et %1$d autre(s) ici</string>
     <string name="closure_link">EN SAVOIR PLUS</string>
     <string name="closure_page">https://schweizmobil.ch/fr/fermetures-deviations</string>
+    <string name="go_here">Y ALLER</string>
+    <string name="start_nav">DÉMARRER</string>
+    <string name="preview_steps">ÉTAPES (%1$d)</string>
+    <string name="preview_steps_hide">MASQUER</string>
+    <string name="preview_via">par %1$s</string>
+    <string name="preview_arrive">arrivée %1$s</string>
+    <string name="preview_no_names">Les noms des rues viennent avec les lieux de MENU › LA SUISSE HORS LIGNE.</string>
+    <string name="step_start">Départ</string>
+    <string name="step_continue">Continuer</string>
+    <string name="step_left">À gauche</string>
+    <string name="step_slight_left">Légèrement à gauche</string>
+    <string name="step_sharp_left">Fortement à gauche</string>
+    <string name="step_right">À droite</string>
+    <string name="step_slight_right">Légèrement à droite</string>
+    <string name="step_sharp_right">Fortement à droite</string>
+    <string name="step_keep_left">Restez à gauche</string>
+    <string name="step_keep_right">Restez à droite</string>
+    <string name="step_uturn">Demi-tour</string>
+    <string name="step_roundabout">Rond-point, sortie %1$d</string>
+    <string name="step_arrive">Arrivée</string>
+    <string name="search_directory_row">▣  Chercher « %1$s » dans l’annuaire search.ch</string>
+    <string name="search_favs_row">★  Favoris (%1$d)</string>
+    <string name="search_back">‹ RETOUR</string>
+    <string name="dur_h_min">%1$d h %2$02d</string>
 </resources>

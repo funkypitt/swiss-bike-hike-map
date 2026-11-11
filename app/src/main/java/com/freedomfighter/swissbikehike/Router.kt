@@ -23,6 +23,8 @@ object Router {
         val seconds: Int,
         /** Turns along the route, in track order, from BRouter's voice hints. */
         val turns: List<Turn>,
+        /** The street of each step (see [Streets.names]): empty when the places pack is missing. */
+        val names: List<String> = emptyList(),
     )
 
     /** One turn: at which route point, which command (see btools.router.TurnHints), which roundabout exit. */
@@ -72,6 +74,6 @@ object Router {
         val raw = TurnHints.of(track)
         val turns = (raw.indices step 3).map { Turn(raw[it], raw[it + 1], raw[it + 2]) }
             .filter { it.index in pts.indices }
-        Result(pts, ele, track.distance, track.ascend, descend.toInt(), track.totalSeconds, turns)
+        Result(pts, ele, track.distance, track.ascend, descend.toInt(), track.totalSeconds, turns, Streets.names(ctx, pts, turns))
     }
 }

@@ -51,7 +51,7 @@
     <string name="places">PLACES</string>
     <string name="people">PEOPLE &amp; FIRMS</string>
     <string name="favourites">FAVOURITES</string>
-    <string name="search_hint">Café, pizza, bakery, address, fountain, hut, coordinates…</string>
+    <string name="search_hint">Place, address, stop, café, firm, person, coordinates…</string>
     <string name="search_people_hint">Name, business, then Search</string>
     <string name="directory_need_key">People search needs your own search.ch key: paste it in MENU.</string>
     <string name="directory_nobody">Nobody listed</string>
@@ -352,4 +352,28 @@
     <string name="closure_more">And %1$d more here</string>
     <string name="closure_link">MORE</string>
     <string name="closure_page">https://schweizmobil.ch/en/closures-diversions</string>
+    <string name="go_here">DIRECTIONS</string>
+    <string name="start_nav">START</string>
+    <string name="preview_steps">STEPS (%1$d)</string>
+    <string name="preview_steps_hide">HIDE STEPS</string>
+    <string name="preview_via">via %1$s</string>
+    <string name="preview_arrive">arrival %1$s</string>
+    <string name="preview_no_names">Street names come with the places of MENU › SWITZERLAND OFFLINE.</string>
+    <string name="step_start">Start</string>
+    <string name="step_continue">Continue</string>
+    <string name="step_left">Turn left</string>
+    <string name="step_slight_left">Bear left</string>
+    <string name="step_sharp_left">Sharp left</string>
+    <string name="step_right">Turn right</string>
+    <string name="step_slight_right">Bear right</string>
+    <string name="step_sharp_right">Sharp right</string>
+    <string name="step_keep_left">Keep left</string>
+    <string name="step_keep_right">Keep right</string>
+    <string name="step_uturn">U-turn</string>
+    <string name="step_roundabout">Roundabout, exit %1$d</string>
+    <string name="step_arrive">Arrive</string>
+    <string name="search_directory_row">▣  Look up « %1$s » in the search.ch directory</string>
+    <string name="search_favs_row">★  Favourites (%1$d)</string>
+    <string name="search_back">‹ BACK</string>
+    <string name="dur_h_min">%1$d h %2$02d</string>
 </resources>

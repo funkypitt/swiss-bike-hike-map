@@ -162,6 +162,9 @@ class Places private constructor(private val b: ByteBuffer) {
         folded = arrayOfNulls(nPlaces)
     }
 
+    /** The street names that follow the places in packs built since 0.12 (null in older packs). */
+    val streets: Streets? = Streets.of(b)?.also { it.bind(::string) }
+
     // ---- raw access ----
 
     fun string(i: Int): String {

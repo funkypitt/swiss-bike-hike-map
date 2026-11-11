@@ -46,7 +46,7 @@
     <string name="places">LUGARES</string>
     <string name="people">DIRECTORIO</string>
     <string name="favourites">FAVORITOS</string>
-    <string name="search_hint">Café, pizza, panadería, dirección, fuente, refugio, coordenadas…</string>
+    <string name="search_hint">Lugar, dirección, parada, café, empresa, persona, coordenadas…</string>
     <string name="search_people_hint">Nombre, empresa, luego Buscar</string>
     <string name="directory_need_key">La búsqueda de personas necesita su propia clave de search.ch: péguela en MENÚ.</string>
     <string name="directory_nobody">Nadie encontrado</string>
@@ -345,4 +345,28 @@
     <string name="closure_more">Y %1$d más aquí</string>
     <string name="closure_link">MÁS</string>
     <string name="closure_page">https://schweizmobil.ch/en/closures-diversions</string>
+    <string name="go_here">CÓMO LLEGAR</string>
+    <string name="start_nav">INICIAR</string>
+    <string name="preview_steps">PASOS (%1$d)</string>
+    <string name="preview_steps_hide">OCULTAR</string>
+    <string name="preview_via">por %1$s</string>
+    <string name="preview_arrive">llegada %1$s</string>
+    <string name="preview_no_names">Los nombres de las calles llegan con los lugares de MENÚ › SUIZA SIN CONEXIÓN.</string>
+    <string name="step_start">Salida</string>
+    <string name="step_continue">Continúe</string>
+    <string name="step_left">Gire a la izquierda</string>
+    <string name="step_slight_left">Ligeramente a la izquierda</string>
+    <string name="step_sharp_left">Cerrada a la izquierda</string>
+    <string name="step_right">Gire a la derecha</string>
+    <string name="step_slight_right">Ligeramente a la derecha</string>
+    <string name="step_sharp_right">Cerrada a la derecha</string>
+    <string name="step_keep_left">Manténgase a la izquierda</string>
+    <string name="step_keep_right">Manténgase a la derecha</string>
+    <string name="step_uturn">Cambio de sentido</string>
+    <string name="step_roundabout">Rotonda, salida %1$d</string>
+    <string name="step_arrive">Llegada</string>
+    <string name="search_directory_row">▣  Buscar « %1$s » en el directorio search.ch</string>
+    <string name="search_favs_row">★  Favoritos (%1$d)</string>
+    <string name="search_back">‹ VOLVER</string>
+    <string name="dur_h_min">%1$d h %2$02d</string>
 </resources>

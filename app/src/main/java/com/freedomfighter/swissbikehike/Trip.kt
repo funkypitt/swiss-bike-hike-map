@@ -33,6 +33,11 @@ class Trip(
     /** Route point index nearest to each stop. */
     val stopIdx: IntArray = IntArray(stops.size) { s -> nearest(stops[s].at) }
     val hasElevation: Boolean get() = ele.any { !it.isNaN() }
+    /** The street of each step: [0] from the start, [k + 1] after turn k; empty when unknown. */
+    var names: List<String> = emptyList()
+
+    /** The street taken after turn k, blank when unknown. */
+    fun nameAfter(k: Int): String = names.getOrNull(k + 1) ?: ""
 
     /** Where a position is along the trip: nearest point index, distance to the line, metres travelled along it. */
     class Along(val index: Int, val offM: Double, val doneM: Double)
@@ -64,7 +69,7 @@ class Trip(
 
     companion object {
         fun fromRoute(r: Router.Result, stops: List<Stop>) =
-            Trip(r.points, r.elevations, r.turns, r.distanceM, r.ascendM, r.descendM, r.seconds, stops, false, stops.last().name)
+            Trip(r.points, r.elevations, r.turns, r.distanceM, r.ascendM, r.descendM, r.seconds, stops, false, stops.last().name).also { it.names = r.names }
 
         /** A GPX track becomes a trip: its end is the only stop; the turns come from its shape. */
         fun fromTrack(t: Track, name: String): Trip? {

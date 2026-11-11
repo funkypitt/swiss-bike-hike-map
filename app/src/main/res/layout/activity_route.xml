@@ -39,21 +39,6 @@
             android:background="@drawable/btn_active" android:textColor="@drawable/btn_active_text" android:text="@string/route_compute"/>
         <TextView android:id="@+id/status" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="15sp" android:paddingTop="8dp" android:visibility="gone"/>
 
-        <!-- RESULT -->
-        <LinearLayout android:id="@+id/result" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
-            <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/route_result"/>
-            <LinearLayout android:id="@+id/choices" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"/>
-            <TextView android:id="@+id/summary" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="17sp" android:textStyle="bold" android:fontFamily="monospace" android:paddingTop="6dp" android:paddingBottom="6dp"/>
-            <TextView android:id="@+id/steps" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="15sp" android:fontFamily="monospace" android:lineSpacingExtra="4dp"/>
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginTop="12dp">
-                <TextView android:id="@+id/share" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp" android:text="@string/share"/>
-                <TextView android:id="@+id/save" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp" android:layout_marginStart="6dp" android:text="@string/route_save"/>
-                <TextView android:id="@+id/show" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp" android:layout_marginStart="6dp" android:text="@string/route_show"/>
-            </LinearLayout>
-            <TextView android:id="@+id/go" style="@style/Btn" android:layout_width="match_parent" android:layout_height="60dp" android:layout_marginTop="8dp"
-                android:background="@drawable/btn_active" android:textColor="@drawable/btn_active_text" android:text="@string/go"/>
-        </LinearLayout>
-
         <!-- SAVED -->
         <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/route_saved"/>
         <TextView android:id="@+id/savedInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:textColor="@color/grey" android:text="@string/route_saved_empty"/>

@@ -384,7 +384,8 @@ class NavService : Service(), LocationListener {
             val warn = if (mode == Mode.BIKE) 80.0 else 30.0
             if (toTurn < warn && buzzedTurn != next.index) { buzzedTurn = next.index; buzz(longArrayOf(0, 300)) }
         }
-        val text = (if (next != null) glyph(next.cmd) + " " + navM(toTurn) else "◎ " + navM(left)) +
+        val street = if (next != null) t.nameAfter(t.turns.indexOf(next)) else ""
+        val text = (if (next != null) glyph(next.cmd) + " " + navM(toTurn) + (if (street.isNotBlank()) " " + street else "") else "◎ " + navM(left)) +
             (if (next != null && after != null) "  ·  " + getString(R.string.then) + " " + glyph(after.cmd) + " " + navM(afterM) else "") +
             "  ·  " + getString(R.string.eta_short, eta) + (if (a.offM > OFF_ROUTE_M) "  ·  " + getString(R.string.off_track, navM(a.offM)) else "")
         notify(text)

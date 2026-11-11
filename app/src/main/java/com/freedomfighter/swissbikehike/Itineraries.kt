@@ -67,19 +67,78 @@ object Itineraries {
             }
         } else if (t != null) {
             out.add(clock(it.depart) + "  " + it.from.name)
-            var last = 0
-            for ((i, turn) in t.turns.withIndex()) {
-                if (turn.cmd == TurnHints.C || turn.cmd == TurnHints.BL) continue
-                val d = t.cum[turn.index] - t.cum[last]
-                if (turn.cmd == TurnHints.END) { out.add("      " + ctx.getString(R.string.step_straight, NavService.navM(d))); break }
-                out.add("      " + ctx.getString(R.string.step_straight, NavService.navM(d)) + "  " + NavService.glyph(turn.cmd) + (if (turn.exit > 0) " " + turn.exit else ""))
-                last = turn.index
-                for ((s, idx) in t.stopIdx.withIndex()) if (s < t.stops.size - 1 && idx > last - 1 && idx <= turn.index && i < t.turns.size - 1)
-                    if (t.stops[s].name.isNotBlank() && out.none { it.endsWith(t.stops[s].name) }) out.add("      " + ctx.getString(R.string.stop_n, s + 1) + "  " + t.stops[s].name)
+            for (st in tripSteps(ctx, t)) {
+                if (st.cmd == TurnHints.END) continue
+                out.add("      " + NavService.glyph(st.cmd) + "  " + listOf(st.title, st.street).filter { x -> x.isNotBlank() }.joinToString(" · ") +
+                    (if (st.metres >= 1) "  ·  " + NavService.navM(st.metres) else ""))
             }
             out.add(clock(it.arrive) + "  " + it.to.name)
         }
         return out
+    }
+
+    /**
+     * One step of a routed trip as the preview lists it: the manoeuvre, the street taken, how far
+     * it runs (to the next step), and where it is. `cmd` -1 = a stop on the way.
+     */
+    class Step(val cmd: Int, val exit: Int, val title: String, val street: String, val metres: Double, val index: Int, val at: LatLng)
+
+    /** What to do at a turn, in words. */
+    fun turnText(ctx: Context, cmd: Int, exit: Int): String = when (cmd) {
+        TurnHints.TL -> ctx.getString(R.string.step_left); TurnHints.TSLL -> ctx.getString(R.string.step_slight_left); TurnHints.TSHL -> ctx.getString(R.string.step_sharp_left)
+        TurnHints.TR -> ctx.getString(R.string.step_right); TurnHints.TSLR -> ctx.getString(R.string.step_slight_right); TurnHints.TSHR -> ctx.getString(R.string.step_sharp_right)
+        TurnHints.KL, TurnHints.EL -> ctx.getString(R.string.step_keep_left); TurnHints.KR, TurnHints.ER -> ctx.getString(R.string.step_keep_right)
+        TurnHints.TU, TurnHints.TLU, TurnHints.TRU -> ctx.getString(R.string.step_uturn)
+        TurnHints.RNDB, TurnHints.RNLB -> if (exit > 0) ctx.getString(R.string.step_roundabout, exit) else ctx.getString(R.string.step_continue)
+        TurnHints.END -> ctx.getString(R.string.step_arrive)
+        else -> ctx.getString(R.string.step_continue)
+    }
+
+    private fun slight(cmd: Int) = cmd == TurnHints.TSLL || cmd == TurnHints.TSLR || cmd == TurnHints.KL || cmd == TurnHints.KR || cmd == TurnHints.C || cmd == TurnHints.BL
+
+    /**
+     * The steps of a trip: the start, every turn with the street it leads onto, the stops on the
+     * way, the arrival. A slight bend that stays on the same named street is not a step.
+     */
+    fun tripSteps(ctx: Context, t: Trip): List<Step> {
+        if (t.points.size < 2) return emptyList()
+        class Raw(val cmd: Int, val exit: Int, val title: String, val street: String, val index: Int)
+        val raw = ArrayList<Raw>()
+        raw.add(Raw(TurnHints.C, 0, ctx.getString(R.string.step_start), t.names.getOrNull(0) ?: "", 0))
+        for ((k, turn) in t.turns.withIndex()) {
+            if (turn.cmd == TurnHints.END) break
+            val street = t.nameAfter(k)
+            val prev = raw.last()
+            if (slight(turn.cmd) && (turn.cmd == TurnHints.C || turn.cmd == TurnHints.BL || (street.isNotBlank() && street == prev.street))) continue
+            raw.add(Raw(turn.cmd, turn.exit, turnText(ctx, turn.cmd, turn.exit), street, turn.index))
+        }
+        // a nameless jog of a few metres (a forecourt, a crossing) is part of the next step in a list
+        val end0 = t.points.size - 1
+        for (i in raw.size - 1 downTo 1) {
+            val r = raw[i]; val next = raw.getOrNull(i + 1)?.index ?: end0
+            if (r.street.isBlank() && t.cum[next] - t.cum[r.index] < 25.0 && i + 1 < raw.size) raw.removeAt(i)
+        }
+        // the stops on the way (not the destination), where the route passes them
+        for ((s, idx) in t.stopIdx.withIndex()) if (s < t.stops.size - 1)
+            raw.add(Raw(-1, 0, ctx.getString(R.string.stop_n, s + 1), t.stops[s].name, idx))
+        val end = t.points.size - 1
+        val sorted = raw.sortedWith(compareBy({ it.index }, { if (it.cmd == -1) 1 else 0 }))
+        val out = ArrayList<Step>()
+        for ((i, r) in sorted.withIndex()) {
+            val next = sorted.getOrNull(i + 1)?.index ?: end
+            out.add(Step(r.cmd, r.exit, r.title, r.street, t.cum[next] - t.cum[r.index], r.index, t.points[r.index]))
+        }
+        out.add(Step(TurnHints.END, 0, ctx.getString(R.string.step_arrive), t.stops.lastOrNull()?.name ?: "", 0.0, end, t.points[end]))
+        return out
+    }
+
+    /** The two or three streets that carry most of the trip, in route order (for « via … »). */
+    fun via(ctx: Context, t: Trip): List<String> {
+        val len = LinkedHashMap<String, Double>()
+        for (st in tripSteps(ctx, t)) if (st.cmd != -1 && st.street.isNotBlank()) len[st.street] = (len[st.street] ?: 0.0) + st.metres
+        val total = t.distanceM.coerceAtLeast(1)
+        val top = len.entries.filter { it.value >= 0.15 * total || it.value >= 1500 }.sortedByDescending { it.value }.take(3).map { it.key }.toSet()
+        return len.keys.filter { it in top }
     }
 
     fun summary(ctx: Context, it: Itinerary): String {
@@ -127,7 +186,7 @@ object Itineraries {
             val pts = JSONArray(); for ((i, p) in t.points.withIndex()) pts.put(JSONArray().put(p.latitude).put(p.longitude).put(if (t.ele[i].isNaN()) JSONObject.NULL else t.ele[i]))
             val turns = JSONArray(); for (x in t.turns) turns.put(JSONArray().put(x.index).put(x.cmd).put(x.exit))
             o.put("trip", JSONObject().put("points", pts).put("turns", turns).put("dist", t.distanceM).put("asc", t.ascendM).put("desc", t.descendM)
-                .put("sec", t.seconds).put("stops", JSONArray().also { a -> for (s in t.stops) a.put(stopJson(s)) }).put("name", t.name))
+                .put("sec", t.seconds).put("names", JSONArray(t.names)).put("stops", JSONArray().also { a -> for (s in t.stops) a.put(stopJson(s)) }).put("name", t.name))
         }
         it.journey?.let { j ->
             val legs = JSONArray()
@@ -148,6 +207,7 @@ object Itineraries {
             val turns = (0 until ta.length()).map { val x = ta.getJSONArray(it); Router.Turn(x.getInt(0), x.getInt(1), x.getInt(2)) }
             val sa = t.getJSONArray("stops")
             Trip(pts, ele, turns, t.getInt("dist"), t.getInt("asc"), t.getInt("desc"), t.getInt("sec"), (0 until sa.length()).map { stopOf(sa.getJSONObject(it)) }, false, t.optString("name"))
+                .also { tr -> t.optJSONArray("names")?.let { na -> tr.names = (0 until na.length()).map { na.optString(it) } } }
         }
         val journey = o.optJSONObject("journey")?.let { j ->
             val la = j.getJSONArray("legs")

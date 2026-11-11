@@ -15,32 +15,35 @@ the app was called Swiss Bike-Hike Map; the package name has not changed.)
   and orange mountain-bike routes, closures and detours (© swisstopo, © SchweizMobil); red
   railways, green trams and metros, purple lifts, blue boats and every stop with its name. The
   walking map shows the stops too, as plain dots.
-* **Public transport**: GO offers the next journeys to your stop (departure, arrival, changes,
-  lines, platforms), the chosen one is drawn leg by leg; NAV then says what to do in big letters
+* **Public transport**: DIRECTIONS offers the next journeys to your stop (departure, arrival, changes,
+  lines, platforms), the chosen one is drawn leg by leg; START then says what to do in big letters
   (WALK to…, BOARD…, ON… get off at…, GET OFF at…, CHANGE), vibrates before boarding and before
   getting off, plans again when a connection is missed, and goes on in the notification. Online
   the timetable is transport.opendata.ch (real time, no key); offline, an optional 15 MB pack of
   the official Swiss timetable (opentransportdata.swiss), rebuilt weekly by this repository and
-  planned on the phone. DEPARTURES on any stop pin; a STOPS tab in FIND on every map.
+  planned on the phone. DEPARTURES on any stop pin; stops come up in FIND on every map.
 * **Stops**: a long press, a search result or a place shared by another app puts a numbered stop
-  on the map; **GO** routes through all of them on the phone (BRouter on OpenStreetMap data,
-  about 450 MB fetched once over Wi-Fi), with distance, climb, descent, time and an elevation
-  profile.
-* **NAV**: one big arrow, the distance to the turn, the next one, the time of arrival; a
+  on the map; **DIRECTIONS** routes through all of them on the phone (BRouter on OpenStreetMap
+  data, about 450 MB fetched once over Wi-Fi).
+* **Preview**: before anything starts, the route is drawn whole with its distance, time, time of
+  arrival, climb and descent, the main streets it takes (« via Avenue de Rumine, Route de
+  Berne »), the elevation profile, and STEPS: every turn with the street it leads onto and how
+  far it runs (a tap shows it on the map); SHARE, KEEP, and one clear START.
+* **Guidance**: one big arrow, the distance to the turn, the street it leads onto, the next turn, the time of arrival; a
   vibration before each turn; a new route when you leave the line; the trip goes on in a
   notification with the screen off or another app in front, and is kept in a local history.
 * **PLAN**, on every map: a start (your position, a search, a point on the map), a destination,
-  a date and a time; the itinerary in detail (turns and stops, or trains and buses with
-  platforms), to share as text, keep in the app, show on the map, or follow at once with GO.
+  a date and a time; the route then opens in the preview. Kept itineraries are listed there.
   On the transit map a tap on any stop dot lists its lines with their next departure.
 * **GPX**: follow a track as it is (turns read off its shape), or record your own.
-* **FIND**: what is around you by category or by word, offline (drinking water, shelters, huts,
+* **FIND**: one field for everything, as in any map app: favourites, places around by category or by word, offline (drinking water, shelters, huts,
   picnic and fire places, bike shops and repair stations, bakeries, cafés, restaurants, bars,
-  shops, post offices, campsites… from OpenStreetMap, a 5 MB pack), shown as a list or as numbered
+  shops, post offices, campsites… from OpenStreetMap, with the street names that the steps use, a 15 MB pack), shown as a list or as numbered
   dots on the map; a tap opens the place's card: open or closed now, the week's hours, address,
   phone (CALL), website, and CONTACT (adds it to your contacts), COPY, SHARE; places and addresses (GeoAdmin), typed coordinates (WGS84,
-  LV95, LV03), people and firms from the search.ch directory with your own free key, which also
-  completes a place with its phone and address; public-transport stops, and your favourites,
+  LV95, LV03) and public-transport stops, mixed and nearest first; people and firms from the
+  search.ch directory with your own free key (the Search key or the last row), which also
+  completes a place with its phone and address; and your favourites,
   which you can import and export (GPX, KML, GeoJSON, CSV). The places can be drawn on the map
   as coloured dots.
 * **Offline**: one option, all of Switzerland — map, routing, places and timetable (about

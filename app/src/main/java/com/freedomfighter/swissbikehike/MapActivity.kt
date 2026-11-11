@@ -14,6 +14,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -74,6 +75,18 @@ class MapActivity : AppCompatActivity(), LocationListener {
     private var nav = false
     private var keptShown = 0L
     private var navVersion = 0
+    /** Where the route on screen starts (my position or the planner's start) and when: for sharing and keeping it. */
+    private var routeFrom: Stop? = null
+    private var routeDepart = 0L
+    /** The public-transport journeys offered for the destination; the one drawn is `journey`. */
+    private var choices: List<Journey> = emptyList()
+    /** The file of the route on screen once kept (KEEP), blank before. */
+    private var keptFile = ""
+    private var stepsOpen = false
+    /** Back closes the route preview first. */
+    private val backClosesPreview = object : androidx.activity.OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() { closePreview() }
+    }
 
     private val askPermissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         if (hasLocation()) { startLocation(); enableLocationLayer() }
@@ -97,6 +110,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
             }
             RouteActivity.RESULT_SHOW, RouteActivity.RESULT_GO -> RouteActivity.handover?.let { it0 ->
                 RouteActivity.handover = null
+                choices = RouteActivity.handoverChoices.also { RouteActivity.handoverChoices = emptyList() }
                 loadItinerary(it0)
                 if (r.resultCode == RouteActivity.RESULT_GO) startNav()
             }
@@ -117,8 +131,11 @@ class MapActivity : AppCompatActivity(), LocationListener {
     /** A planned itinerary onto the map: its destination as the stop, its route or journey drawn (a running navigation switches to it on GO). */
     private fun loadItinerary(it: Itinerary) {
         stops.clear(); stops.add(it.to); drawStops()
+        routeFrom = it.from; routeDepart = it.depart
+        if (choices.isEmpty()) choices = listOfNotNull(it.journey)
         it.trip?.let { t -> setTrip(t, fit = true) }
         it.journey?.let { j -> setJourney(j, fit = true) }
+        keptFile = it.file; showPreview()
     }
 
     private val menuLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
@@ -146,12 +163,8 @@ class MapActivity : AppCompatActivity(), LocationListener {
         b.modeBadge.setOnClickListener { finish() }
         b.btnFind.setOnClickListener {
             // "around you" in the search: the position when there is one, else the centre of the map
-            val i = Intent(this, SearchActivity::class.java)
-            val l = lastLocation; val c = map?.cameraPosition?.target
-            if (l != null) i.putExtra(SearchActivity.EXTRA_NEAR_LAT, l.latitude).putExtra(SearchActivity.EXTRA_NEAR_LON, l.longitude).putExtra(SearchActivity.EXTRA_NEAR_GPS, true)
-            else if (c != null) i.putExtra(SearchActivity.EXTRA_NEAR_LAT, c.latitude).putExtra(SearchActivity.EXTRA_NEAR_LON, c.longitude).putExtra(SearchActivity.EXTRA_NEAR_GPS, false)
-            if (c != null) i.putExtra(SearchActivity.EXTRA_CENTRE_LAT, c.latitude).putExtra(SearchActivity.EXTRA_CENTRE_LON, c.longitude)
-            searchLauncher.launch(i)
+            val l = lastLocation?.let { LatLng(it.latitude, it.longitude) }; val c = map?.cameraPosition?.target
+            searchLauncher.launch(SearchActivity.intent(this, mode, l ?: c, l != null, c))
         }
         b.btnPlaces.setOnClickListener { togglePlaces() }
         b.btnMenu.setOnClickListener {
@@ -162,8 +175,14 @@ class MapActivity : AppCompatActivity(), LocationListener {
         b.btnZoomOut.setOnClickListener { zoomBy(-1.0) }
         b.btnFollow.setOnClickListener { setFollow((follow + 1) % 3) }
         b.btnPlan.setOnClickListener { openPlanner() }
-        b.btnGo.setOnClickListener { if (nav) stopNav() else go() }
-        b.btnNav.setOnClickListener { startNav() }
+        b.btnGo.setOnClickListener { stopNav() }
+        b.btnRoute.setOnClickListener { go() }
+        b.pvClose.setOnClickListener { closePreview() }
+        b.pvStart.setOnClickListener { startNav() }
+        b.pvStepsBtn.setOnClickListener { stepsOpen = !stepsOpen; renderSteps() }
+        b.pvShare.setOnClickListener { currentItinerary()?.let { shareItinerary(it) } }
+        b.pvSave.setOnClickListener { keepItinerary() }
+        onBackPressedDispatcher.addCallback(this, backClosesPreview)
         b.btnRec.setOnClickListener { toggleRecording() }
         b.btnSave.setOnClickListener { toggleFavourite() }
         b.pinLabel.setOnClickListener { stops.lastOrNull()?.let { s -> if (!showPlaceAt(s.at, s.name, pin = false)) share(s.name, s.at) } }
@@ -581,9 +600,6 @@ class MapActivity : AppCompatActivity(), LocationListener {
         if (trip != null) { trip = null; clearTripDrawing(); b.lDist.text = getString(R.string.dist); updateDist() }
         if (journey != null) { journey = null; clearJourneyDrawing(); b.lDist.text = getString(R.string.dist); updateDist() }
         drawStops()
-        b.btnGo.isEnabled = true
-        b.btnGo.text = getString(R.string.go)
-        b.btnNav.isEnabled = false
         updatePinStrip()
     }
 
@@ -593,9 +609,6 @@ class MapActivity : AppCompatActivity(), LocationListener {
         if (trip != null) { trip = null; clearTripDrawing(); b.lDist.text = getString(R.string.dist); updateDist() }
         if (journey != null) { journey = null; clearJourneyDrawing(); b.lDist.text = getString(R.string.dist); updateDist() }
         drawStops()
-        b.btnGo.isEnabled = stops.isNotEmpty()
-        b.btnGo.text = getString(R.string.go)
-        b.btnNav.isEnabled = false
         updatePinStrip()
     }
 
@@ -618,7 +631,9 @@ class MapActivity : AppCompatActivity(), LocationListener {
         b.btnSave.text = if (saved != null) "★" else "☆"
         b.btnSave.isActivated = saved != null
         b.btnDrop.visibility = View.VISIBLE
-        b.btnDepartures.visibility = if (s.kind == Favourites.STOP) View.VISIBLE else View.GONE
+        // DIRECTIONS until a route is on screen; then the preview below says the rest
+        b.btnRoute.visibility = if (trip == null && journey == null) View.VISIBLE else View.GONE
+        b.btnDepartures.visibility = if (s.kind == Favourites.STOP && trip == null && journey == null) View.VISIBLE else View.GONE
     }
 
     /** The next departures at a public-transport stop, as a plain list. */
@@ -730,6 +745,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
             Toast.makeText(this, R.string.no_fix_centre, Toast.LENGTH_SHORT).show()
             map?.cameraPosition?.target
         } ?: return
+        routeFrom = Stop(from, getString(R.string.my_position)); routeDepart = System.currentTimeMillis(); choices = emptyList()
         computeRoute(from, stops.toList(), fit = true)
     }
 
@@ -760,6 +776,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
             map?.cameraPosition?.target
         } ?: return
         routing = true
+        routeFrom = Stop(from, getString(R.string.my_position)); routeDepart = System.currentTimeMillis()
         status(getString(R.string.planning))
         lifecycleScope.launch {
             val result = runCatching {
@@ -789,23 +806,13 @@ class MapActivity : AppCompatActivity(), LocationListener {
             Planner.takeNotice()?.let { Toast.makeText(this@MapActivity, it, Toast.LENGTH_LONG).show() }
             result.onSuccess { js ->
                 if (js.isEmpty()) { Toast.makeText(this@MapActivity, R.string.no_journey, Toast.LENGTH_LONG).show(); return@onSuccess }
-                if (js.size == 1) { setJourney(js[0], fit = true); return@onSuccess }
-                val lines = js.map { journeyLine(it) }
-                AlertDialog.Builder(this@MapActivity).setTitle(getString(R.string.journeys_title, stops.last().name))
-                    .setItems(lines.toTypedArray()) { _, i -> setJourney(js[i], fit = true) }
-                    .setNegativeButton(R.string.cancel, null).show()
+                choices = js
+                setJourney(js[0], fit = true)
             }
         }
     }
 
     private fun changesText(j: Journey): String = when (j.changes) { 0 -> getString(R.string.direct); 1 -> getString(R.string.change_1); else -> getString(R.string.changes_n, j.changes) }
-
-    private fun journeyLine(j: Journey): String {
-        val rides = j.legs.filter { it.ride }
-        val head = Journey.clock(j.dep) + " → " + Journey.clock(j.arr) + "   " + Fmt.hm(j.seconds) + "   " + changesText(j)
-        val detail = rides.joinToString("  ·  ") { kindLabel(it.kind, it.line) + (if (it.platDep.isNotBlank()) " (" + getString(R.string.nav_platform, it.platDep) + ")" else "") }
-        return if (rides.isEmpty()) head else head + "\n" + detail
-    }
 
     private fun setJourney(j: Journey, fit: Boolean) {
         if (trip != null) { trip = null; clearTripDrawing() }
@@ -813,18 +820,12 @@ class MapActivity : AppCompatActivity(), LocationListener {
         // the last walk ends at the pin: give it the pin's name, so the guidance can say it
         j.legs.last().let { l -> if (!l.ride && l.to.name.isBlank()) l.to.name = stops.lastOrNull()?.name ?: "" }
         drawJourney(j)
-        val rides = j.legs.filter { it.ride }
-        b.routeStrip.text = Journey.clock(j.dep) + " → " + Journey.clock(j.arr) + "   " + Fmt.hm(j.seconds) + "   " + changesText(j) +
-            (if (rides.isEmpty()) "" else "\n" + rides.joinToString(" · ") { kindLabel(it.kind, it.line) }) +
-            "\n" + getString(if (j.offline) R.string.offline_timetable else R.string.realtime)
-        b.routeStrip.visibility = if (nav) View.GONE else View.VISIBLE
+        if (choices.none { it === j }) choices = listOf(j)
+        keptFile = ""
         b.profile.visibility = View.GONE
-        b.btnGo.text = getString(if (nav) R.string.stop_nav else R.string.go)
-        b.btnGo.isEnabled = true
-        b.btnNav.isEnabled = true
         b.lDist.text = getString(R.string.togo)
         updateDist()
-        updatePinStrip()
+        showPreview()
         if (fit) fitTo(j.points)
     }
 
@@ -846,7 +847,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
     private fun clearJourneyDrawing() {
         style?.getSourceAs<GeoJsonSource>(MapStyle.SRC_JOURNEY)?.setGeoJson(FeatureCollection.fromFeatures(emptyList()))
         style?.getSourceAs<GeoJsonSource>(MapStyle.SRC_JOURNEY_PTS)?.setGeoJson(FeatureCollection.fromFeatures(emptyList()))
-        b.routeStrip.visibility = View.GONE
+        if (trip == null) hidePreview()
     }
 
     private fun askForTimetable() {
@@ -870,24 +871,24 @@ class MapActivity : AppCompatActivity(), LocationListener {
         if (journey != null) { journey = null; clearJourneyDrawing() }
         trip = t
         drawTrip(t)
-        b.routeStrip.text = String.format(Locale.US, "%s km  ↑%d m  ↓%d m", Fmt.km(t.distanceM.toDouble()), t.ascendM, t.descendM) +
-            (if (t.seconds > 0) "  " + Fmt.hm(t.seconds) else "")
-        b.routeStrip.visibility = if (nav) View.GONE else View.VISIBLE
+        if (!nav) keptFile = ""
         b.profile.set(t)
-        b.profile.visibility = if (t.hasElevation) View.VISIBLE else View.GONE
-        b.btnGo.text = getString(if (nav) R.string.stop_nav else R.string.go)
-        b.btnGo.isEnabled = true
-        b.btnNav.isEnabled = true
+        b.profile.visibility = if (nav && t.hasElevation) View.VISIBLE else View.GONE
         b.lDist.text = getString(R.string.togo)
         updateDist()
-        updatePinStrip()
+        showPreview()
         if (fit) fitTo(t.points)
     }
 
     private fun fitTo(pts: List<LatLng>) {
         if (pts.size < 2) return
         val bb = LatLngBounds.Builder().also { bld -> pts.forEach { bld.include(it) } }.build()
-        map?.animateCamera(CameraUpdateFactory.newLatLngBounds(bb, 80, 560, 200, 120))
+        // once the preview has taken its height: the map is smaller then; clear of the top row and the strips
+        b.preview.post {
+            // the pin's head stands above its point: a little more room at the top
+            val top = (b.strips.top + b.strips.height + (56 * resources.displayMetrics.density).toInt()).coerceAtLeast(200)
+            map?.animateCamera(CameraUpdateFactory.newLatLngBounds(bb, 80, top, 160, 80))
+        }
     }
 
     /** A GPX file becomes the trip itself: followed as it is, with turns read off its shape. */
@@ -899,6 +900,8 @@ class MapActivity : AppCompatActivity(), LocationListener {
             val name = track?.name?.ifBlank { null } ?: uri.lastPathSegment?.substringAfterLast('/')?.removeSuffix(".gpx") ?: "GPX"
             val t = track?.let { Trip.fromTrack(it, name) }
             if (t == null) { Toast.makeText(this@MapActivity, R.string.no_track_in_file, Toast.LENGTH_SHORT).show(); return@launch }
+            t.names = withContext(Dispatchers.Default) { Streets.names(this@MapActivity, t.points, t.turns) }
+            routeFrom = Stop(t.points.first(), Favourites.coordsName(t.points.first().latitude, t.points.first().longitude)); routeDepart = System.currentTimeMillis(); choices = emptyList()
             if (nav) { stopNav(); exitNavUi() }
             stops.clear(); stops.addAll(t.stops)
             drawStops()
@@ -921,9 +924,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
         trip = null; stops.clear(); journey = null
         clearTripDrawing(); clearJourneyDrawing()
         drawStops()
-        b.btnGo.text = getString(R.string.go)
-        b.btnGo.isEnabled = false
-        b.btnNav.isEnabled = false
+        choices = emptyList()
         b.lDist.text = getString(R.string.dist)
         updatePinStrip()
         updateDist()
@@ -931,7 +932,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
 
     private fun clearTripDrawing() {
         style?.getSourceAs<GeoJsonSource>(MapStyle.SRC_ROUTE)?.setGeoJson(FeatureCollection.fromFeatures(emptyList()))
-        b.routeStrip.visibility = View.GONE
+        if (journey == null) hidePreview()
         b.profile.visibility = View.GONE
         b.profile.set(null)
     }
@@ -961,6 +962,169 @@ class MapActivity : AppCompatActivity(), LocationListener {
         }
     }
 
+    // ---------- route preview: what a route is before it is followed ----------
+
+    /** The panel under the map: distance, time, climb, the main streets, the steps, START. Hidden in navigation. */
+    private fun showPreview() {
+        val t = trip; val j = journey
+        if (nav || (t == null && j == null)) { hidePreview(); return }
+        b.preview.visibility = View.VISIBLE
+        // the preview has its own buttons: the PLAN / REC row would only take the map's room
+        b.actionRow.visibility = View.GONE
+        // the map is shorter: the zoom column would cover the strips (pinch still zooms)
+        b.zoomColumn.visibility = View.GONE
+        backClosesPreview.isEnabled = true
+        if (t != null) {
+            val dep = if (routeDepart > 0) routeDepart else System.currentTimeMillis()
+            b.pvSummary.text = Fmt.km(t.distanceM.toDouble()) + " km" + (if (t.seconds > 0) "  ·  " + duration(t.seconds) else "")
+            val via = Itineraries.via(this, t)
+            b.pvDetail.text = listOfNotNull(
+                String.format(Locale.US, "↑ %d m   ↓ %d m", t.ascendM, t.descendM) +
+                    (if (t.seconds > 0) "   ·   " + getString(R.string.preview_arrive, Itineraries.clock(dep + t.seconds * 1000L)) else ""),
+                when {
+                    via.isNotEmpty() -> getString(R.string.preview_via, via.joinToString(", "))
+                    t.names.isEmpty() -> getString(R.string.preview_no_names)
+                    else -> null
+                }).joinToString("\n")
+            b.pvProfile.set(t)
+            b.pvProfile.visibility = if (t.hasElevation) View.VISIBLE else View.GONE
+        } else if (j != null) {
+            val rides = j.legs.filter { it.ride }
+            b.pvSummary.text = Journey.clock(j.dep) + " → " + Journey.clock(j.arr) + "  ·  " + duration(j.seconds)
+            b.pvDetail.text = changesText(j) + (if (rides.isEmpty()) "" else "  ·  " + rides.joinToString(" · ") { kindLabel(it.kind, it.line) }) +
+                "\n" + getString(if (j.offline) R.string.offline_timetable else R.string.realtime)
+            b.pvProfile.visibility = View.GONE
+        }
+        b.pvSave.text = getString(if (keptFile.isBlank()) R.string.route_save else R.string.route_saved_ok)
+        renderChoices()
+        renderSteps()
+        updatePinStrip()
+    }
+
+    private fun hidePreview() {
+        b.preview.visibility = View.GONE
+        b.actionRow.visibility = View.VISIBLE
+        backClosesPreview.isEnabled = false
+        stepsOpen = false
+        b.zoomColumn.visibility = View.VISIBLE
+    }
+
+    /** ✕ or Back: the route goes, the pins stay (a GPX track goes with its points). */
+    private fun closePreview() {
+        if (trip?.fromGpx == true) { clearTrip(); return }
+        trip = null; journey = null; choices = emptyList()
+        clearTripDrawing(); clearJourneyDrawing(); hidePreview()
+        b.lDist.text = getString(R.string.dist)
+        updateDist(); updatePinStrip()
+    }
+
+    /** "52 min", "1 h 05". */
+    private fun duration(seconds: Int): String {
+        val m = (seconds + 30) / 60
+        return if (m < 60) getString(R.string.minutes_n, m) else getString(R.string.dur_h_min, m / 60, m % 60)
+    }
+
+    /** The other journeys of the same search, one row each; a tap draws that one. */
+    private fun renderChoices() {
+        b.pvChoices.removeAllViews()
+        if (choices.size < 2 || journey == null) return
+        for (c in choices) {
+            val v = TextView(this)
+            val rides = c.legs.filter { it.ride }
+            v.text = Journey.clock(c.dep) + " → " + Journey.clock(c.arr) + "   " + duration(c.seconds) + "   " + changesText(c) +
+                (if (rides.isEmpty()) "" else "\n" + rides.joinToString(" · ") { kindLabel(it.kind, it.line) })
+            v.textSize = 15f; v.setPadding(14, 10, 14, 10); v.setLineSpacing(2f, 1f)
+            val chosen = c === journey
+            v.setBackgroundResource(if (chosen) R.drawable.btn_active else R.drawable.btn)
+            v.setTextColor(ContextCompat.getColor(this, if (chosen) R.color.paper else R.color.ink))
+            v.setOnClickListener { if (c !== journey) setJourney(c, fit = true) }
+            val lp = android.widget.LinearLayout.LayoutParams(android.widget.LinearLayout.LayoutParams.MATCH_PARENT, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT)
+            lp.topMargin = (6 * resources.displayMetrics.density).toInt()
+            b.pvChoices.addView(v, lp)
+        }
+    }
+
+    /** STEPS (n): the list opens under the summary, a tap on a step shows it on the map. */
+    private fun renderSteps() {
+        val t = trip; val j = journey
+        val d = resources.displayMetrics.density
+        b.pvSteps.removeAllViews()
+        val rows = ArrayList<View>()
+        if (t != null) {
+            for (st in Itineraries.tripSteps(this, t)) {
+                val row = android.widget.LinearLayout(this)
+                row.orientation = android.widget.LinearLayout.HORIZONTAL
+                row.gravity = android.view.Gravity.CENTER_VERTICAL
+                row.setPadding(0, (8 * d).toInt(), 0, (8 * d).toInt())
+                val g = TextView(this)
+                g.text = if (st.cmd == -1) "●" else NavService.glyph(st.cmd)
+                g.textSize = 24f; g.setTextColor(ContextCompat.getColor(this, R.color.ink)); g.gravity = android.view.Gravity.CENTER
+                row.addView(g, android.widget.LinearLayout.LayoutParams((40 * d).toInt(), android.widget.LinearLayout.LayoutParams.WRAP_CONTENT))
+                val tx = TextView(this)
+                val head = st.street.ifBlank { st.title }
+                val sub = listOf(if (st.street.isBlank()) "" else st.title, if (st.metres >= 1) NavService.navM(st.metres) else "").filter { it.isNotBlank() }.joinToString("  ·  ")
+                tx.text = if (sub.isBlank()) head else head + "\n" + sub
+                tx.textSize = 16f; tx.setTextColor(ContextCompat.getColor(this, R.color.ink)); tx.setLineSpacing(2f, 1f)
+                tx.setTypeface(tx.typeface, android.graphics.Typeface.NORMAL)
+                val span = android.text.SpannableString(tx.text)
+                span.setSpan(android.text.style.StyleSpan(android.graphics.Typeface.BOLD), 0, head.length, 0)
+                tx.text = span
+                row.addView(tx, android.widget.LinearLayout.LayoutParams(0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+                row.setOnClickListener { map?.animateCamera(CameraUpdateFactory.newLatLngZoom(st.at, 17.0)) }
+                rows.add(row)
+            }
+        } else if (j != null) {
+            val itin = currentItinerary()
+            if (itin != null) for (line in Itineraries.steps(this, itin)) {
+                val tx = TextView(this)
+                tx.text = line; tx.textSize = 15f; tx.typeface = android.graphics.Typeface.MONOSPACE
+                tx.setTextColor(ContextCompat.getColor(this, R.color.ink)); tx.setPadding(0, (3 * d).toInt(), 0, (3 * d).toInt())
+                rows.add(tx)
+            }
+        }
+        b.pvStepsBtn.text = if (stepsOpen) getString(R.string.preview_steps_hide)
+            else getString(R.string.preview_steps, if (t != null) rows.size else j?.legs?.count { it.ride } ?: 0)
+        b.pvStepsBtn.visibility = if (rows.isEmpty()) View.GONE else View.VISIBLE
+        // the profile gives its room to the open list
+        b.pvProfile.visibility = if (t?.hasElevation == true && !stepsOpen) View.VISIBLE else View.GONE
+        if (!stepsOpen || rows.isEmpty()) { b.pvStepsScroll.visibility = View.GONE; return }
+        for ((i, r) in rows.withIndex()) {
+            if (i > 0) b.pvSteps.addView(View(this).also { it.setBackgroundColor(ContextCompat.getColor(this, R.color.grey)) },
+                android.widget.LinearLayout.LayoutParams(android.widget.LinearLayout.LayoutParams.MATCH_PARENT, 1))
+            b.pvSteps.addView(r)
+        }
+        // at most about a quarter of the screen: the map stays in sight above
+        b.pvStepsScroll.layoutParams = b.pvStepsScroll.layoutParams.also {
+            it.height = if (rows.size > 3) (resources.displayMetrics.heightPixels * 0.26).toInt() else android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+        }
+        b.pvStepsScroll.visibility = View.VISIBLE
+        b.pvStepsScroll.scrollTo(0, 0)
+    }
+
+    /** The route on screen as an itinerary (to share or keep). */
+    private fun currentItinerary(): Itinerary? {
+        val t = trip; val j = journey
+        if (t == null && j == null) return null
+        val to = stops.lastOrNull() ?: t?.stops?.lastOrNull()
+            ?: j?.destination?.let { Stop(it.at, it.name) } ?: return null
+        val start = t?.points?.firstOrNull() ?: j?.legs?.first()?.from?.at ?: return null
+        val from = routeFrom ?: Stop(start, getString(R.string.my_position))
+        val dep = j?.dep ?: (if (routeDepart > 0) routeDepart else System.currentTimeMillis())
+        return Itinerary(mode, from, to, dep, t, j, keptFile)
+    }
+
+    private fun shareItinerary(it: Itinerary) {
+        val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, Itineraries.text(this, it)).putExtra(Intent.EXTRA_SUBJECT, it.title)
+        runCatching { startActivity(Intent.createChooser(send, null)) }
+    }
+
+    private fun keepItinerary() {
+        val it = currentItinerary() ?: return
+        keptFile = Itineraries.save(this, it).file
+        Toast.makeText(this, R.string.route_saved_ok, Toast.LENGTH_SHORT).show()
+        b.pvSave.text = getString(R.string.route_saved_ok)
+    }
+
     // ---------- navigation (done by NavService; this screen shows it) ----------
 
     private fun startNav() {
@@ -988,12 +1152,13 @@ class MapActivity : AppCompatActivity(), LocationListener {
             navVersion = st.tripVersion
             stops.clear(); stops.addAll(st.trip.stops); drawStops()
             setTrip(st.trip, fit = false)
-            b.routeStrip.visibility = View.GONE; b.pinStrip.visibility = View.GONE
+            b.pinStrip.visibility = View.GONE
         }
         status(if (st.rerouting) getString(R.string.off_route) else if (st.trip?.fromGpx == true && st.offM > 60) getString(R.string.off_track, NavService.navM(st.offM)) else null)
         if (st.doneM >= 0) b.profile.progress(st.doneM)
         if (st.eta.isNotEmpty()) b.vAlt.text = st.eta
         if (st.leftM >= 0) b.vDist.text = Fmt.km(st.leftM)
+        if (st.arrived || st.next == null) b.navStreet.visibility = View.GONE
         if (st.arrived) {
             b.navArrow.set(TurnHints.END); b.navDist.text = getString(R.string.arrived)
             b.navThenLabel.visibility = View.GONE; b.navThenArrow.visibility = View.GONE; b.navThen.text = ""
@@ -1007,6 +1172,10 @@ class MapActivity : AppCompatActivity(), LocationListener {
         }
         b.navArrow.set(next.cmd, next.exit)
         b.navDist.text = NavService.navM(st.toTurnM)
+        // the street the turn leads onto, when the places pack knows it
+        val street = st.trip?.let { t -> t.nameAfter(t.turns.indexOf(next)) } ?: ""
+        b.navStreet.text = street
+        b.navStreet.visibility = if (street.isBlank()) View.GONE else View.VISIBLE
         b.navThenLabel.visibility = View.VISIBLE; b.navThenArrow.visibility = View.VISIBLE
         if (st.after != null) b.navThenArrow.set(st.after.cmd, st.after.exit) else b.navThenArrow.set(TurnHints.END)
         b.navThen.text = NavService.navM(st.afterM)
@@ -1020,7 +1189,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
             if (stops.isEmpty()) stops.add(Stop(j.destination.at, j.destination.name.ifBlank { Favourites.coordsName(j.destination.at.latitude, j.destination.at.longitude) }))
             drawStops()
             setJourney(j, fit = false)
-            b.routeStrip.visibility = View.GONE; b.pinStrip.visibility = View.GONE
+            b.pinStrip.visibility = View.GONE
         }
         status(if (st.rerouting) getString(R.string.nav_missed) else null)
         if (st.eta.isNotEmpty()) b.vAlt.text = st.eta
@@ -1040,12 +1209,11 @@ class MapActivity : AppCompatActivity(), LocationListener {
         val transit = st.journey != null
         b.navPanel.visibility = if (transit) View.GONE else View.VISIBLE
         b.transitPanel.visibility = if (transit) View.VISIBLE else View.GONE
-        b.routeStrip.visibility = View.GONE
+        hidePreview()
         b.pinStrip.visibility = View.GONE
-        b.btnGo.text = getString(R.string.stop_nav)
-        b.btnGo.isEnabled = true
-        b.btnNav.visibility = View.GONE
+        b.btnGo.visibility = View.VISIBLE
         b.btnPlan.visibility = View.GONE
+        b.profile.visibility = if (!transit && trip?.hasElevation == true) View.VISIBLE else View.GONE
         b.lAlt.text = getString(R.string.eta)
         b.vAlt.text = "--:--"
         b.lDist.text = getString(R.string.togo)
@@ -1062,10 +1230,11 @@ class MapActivity : AppCompatActivity(), LocationListener {
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         b.navPanel.visibility = View.GONE
         b.transitPanel.visibility = View.GONE
-        if (trip != null || journey != null) b.routeStrip.visibility = View.VISIBLE
-        b.btnGo.text = getString(R.string.go)
-        b.btnNav.visibility = View.VISIBLE
+        b.btnGo.visibility = View.GONE
         b.btnPlan.visibility = View.VISIBLE
+        b.profile.visibility = View.GONE
+        b.navStreet.visibility = View.GONE
+        showPreview()
         b.lAlt.text = getString(R.string.alt)
         lastLocation?.let { onLocationChanged(it) }
         b.profile.progress(-1.0)

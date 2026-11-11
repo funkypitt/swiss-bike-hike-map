@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- the one button that starts the guidance: the colour of the route line -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape><solid android:color="@color/paper"/><stroke android:width="3dp" android:color="@color/route_magenta"/></shape>
+    </item>
+    <item>
+        <shape><solid android:color="@color/route_magenta"/><stroke android:width="3dp" android:color="@color/route_magenta"/></shape>
+    </item>
+</selector>

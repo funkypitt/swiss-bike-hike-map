@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit
 object Offline {
     enum class Part(val key: String, val label: Int, val estimate: Long) {
         TIMETABLE("timetable", R.string.off_part_timetable, 16_000_000L),
-        PLACES("places", R.string.off_part_places, 5_000_000L),
+        PLACES("places", R.string.off_part_places, 15_000_000L),
         ROUTING("routing", R.string.off_part_routing, 460_000_000L),
         MAP("map", R.string.off_part_map, 2_400_000_000L);
     }

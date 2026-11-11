@@ -17,5 +17,16 @@
   <node id="12" lat="46.5300" lon="6.6420"/>
   <node id="13" lat="46.5320" lon="6.6420"/>
   <node id="14" lat="46.5320" lon="6.6400"/>
+  <node id="30" lat="46.5400" lon="6.6300"/>
+  <node id="31" lat="46.5400" lon="6.6320"/>
+  <node id="32" lat="46.5400" lon="6.6340"/>
+  <node id="33" lat="46.5440" lon="6.6340"/>
+  <node id="34" lat="46.5440" lon="6.6380"/>
+  <node id="35" lat="46.5480" lon="6.6380"/>
   <way id="20"><nd ref="11"/><nd ref="12"/><nd ref="13"/><nd ref="14"/><nd ref="11"/><tag k="building" v="yes"/><tag k="shop" v="bakery"/><tag k="name" v="Boulangerie du Coin"/><tag k="opening_hours" v="Mo-Fr 06:00-18:00"/></way>
+  <way id="40"><nd ref="30"/><nd ref="31"/><tag k="highway" v="residential"/><tag k="name" v="Rue Est"/></way>
+  <way id="41"><nd ref="32"/><nd ref="31"/><tag k="highway" v="residential"/><tag k="name" v="Rue Est"/></way>
+  <way id="42"><nd ref="32"/><nd ref="33"/><tag k="highway" v="tertiary"/><tag k="name" v="Avenue Nord"/></way>
+  <way id="43"><nd ref="33"/><nd ref="34"/><tag k="highway" v="path"/></way>
+  <way id="44"><nd ref="34"/><nd ref="35"/><tag k="highway" v="primary"/><tag k="ref" v="9"/></way>
 </osm>

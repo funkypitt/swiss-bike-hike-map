@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.12.0 — 2026-11-11
+
+* A route is previewed before it is followed, as in other map apps: the pin's DIRECTIONS (or
+  PLAN) draws the whole route and opens a panel under the map with the distance, the time, the
+  time of arrival, climb and descent, the main streets it takes (« via Avenue Louis-Ruchonnet,
+  Route du Signal »), the elevation profile, STEPS (each turn with the street it leads onto and
+  how far it runs; a tap shows it on the map), SHARE, KEEP and one START. ✕ or Back closes it.
+  Public transport: the journeys found are listed in the same panel, a tap draws another one.
+* Street names: the places pack now carries the names of the streets and paths of OpenStreetMap
+  (pack 15 MB instead of 5 MB), laid over the route on the phone; the guidance says the street
+  of the next turn, on screen and in the notification. Until the new pack is fetched, the
+  preview says where the names come from.
+* One search for everything: favourites, places around by category, stops, addresses and place
+  names, places by name and coordinates in one list, nearest first, with the distance on each
+  row (stops first on the public-transport map); the directory (search.ch key) by the Search key
+  or the last row, people included. The empty field lists the favourites and the categories.
+* The planner computes and hands the route to the map preview; GO and NAV give way to
+  DIRECTIONS and START.
+
 ## 0.11.2 — 2026-11-05
 
 * The closures and diversions of SwitzerlandMobility are sharp at every zoom: they were an

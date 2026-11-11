@@ -46,7 +46,7 @@
     <string name="places">МЕСТА</string>
     <string name="people">СПРАВОЧНИК</string>
     <string name="favourites">ИЗБРАННОЕ</string>
-    <string name="search_hint">Кафе, пицца, булочная, адрес, фонтан, хижина, координаты…</string>
+    <string name="search_hint">Место, адрес, остановка, кафе, фирма, человек, координаты…</string>
     <string name="search_people_hint">Имя, фирма, затем Поиск</string>
     <string name="directory_need_key">Для поиска людей нужен ваш собственный ключ search.ch: вставьте его в МЕНЮ.</string>
     <string name="directory_nobody">Никого не найдено</string>
@@ -345,4 +345,28 @@
     <string name="closure_more">И ещё %1$d здесь</string>
     <string name="closure_link">ПОДРОБНЕЕ</string>
     <string name="closure_page">https://schweizmobil.ch/en/closures-diversions</string>
+    <string name="go_here">КАК ДОБРАТЬСЯ</string>
+    <string name="start_nav">НАЧАТЬ</string>
+    <string name="preview_steps">ШАГИ (%1$d)</string>
+    <string name="preview_steps_hide">СКРЫТЬ</string>
+    <string name="preview_via">через %1$s</string>
+    <string name="preview_arrive">прибытие %1$s</string>
+    <string name="preview_no_names">Названия улиц приходят вместе с местами из МЕНЮ › ШВЕЙЦАРИЯ ОФЛАЙН.</string>
+    <string name="step_start">Старт</string>
+    <string name="step_continue">Прямо</string>
+    <string name="step_left">Налево</string>
+    <string name="step_slight_left">Плавно налево</string>
+    <string name="step_sharp_left">Резко налево</string>
+    <string name="step_right">Направо</string>
+    <string name="step_slight_right">Плавно направо</string>
+    <string name="step_sharp_right">Резко направо</string>
+    <string name="step_keep_left">Держитесь левее</string>
+    <string name="step_keep_right">Держитесь правее</string>
+    <string name="step_uturn">Разворот</string>
+    <string name="step_roundabout">Кольцо, съезд %1$d</string>
+    <string name="step_arrive">Прибытие</string>
+    <string name="search_directory_row">▣  Искать « %1$s » в справочнике search.ch</string>
+    <string name="search_favs_row">★  Избранное (%1$d)</string>
+    <string name="search_back">‹ НАЗАД</string>
+    <string name="dur_h_min">%1$d ч %2$02d</string>
 </resources>

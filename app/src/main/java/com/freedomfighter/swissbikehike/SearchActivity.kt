@@ -33,12 +33,13 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Search: places through the offline OpenStreetMap pack (by category around you, or by name),
- * the GeoAdmin search server (addresses, place names, peaks) or typed coordinates; people and
- * businesses through the search.ch directory with the person's own key, which also completes a
- * place of the pack (phone, address) on request; public-transport stops (online, or from the
- * offline timetable); the favourites, with import and export of place lists. Every pick ends as
- * a pin on the map.
+ * One search for everything, as in any map app: a single field whose answers mix the favourites,
+ * the categories of places around (« café », « fountain »), public-transport stops (online, or
+ * from the offline timetable), addresses and place names (GeoAdmin), the places of the offline
+ * OpenStreetMap pack by name, and typed coordinates. With the person's own search.ch key, the
+ * Search key (or the last row) adds the directory: firms complete the places they name (phone,
+ * address), people and other firms follow. An empty field lists the categories around and the
+ * favourites (with import and export of place lists). Every pick ends as a pin on the map.
  */
 class SearchActivity : AppCompatActivity() {
     companion object {
@@ -47,6 +48,8 @@ class SearchActivity : AppCompatActivity() {
         /** Where "around you" is: the position when the map has one, else the map's centre (always given, the fallback when nothing is around the position). */
         const val EXTRA_NEAR_LAT = "near_lat"; const val EXTRA_NEAR_LON = "near_lon"; const val EXTRA_NEAR_GPS = "near_gps"
         const val EXTRA_CENTRE_LAT = "centre_lat"; const val EXTRA_CENTRE_LON = "centre_lon"
+        /** The map's mode: on the public-transport map, stops come first. */
+        const val EXTRA_MODE = "mode"
         private const val NEARBY_M = 2000.0
         /** Set with RESULT_OK when the list is to be shown on the map: the places are in `results`. */
         const val EXTRA_RESULTS = "results"
@@ -55,24 +58,48 @@ class SearchActivity : AppCompatActivity() {
         /** The list handed to the map by SHOW ON THE MAP (kept in memory: an Intent is too small for it). */
         var results: List<Result>? = null
         var resultsTitle: String = ""
+
+        /** The search, with "around" set to a point when there is one. */
+        fun intent(ctx: android.content.Context, mode: Mode, near: LatLng?, gps: Boolean, centre: LatLng? = null): Intent {
+            val i = Intent(ctx, SearchActivity::class.java).putExtra(EXTRA_MODE, mode.name)
+            near?.let { i.putExtra(EXTRA_NEAR_LAT, it.latitude).putExtra(EXTRA_NEAR_LON, it.longitude).putExtra(EXTRA_NEAR_GPS, gps) }
+            centre?.let { i.putExtra(EXTRA_CENTRE_LAT, it.latitude).putExtra(EXTRA_CENTRE_LON, it.longitude) }
+            return i
+        }
     }
-    private enum class Tab { PLACES, PEOPLE, STOPS, FAVS }
     private class Hit(val label: String, val lat: Double, val lon: Double, val kind: String = Favourites.PLACE, var detail: String = "",
-                      val place: Place? = null, val metres: Double = -1.0, var extraLine: String = "", var dir: Directory.Hit? = null)
+                      val place: Place? = null, val metres: Double = -1.0, var extraLine: String = "", var dir: Directory.Hit? = null,
+                      val starred: Boolean = false)
+
+    /** One row of the list. */
+    private sealed class Row {
+        class Category(val cat: Places.Cat) : Row()
+        object Back : Row()
+        object Favs : Row()
+        class Item(val hit: Hit) : Row()
+        class FavItem(val fav: Fav) : Row()
+        class Dir(val hit: Directory.Hit) : Row()
+        object DirAsk : Row()
+        class Info(val text: String) : Row()
+    }
 
     private lateinit var b: ActivitySearchBinding
-    private val hits = ArrayList<Hit>()
-    private val dirHits = ArrayList<Directory.Hit>()
-    private val favs = ArrayList<Fav>()
-    private var tab = Tab.PLACES
+    private val rows = ArrayList<Row>()
     private var job: Job? = null
     private lateinit var adapter: ArrayAdapter<String>
+    private var mode = Mode.WALK
     private var near = LatLng(46.52, 6.63)
     private var nearIsGps = false
     private var centre = near
-    /** The category whose places around are listed, null = the list of categories or a text search. */
+    /** The category whose places around are listed; null otherwise. */
     private var category: Places.Cat? = null
+    /** The favourites are listed (★ row), with import and export. */
+    private var favView = false
     private val categories = Places.Cat.entries
+    /** The text whose answers are on screen, so a late answer for an older text is dropped. */
+    private var shownQuery = ""
+
+    private val hits: List<Hit> get() = rows.mapNotNull { (it as? Row.Item)?.hit }
 
     private val pickFile = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri ?: return@registerForActivityResult
@@ -92,6 +119,7 @@ class SearchActivity : AppCompatActivity() {
         b = ActivitySearchBinding.inflate(layoutInflater)
         setContentView(b.root)
         Insets.pad(b.root)
+        mode = Mode.of(intent.getStringExtra(EXTRA_MODE))
         if (intent.hasExtra(EXTRA_NEAR_LAT)) {
             near = LatLng(intent.getDoubleExtra(EXTRA_NEAR_LAT, near.latitude), intent.getDoubleExtra(EXTRA_NEAR_LON, near.longitude))
             nearIsGps = intent.getBooleanExtra(EXTRA_NEAR_GPS, false)
@@ -103,79 +131,68 @@ class SearchActivity : AppCompatActivity() {
         b.list.adapter = adapter
         b.list.setOnItemClickListener { _, _, pos, _ -> onRow(pos) }
         b.list.setOnItemLongClickListener { _, _, pos, _ ->
-            when (tab) {
-                Tab.FAVS -> {
-                    val f = favs.getOrNull(pos) ?: return@setOnItemLongClickListener false
-                    AlertDialog.Builder(this).setMessage(getString(R.string.fav_remove_q, f.name))
-                        .setPositiveButton(R.string.remove) { _, _ -> Favourites.remove(this, f); showFavs() }
+            when (val r = rows.getOrNull(pos)) {
+                is Row.FavItem -> {
+                    AlertDialog.Builder(this).setMessage(getString(R.string.fav_remove_q, r.fav.name))
+                        .setPositiveButton(R.string.remove) { _, _ -> Favourites.remove(this, r.fav); showFavs() }
                         .setNegativeButton(R.string.cancel, null).show()
                     true
                 }
-                Tab.PLACES -> {
-                    val h = rowHit(pos) ?: return@setOnItemLongClickListener false
-                    if (h.place == null) return@setOnItemLongClickListener false
-                    showPlace(h); true
-                }
+                is Row.Item -> if (r.hit.place != null) { showPlace(r.hit); true } else false
                 else -> false
             }
         }
-        b.btnPlaces.setOnClickListener { setTab(Tab.PLACES) }
-        b.btnPeople.setOnClickListener { setTab(Tab.PEOPLE) }
-        b.btnStops.setOnClickListener { setTab(Tab.STOPS) }
-        b.btnFavs.setOnClickListener { setTab(Tab.FAVS) }
         b.btnImport.setOnClickListener { pickFile.launch(arrayOf("*/*")) }
         b.btnExport.setOnClickListener { exportFavs() }
         b.btnShowAll.setOnClickListener { showAllOnMap() }
+        b.query.hint = getString(R.string.search_hint)
         b.query.doAfterTextChanged { text ->
             val q = text?.toString()?.trim() ?: ""
-            when (tab) {
-                Tab.PEOPLE -> {}
-                Tab.FAVS -> showFavs()
-                Tab.STOPS -> {
-                    job?.cancel()
-                    if (q.length < 2) { clear(); return@doAfterTextChanged }
-                    job = lifecycleScope.launch {
-                        delay(300)
-                        val found = runCatching { Planner.searchStops(this@SearchActivity, q) }.getOrDefault(emptyList())
-                            .map { Hit(it.name, it.at.latitude, it.at.longitude, Favourites.STOP, it.id) }
-                        hits.clear(); hits.addAll(found)
-                        adapter.clear()
-                        if (found.isEmpty() && !Timetable.isReady(this@SearchActivity) && !Planner.online(this@SearchActivity)) adapter.add(getString(R.string.timetable_missing))
-                        else adapter.addAll(found.map { it.label })
-                    }
-                }
-                Tab.PLACES -> {
-                    job?.cancel()
-                    category = null
-                    if (q.length < 2) { showCategories(); return@doAfterTextChanged }
-                    val typed = Favourites.parseCoords(q)
-                    if (typed != null) {
-                        val h = Hit(Favourites.coordsName(typed.latitude, typed.longitude), typed.latitude, typed.longitude, Favourites.COORDS)
-                        hits.clear(); hits.add(h); adapter.clear(); adapter.add(h.label)
-                        return@doAfterTextChanged
-                    }
-                    job = lifecycleScope.launch { delay(300); searchAll(q) }
-                }
+            job?.cancel()
+            if (favView) { showFavs(); return@doAfterTextChanged }
+            category = null
+            if (q.length < 2) { showHome(); return@doAfterTextChanged }
+            val typed = Favourites.parseCoords(q)
+            if (typed != null) {
+                shownQuery = q
+                setRows(listOf(Row.Item(Hit(Favourites.coordsName(typed.latitude, typed.longitude), typed.latitude, typed.longitude, Favourites.COORDS))))
+                return@doAfterTextChanged
             }
+            job = lifecycleScope.launch { delay(300); searchAll(q) }
         }
         b.query.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId != EditorInfo.IME_ACTION_SEARCH) return@setOnEditorActionListener false
-            when (tab) {
-                Tab.PEOPLE -> { searchPeople(); true }
-                Tab.PLACES -> { if (Directory.enabled(this)) { mergeDirectory(); true } else false }
-                else -> false
-            }
+            if (actionId != EditorInfo.IME_ACTION_SEARCH || favView) return@setOnEditorActionListener false
+            if (Directory.enabled(this)) { mergeDirectory(); true } else false
         }
-        setTab(Tab.PLACES)
+        showHome()
         b.query.requestFocus()
     }
 
-    private fun clear() { hits.clear(); dirHits.clear(); adapter.clear(); updateShowAll() }
+    // ---- the list ----
+
+    private fun text(r: Row): String = when (r) {
+        is Row.Category -> r.cat.glyph + "  " + getString(r.cat.label)
+        Row.Back -> getString(if (favView) R.string.search_back else R.string.back_categories)
+        Row.Favs -> getString(R.string.search_favs_row, Favourites.list(this).size)
+        is Row.Item -> row(r.hit)
+        is Row.FavItem -> listOf(glyph(r.fav.kind) + " " + r.fav.name, r.fav.detail).filter { it.isNotBlank() }.joinToString("\n")
+        is Row.Dir -> (if (r.hit.person) "☺  " else "▣  ") + listOf(r.hit.name, r.hit.address, r.hit.phone).filter { it.isNotBlank() }.joinToString("\n")
+        Row.DirAsk -> getString(R.string.search_directory_row, b.query.text?.toString()?.trim() ?: "")
+        is Row.Info -> r.text
+    }
+
+    private fun setRows(list: List<Row>) {
+        rows.clear(); rows.addAll(list)
+        adapter.setNotifyOnChange(false)
+        adapter.clear(); adapter.addAll(rows.map { text(it) })
+        adapter.notifyDataSetChanged()
+        updateShowAll()
+    }
 
     /** SHOW ON THE MAP (N) under the field, when a list holds several places of the pack. */
     private fun updateShowAll() {
-        val n = if (tab == Tab.PLACES) hits.count { it.place != null } else 0
-        b.btnShowAll.visibility = if (n >= 2) View.VISIBLE else View.GONE
+        val n = hits.count { it.place != null }
+        b.btnShowAll.visibility = if (n >= 2 && !favView) View.VISIBLE else View.GONE
         if (n >= 2) b.btnShowAll.text = getString(R.string.results_show, n)
     }
 
@@ -189,36 +206,26 @@ class SearchActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun setTab(t: Tab) {
-        tab = t
-        clear()
-        category = null
-        b.query.hint = getString(when (t) { Tab.PLACES -> R.string.search_hint; Tab.PEOPLE -> R.string.search_people_hint; Tab.STOPS -> R.string.search_stops_hint; Tab.FAVS -> R.string.fav_hint })
-        b.credit.visibility = if (t == Tab.FAVS) View.GONE else View.VISIBLE
-        b.credit.text = when (t) {
-            Tab.STOPS -> if (Planner.online(this)) TransitOnline.CREDIT else getString(if (Timetable.isReady(this)) R.string.offline_timetable else R.string.timetable_missing)
-            Tab.PLACES -> placesCredit()
-            else -> if (Directory.enabled(this)) Directory.CREDIT + " · " + getString(R.string.directory_press_search) else getString(R.string.directory_need_key)
-        }
-        b.favRow.visibility = if (t == Tab.FAVS) View.VISIBLE else View.GONE
-        style(b.btnPlaces, t == Tab.PLACES); style(b.btnPeople, t == Tab.PEOPLE); style(b.btnStops, t == Tab.STOPS); style(b.btnFavs, t == Tab.FAVS)
-        when {
-            t == Tab.FAVS -> showFavs()
-            t == Tab.PLACES && (b.query.text?.isBlank() != false) -> showCategories()
-            else -> b.query.text?.let { if (it.isNotBlank()) b.query.setText(it.toString()) }
-        }
+    /** The empty field: the favourites row, then the categories of places around. */
+    private fun showHome() {
+        favView = false; category = null; shownQuery = ""
+        b.favRow.visibility = View.GONE
+        b.credit.visibility = View.VISIBLE
+        b.credit.text = credit()
+        val out = ArrayList<Row>()
+        out.add(Row.Favs)
+        if (PlacesPack.isReady(this)) categories.forEach { out.add(Row.Category(it)) }
+        else out.add(Row.Info(getString(R.string.places_pack_missing)))
+        setRows(out)
     }
 
-    private fun placesCredit(): String {
-        val ready = PlacesPack.isReady(this)
-        val where = getString(if (nearIsGps) R.string.around_you else R.string.around_map)
-        return if (!ready) PlacesPack.CREDIT
-        else PlacesPack.CREDIT + " · " + where + (if (Directory.enabled(this)) " · " + Directory.CREDIT + " (" + getString(R.string.directory_press_search) + ")" else "")
-    }
-
-    private fun style(v: TextView, active: Boolean) {
-        v.setBackgroundResource(if (active) R.drawable.btn_active else R.drawable.btn)
-        v.setTextColor(AppCompatResources.getColorStateList(this, if (active) R.drawable.btn_active_text else R.drawable.btn_text))
+    /** Where the answers come from, under the field. */
+    private fun credit(): String {
+        val parts = ArrayList<String>()
+        if (PlacesPack.isReady(this)) parts.add(PlacesPack.CREDIT + " · " + getString(if (nearIsGps) R.string.around_you else R.string.around_map))
+        parts.add(if (Planner.online(this)) TransitOnline.CREDIT else if (Timetable.isReady(this)) getString(R.string.offline_timetable) else getString(R.string.timetable_missing))
+        parts.add(if (Directory.enabled(this)) Directory.CREDIT + " (" + getString(R.string.directory_press_search) + ")" else getString(R.string.directory_need_key))
+        return parts.joinToString("\n")
     }
 
     private fun finishWith(h: Hit) {
@@ -227,28 +234,30 @@ class SearchActivity : AppCompatActivity() {
         finish()
     }
 
-    // ---- places: categories around, names, GeoAdmin ----
-
-    /** The list of categories (query empty): one tap lists what is around. */
-    private fun showCategories() {
-        hits.clear(); dirHits.clear(); adapter.clear(); updateShowAll()
-        b.credit.text = placesCredit()
-        if (!PlacesPack.isReady(this)) { adapter.add(getString(R.string.places_pack_missing)); return }
-        adapter.addAll(categories.map { c -> c.glyph + "  " + getString(c.label) })
+    private fun onRow(pos: Int) {
+        when (val r = rows.getOrNull(pos) ?: return) {
+            is Row.Category -> showNearby(r.cat)
+            Row.Back -> if (favView) { b.query.setText(""); showHome() } else { category = null; showHome() }
+            Row.Favs -> { favView = true; b.query.setText(""); showFavs() }
+            is Row.Item -> if (r.hit.place != null) showPlace(r.hit) else finishWith(r.hit)
+            is Row.FavItem -> finishWith(Hit(r.fav.name, r.fav.lat, r.fav.lon, r.fav.kind, r.fav.detail))
+            is Row.Dir -> showDirectory(r.hit)
+            Row.DirAsk -> mergeDirectory()
+            is Row.Info -> {}
+        }
     }
 
-    /** The places of one category around the point, nearest first, under a row that goes back to the categories. */
+    // ---- places around, by category ----
+
+    /** The places of one category around the point, nearest first, under a row that goes back. */
     private fun showNearby(cat: Places.Cat) {
         category = cat
         val pack = PlacesPack.open(this) ?: return
         lifecycleScope.launch {
-            adapter.clear(); adapter.add(getString(R.string.back_categories)); adapter.add("…")
+            setRows(listOf(Row.Back, Row.Info("…")))
             val found = withContext(Dispatchers.Default) { nearbyOf(pack, setOf(cat), 40) }
             if (category != cat) return@launch
-            hits.clear(); hits.addAll(found.map { hitOf(it) })
-            adapter.clear(); adapter.add(getString(R.string.back_categories))
-            adapter.addAll(hits.map { row(it) })
-            updateShowAll()
+            setRows(listOf<Row>(Row.Back) + found.map { Row.Item(hitOf(it)) })
             b.credit.text = PlacesPack.CREDIT + " · " + getString(if (nearIsGps) R.string.around_you else R.string.around_map) + " · " + getString(R.string.place_directory_more)
         }
     }
@@ -268,9 +277,14 @@ class SearchActivity : AppCompatActivity() {
         return Hit(p.label(this), p.at.latitude, p.at.longitude, Favourites.POI, detail, p, f.metres)
     }
 
-    /** Two lines: glyph, name (or category) and distance; then the category and the first details. */
+    /** A place of the pack on two lines (glyph, name, distance; category and details); a stop or an address on one. */
     private fun row(h: Hit): String {
-        val p = h.place ?: return h.label
+        val p = h.place ?: return when {
+            h.starred -> "★  "
+            h.kind == Favourites.STOP -> "◉  "
+            h.kind == Favourites.COORDS -> "✚  "
+            else -> "●  "
+        } + h.label + (if (h.metres >= 0) "   " + Fmt.dist(h.metres) else "")
         val head = p.cat.glyph + "  " + h.label + (if (h.metres >= 0) "   " + Fmt.dist(h.metres) else "")
         // open or closed now, when the hours can be read; else the hours as written
         val status = PlaceCard.statusLine(this, p.extras["oh"])
@@ -280,33 +294,26 @@ class SearchActivity : AppCompatActivity() {
         return if (lines.isEmpty()) head else head + "\n" + lines.joinToString(" · ")
     }
 
-    /** The hit behind a row of the PLACES list (the first row goes back to the categories when one is shown). */
-    private fun rowHit(pos: Int): Hit? = if (category != null) hits.getOrNull(pos - 1) else hits.getOrNull(pos)
-
-    private fun pickPlaceRow(pos: Int) {
-        val q = b.query.text?.toString()?.trim() ?: ""
-        if (category != null) {
-            if (pos == 0) { category = null; showCategories(); return }
-            rowHit(pos)?.let { if (it.place != null) showPlace(it) else finishWith(it) }; return
-        }
-        if (q.length < 2 && PlacesPack.isReady(this)) { categories.getOrNull(pos)?.let { showNearby(it) }; return }
-        // the directory's own rows follow the hits: a tap on one places it through GeoAdmin
-        if (pos >= hits.size) dirHits.getOrNull(pos - hits.size)?.let { showDirectory(it) }
-        else hits.getOrNull(pos)?.let { if (it.place != null) showPlace(it) else finishWith(it) }
-    }
+    // ---- everything at once ----
 
     /**
-     * A typed text: the categories whose label matches (their places around first), then GeoAdmin
-     * (towns, addresses, peaks), then the places of the pack whose name holds the words.
+     * A typed text: the favourites that hold it, the categories whose label matches (their places
+     * around), the stops of that name, GeoAdmin's towns, addresses and peaks, then the places of
+     * the pack whose name holds the words; the directory is offered last when a key is set.
      */
     private suspend fun searchAll(q: String) {
         val pack = PlacesPack.open(this)
         val fq = Transit.fold(q)
-        val catHits = ArrayList<Hit>(); val nameHits = ArrayList<Hit>(); val tagHits = ArrayList<Hit>()
-        adapter.clear(); adapter.add("…")
+        shownQuery = q
+        b.credit.text = credit()
+        setRows(listOf(Row.Info("…")))
+        val favs = Favourites.list(this).filter { Transit.fold(it.name).contains(fq) || Transit.fold(it.detail).contains(fq) }.take(5)
+            .map { Hit(it.name, it.lat, it.lon, it.kind, it.detail, starred = true) }
         val cats = categories.filter { c -> val l = Transit.fold(getString(c.label)); l.contains(fq) || (fq.length >= 4 && l.split(Regex("[ ,]+")).any { it.startsWith(fq) }) }.toSet()
-        // GeoAdmin is asked while the pack is searched
-        val geoJob = lifecycleScope.async { runCatching { searchPlaces(q, limit = if (cats.isEmpty()) 20 else 8) } }
+        // GeoAdmin and the stops are asked while the pack is searched
+        val geoJob = lifecycleScope.async { runCatching { searchPlaces(q, limit = if (cats.isEmpty()) 12 else 6) } }
+        val stopJob = lifecycleScope.async { runCatching { Planner.searchStops(this@SearchActivity, q) }.getOrDefault(emptyList()) }
+        val catHits = ArrayList<Hit>(); val nameHits = ArrayList<Hit>(); val tagHits = ArrayList<Hit>()
         if (pack != null) withContext(Dispatchers.Default) {
             if (cats.isNotEmpty()) catHits.addAll(nearbyOf(pack, cats, 12).map { hitOf(it) })
             // a cuisine or a kind of shop around (« pizza », « sushi », « books »)
@@ -315,12 +322,22 @@ class SearchActivity : AppCompatActivity() {
             nameHits.addAll(pack.search(q, near.latitude, near.longitude, 15).map { hitOf(it) })
         }
         val geo = geoJob.await()
+        fun away(lat: Double, lon: Double) = Places.distance(near.latitude, near.longitude, lat, lon)
+        val stops = stopJob.await().take(8).map { Hit(it.name, it.at.latitude, it.at.longitude, Favourites.STOP, it.id, metres = away(it.at.latitude, it.at.longitude)) }
+        if (shownQuery != q) return
         val around = catHits + tagHits
-        val found = around + geo.getOrDefault(emptyList()) + nameHits.filter { n -> around.none { it.place?.index == n.place?.index } }
-        hits.clear(); hits.addAll(found); dirHits.clear()
-        adapter.clear(); adapter.addAll(found.map { row(it) })
-        updateShowAll()
-        if (geo.isFailure && found.isEmpty()) adapter.add(getString(R.string.search_no_answer))
+        // a stop named like a GeoAdmin answer (« Lausanne, gare ») is said once, as a stop
+        val geoHits = geo.getOrDefault(emptyList()).filter { g -> stops.none { Transit.fold(it.label) == Transit.fold(g.label) } }
+            .map { g -> Hit(g.label, g.lat, g.lon, g.kind, g.detail, metres = away(g.lat, g.lon)) }
+        val names = nameHits.filter { n -> around.none { it.place?.index == n.place?.index } }
+        // stops, addresses and places by name together, nearest first (the public-transport map: stops first)
+        val rest = if (mode == Mode.TRANSIT) stops.sortedBy { it.metres } + (geoHits + names).sortedBy { it.metres }
+            else (stops + geoHits + names).sortedBy { it.metres }
+        val found = favs + around + rest
+        val out = ArrayList<Row>(found.map { Row.Item(it) })
+        if (found.isEmpty() && geo.isFailure) out.add(Row.Info(getString(R.string.search_no_answer)))
+        if (Directory.enabled(this) && q.length >= 3) out.add(Row.DirAsk)
+        setRows(out)
     }
 
     /** The card of a place of the pack (hours, phone, address…): PIN puts it on the map. */
@@ -344,26 +361,29 @@ class SearchActivity : AppCompatActivity() {
         h.dir = e
         h.extraLine = listOf(e.phone, e.address).filter { it.isNotBlank() }.joinToString(" · ")
         if (h.extraLine.isNotBlank() && !h.detail.contains(e.phone)) h.detail = h.detail + " · " + h.extraLine
-        val pos = hits.indexOf(h); if (pos < 0) return
-        val rowPos = if (category != null) pos + 1 else pos
-        if (rowPos < adapter.count) { adapter.setNotifyOnChange(false); adapter.remove(adapter.getItem(rowPos)); adapter.insert(row(h), rowPos); adapter.setNotifyOnChange(true); adapter.notifyDataSetChanged() }
     }
 
     /**
-     * Search pressed with a key: the directory's firms for the typed text join the list. One that
-     * names a place already listed (same name, same town when both say it) completes that row with
-     * its phone and address; the others are appended, placed through GeoAdmin when picked.
+     * Search pressed with a key (or the last row): the directory's answers for the typed text join
+     * the list. A firm that names a place already listed (same name, same town when both say it)
+     * completes that row with its phone and address; people and the other firms are appended,
+     * placed through GeoAdmin when picked.
      */
     private fun mergeDirectory() {
         val q = b.query.text?.toString()?.trim() ?: ""
         if (q.length < 3) return
         lifecycleScope.launch {
             job?.join()
+            if (shownQuery != q) searchAll(q)
+            val asking = rows.indexOfFirst { it === Row.DirAsk }
+            if (asking >= 0) { rows[asking] = Row.Info("▣  …"); setRows(rows.toList()) }
             val found = withContext(Dispatchers.IO) { runCatching { Directory.search(this@SearchActivity, q) } }
-            found.onFailure { e -> Toast.makeText(this@SearchActivity, (e.message ?: "no answer").take(120), Toast.LENGTH_LONG).show() }
+            rows.removeAll { it is Row.Info && it.text == "▣  …" }
+            found.onFailure { e -> setRows(rows.toList()); Toast.makeText(this@SearchActivity, (e.message ?: "no answer").take(120), Toast.LENGTH_LONG).show() }
             found.onSuccess { list ->
                 val firms = list.filter { !it.person }
                 val rest = ArrayList<Directory.Hit>()
+                val hits = hits
                 for (e in firms) {
                     val fe = Transit.fold(e.name)
                     val match = hits.firstOrNull { h ->
@@ -373,33 +393,29 @@ class SearchActivity : AppCompatActivity() {
                     }
                     if (match != null) { if (match.extraLine.isBlank()) enrich(match, e) } else rest.add(e)
                 }
-                dirHits.clear(); dirHits.addAll(rest)
-                adapter.addAll(rest.map { e -> "▣  " + listOf(e.name, e.address, e.phone).filter { it.isNotBlank() }.joinToString("\n") })
-                if (firms.isEmpty()) Toast.makeText(this@SearchActivity, R.string.directory_nobody, Toast.LENGTH_SHORT).show()
+                val people = list.filter { it.person }
+                rows.removeAll { it === Row.DirAsk || it is Row.Dir }
+                rows.addAll(rest.map { Row.Dir(it) }); rows.addAll(people.map { Row.Dir(it) })
+                setRows(rows.toList())
+                if (list.isEmpty()) Toast.makeText(this@SearchActivity, R.string.directory_nobody, Toast.LENGTH_SHORT).show()
             }
-        }
-    }
-
-    private fun onRow(pos: Int) {
-        when (tab) {
-            Tab.PLACES -> pickPlaceRow(pos)
-            Tab.PEOPLE -> dirHits.getOrNull(pos)?.let { showDirectory(it) }
-            Tab.STOPS -> hits.getOrNull(pos)?.let { finishWith(it) }
-            Tab.FAVS -> favs.getOrNull(pos)?.let { finishWith(Hit(it.name, it.lat, it.lon, it.kind, it.detail)) }
         }
     }
 
     // ---- favourites ----
 
+    /** The favourites (filtered by the field), with import and export. */
     private fun showFavs() {
-        val q = b.query.text?.toString()?.trim()?.lowercase(Locale.ROOT) ?: ""
+        favView = true
+        b.favRow.visibility = View.VISIBLE
+        b.credit.visibility = View.GONE
+        val q = Transit.fold(b.query.text?.toString()?.trim() ?: "")
         val all = Favourites.list(this)
-        favs.clear()
-        favs.addAll(all.filter { q.isEmpty() || it.name.lowercase(Locale.ROOT).contains(q) || it.detail.lowercase(Locale.ROOT).contains(q) }
-            .sortedBy { it.name.lowercase(Locale.ROOT) })
-        adapter.clear()
-        if (all.isEmpty()) adapter.add(getString(R.string.fav_empty))
-        else adapter.addAll(favs.map { f -> listOf(glyph(f.kind) + " " + f.name, f.detail).filter { it.isNotBlank() }.joinToString("\n") })
+        val out = ArrayList<Row>(); out.add(Row.Back)
+        if (all.isEmpty()) out.add(Row.Info(getString(R.string.fav_empty)))
+        else all.filter { q.isEmpty() || Transit.fold(it.name).contains(q) || Transit.fold(it.detail).contains(q) }
+            .sortedBy { it.name.lowercase(Locale.ROOT) }.forEach { out.add(Row.FavItem(it)) }
+        setRows(out)
     }
 
     private fun glyph(kind: String) = when (kind) { Favourites.PERSON -> "☺"; Favourites.FIRM -> "▣"; Favourites.COORDS -> "✚"; Favourites.STOP -> "◉"; Favourites.POI -> "◆"; else -> "●" }
@@ -416,22 +432,6 @@ class SearchActivity : AppCompatActivity() {
 
     // ---- people and businesses ----
 
-    private fun searchPeople() {
-        val q = b.query.text?.toString()?.trim() ?: ""
-        if (q.length < 3) return
-        if (!Directory.enabled(this)) { Toast.makeText(this, R.string.directory_need_key, Toast.LENGTH_LONG).show(); return }
-        lifecycleScope.launch {
-            adapter.clear(); adapter.add("…")
-            val found = withContext(Dispatchers.IO) { runCatching { Directory.search(this@SearchActivity, q) } }
-            dirHits.clear(); adapter.clear()
-            found.onSuccess { list ->
-                dirHits.addAll(list)
-                if (list.isEmpty()) adapter.add(getString(R.string.directory_nobody))
-                else adapter.addAll(list.map { h -> listOf(h.name, h.address, h.phone).filter { it.isNotBlank() }.joinToString("\n") })
-            }.onFailure { e -> adapter.add((e.message ?: "no answer").take(120)) }
-        }
-    }
-
     /** A directory hit has an address, not a position: GeoAdmin turns it into one (the street first, the town as a fallback). */
     private fun pick(h: Directory.Hit) {
         if (h.city.isBlank() && h.street.isBlank()) return
@@ -445,6 +445,7 @@ class SearchActivity : AppCompatActivity() {
     }
 
     // ---- GeoAdmin ----
+
 
     private suspend fun geocode(text: String, origins: String): Hit? =
         searchPlaces(text, origins, 1).firstOrNull()

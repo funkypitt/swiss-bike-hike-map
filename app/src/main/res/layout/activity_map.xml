@@ -47,6 +47,9 @@
                 android:paddingStart="12dp" android:paddingEnd="6dp" android:paddingTop="6dp" android:paddingBottom="6dp" android:visibility="gone">
                 <TextView android:id="@+id/pinLabel" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
                     android:textColor="@color/paper" android:textSize="16sp" android:textStyle="bold" android:maxLines="2" android:ellipsize="end"/>
+                <TextView android:id="@+id/btnRoute" style="@style/Btn" android:layout_width="wrap_content" android:layout_height="44dp"
+                    android:minHeight="44dp" android:minWidth="96dp" android:layout_marginStart="8dp" android:paddingStart="10dp" android:paddingEnd="10dp"
+                    android:textSize="14sp" android:letterSpacing="0.04" android:text="@string/go_here"/>
                 <TextView android:id="@+id/btnDrop" style="@style/Btn" android:layout_width="44dp" android:layout_height="44dp"
                     android:minHeight="44dp" android:minWidth="44dp" android:layout_marginStart="8dp" android:textSize="20sp"
                     android:background="@drawable/btn_dark" android:textColor="@drawable/btn_dark_text" android:text="✕"/>
@@ -58,11 +61,6 @@
                     android:background="@drawable/btn_dark" android:textColor="@drawable/btn_dark_text" android:text="☆"/>
             </LinearLayout>
 
-            <TextView android:id="@+id/routeStrip" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:background="@color/ink" android:textColor="@color/paper" android:textSize="16sp"
-                android:fontFamily="monospace" android:textStyle="bold" android:gravity="center"
-                android:paddingTop="8dp" android:paddingBottom="8dp" android:visibility="gone"/>
-
             <LinearLayout android:id="@+id/navPanel" android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="horizontal" android:baselineAligned="false" android:background="@color/ink" android:gravity="center_vertical"
                 android:padding="8dp" android:visibility="gone">
@@ -73,6 +71,9 @@
                     <TextView android:id="@+id/navDist" android:layout_width="match_parent" android:layout_height="wrap_content"
                         android:textColor="@color/paper" android:textSize="46sp" android:textStyle="bold" android:fontFamily="monospace"
                         android:singleLine="true" android:text="--"/>
+                    <TextView android:id="@+id/navStreet" android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:textColor="@color/paper" android:textSize="20sp" android:textStyle="bold" android:maxLines="2" android:ellipsize="end"
+                        android:visibility="gone"/>
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false"
                         android:gravity="center_vertical">
                         <TextView android:id="@+id/navThenLabel" android:layout_width="wrap_content" android:layout_height="wrap_content"
@@ -103,7 +104,7 @@
         </LinearLayout>
 
         <!-- right column: zoom and follow -->
-        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+        <LinearLayout android:id="@+id/zoomColumn" android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:orientation="vertical" android:layout_gravity="end|bottom" android:padding="8dp" android:layout_marginBottom="24dp">
             <TextView android:id="@+id/btnZoomIn" style="@style/BtnGlyph" android:text="+"/>
             <TextView android:id="@+id/btnZoomOut" style="@style/BtnGlyph" android:text="−" android:layout_marginTop="8dp"/>
@@ -121,15 +122,50 @@
             android:paddingEnd="4dp"/>
     </FrameLayout>
 
+    <!-- route preview: summary, streets, steps, START -->
+    <LinearLayout android:id="@+id/preview" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:background="@color/paper" android:paddingStart="10dp" android:paddingEnd="10dp"
+        android:paddingTop="6dp" android:paddingBottom="8dp" android:visibility="gone">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal"
+            android:baselineAligned="false" android:gravity="center_vertical">
+            <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+                <TextView android:id="@+id/pvSummary" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:textColor="@color/ink" android:textSize="22sp" android:textStyle="bold" android:maxLines="2"/>
+                <TextView android:id="@+id/pvDetail" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:textColor="@color/ink" android:textSize="15sp" android:maxLines="3" android:ellipsize="end"/>
+            </LinearLayout>
+            <TextView android:id="@+id/pvClose" style="@style/Btn" android:layout_width="48dp" android:layout_height="48dp"
+                android:minHeight="48dp" android:minWidth="48dp" android:layout_marginStart="8dp" android:textSize="20sp" android:text="✕"/>
+        </LinearLayout>
+        <LinearLayout android:id="@+id/pvChoices" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"/>
+        <com.freedomfighter.swissbikehike.ProfileView android:id="@+id/pvProfile" android:layout_width="match_parent"
+            android:layout_height="56dp" android:layout_marginTop="6dp" android:background="@color/ink" android:paddingStart="6dp" android:paddingEnd="6dp"
+            android:visibility="gone"/>
+        <ScrollView android:id="@+id/pvStepsScroll" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="6dp" android:visibility="gone">
+            <LinearLayout android:id="@+id/pvSteps" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"/>
+        </ScrollView>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal"
+            android:baselineAligned="false" android:layout_marginTop="8dp">
+            <TextView android:id="@+id/pvStepsBtn" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1.3" android:layout_height="48dp"
+                android:minHeight="48dp" android:autoSizeMaxTextSize="14sp" android:letterSpacing="0.03"/>
+            <TextView android:id="@+id/pvShare" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp"
+                android:minHeight="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:letterSpacing="0.03" android:text="@string/share"/>
+            <TextView android:id="@+id/pvSave" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp"
+                android:minHeight="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:letterSpacing="0.03" android:text="@string/route_save"/>
+        </LinearLayout>
+        <TextView android:id="@+id/pvStart" style="@style/Btn" android:layout_width="match_parent" android:layout_height="60dp"
+            android:layout_marginTop="8dp" android:background="@drawable/btn_go" android:textColor="@drawable/btn_active_text"
+            android:textSize="22sp" android:text="@string/start_nav"/>
+    </LinearLayout>
+
     <!-- action row -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+    <LinearLayout android:id="@+id/actionRow" android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="horizontal" android:baselineAligned="false" android:background="@color/paper" android:padding="6dp">
         <TextView android:id="@+id/btnPlan" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1.3"
             android:layout_height="56dp" android:letterSpacing="0.03" android:text="@string/route_plan"/>
-        <TextView android:id="@+id/btnGo" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
-            android:layout_height="56dp" android:layout_marginStart="6dp" android:text="@string/go" android:enabled="false"/>
-        <TextView android:id="@+id/btnNav" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
-            android:layout_height="56dp" android:text="@string/nav" android:layout_marginStart="6dp" android:enabled="false"/>
+        <TextView android:id="@+id/btnGo" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1.3"
+            android:layout_height="56dp" android:layout_marginStart="6dp" android:text="@string/stop_nav" android:visibility="gone"/>
         <TextView android:id="@+id/btnRec" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
             android:layout_height="56dp" android:text="@string/rec" android:layout_marginStart="6dp"/>
     </LinearLayout>
