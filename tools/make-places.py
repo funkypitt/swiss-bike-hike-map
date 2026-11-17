@@ -20,7 +20,12 @@ from datetime import date
 import osmium
 from osmium.filter import KeyFilter
 
-EXTRACT = "https://download.geofabrik.de/europe/switzerland-latest.osm.pbf"
+# the extract of Switzerland, and the same country from two other servers for the days the first cannot be reached
+EXTRACTS = [
+    ("https://download.geofabrik.de/europe/switzerland-latest.osm.pbf", "Geofabrik"),
+    ("https://download.openstreetmap.fr/extracts/europe/switzerland-latest.osm.pbf", "OpenStreetMap France"),
+    ("https://planet.osm.ch/switzerland.pbf", "Swiss OpenStreetMap Association"),
+]
 VERSION = 1
 CELL = 0.02
 LAT0, LON0 = 45.0, 5.0
@@ -277,23 +282,35 @@ def streets(src, S):
     return body, len(ways)
 
 def fetch(path):
+    """Downloads the extract, from the first server that gives it whole (two tries each): its path and who made it."""
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-    log("downloading", EXTRACT)
-    req = urllib.request.Request(EXTRACT, headers={"User-Agent": "swiss-bikers-pedestrians-map (+https://github.com/funkypitt/swiss-bike-hike-map)"})
-    with urllib.request.urlopen(req, timeout=120) as r, open(path, "wb") as f:
-        while True:
-            chunk = r.read(1 << 20)
-            if not chunk: break
-            f.write(chunk)
-    return path
+    last = None
+    for url, by in EXTRACTS:
+        for attempt in (1, 2):
+            log("downloading", url)
+            try:
+                req = urllib.request.Request(url, headers={"User-Agent": "swiss-bikers-pedestrians-map (+https://github.com/funkypitt/swiss-bike-hike-map)"})
+                with urllib.request.urlopen(req, timeout=120) as r, open(path, "wb") as f:
+                    want = int(r.headers.get("Content-Length") or 0); got = 0
+                    while True:
+                        chunk = r.read(1 << 20)
+                        if not chunk: break
+                        f.write(chunk); got += len(chunk)
+                if want and got != want:
+                    raise IOError(f"{got} bytes of {want}")
+                return path, by
+            except Exception as e:
+                last = e; log("  failed:", e); time.sleep(5 * attempt)
+    raise SystemExit(f"no server gave the extract: {last}")
 
 def main():
     args = sys.argv[1:]
     src = args[0] if len(args) >= 2 else None
+    by = "Geofabrik"
     out = args[-1] if args else "out"
     os.makedirs(out, exist_ok=True)
     if src is None:
-        src = fetch(os.path.join("extract", "switzerland-latest.osm.pbf"))
+        src, by = fetch(os.path.join("extract", "switzerland-latest.osm.pbf"))
     S = Strings()
     for k, _ in CATS:
         S(k)
@@ -369,7 +386,7 @@ def main():
     with gzip.open(path + ".gz", "wb", compresslevel=9) as f:
         f.write(data)
     info = {"built": built.isoformat(), "places": len(places), "streets": n_streets, "bytes": len(data), "gz_bytes": os.path.getsize(path + ".gz"),
-            "source": "OpenStreetMap contributors (ODbL), extract by Geofabrik", "categories": [k for k, _ in CATS]}
+            "source": "OpenStreetMap contributors (ODbL), extract by " + by, "categories": [k for k, _ in CATS]}
     with open(path + ".json", "w") as f:
         json.dump(info, f, indent=1)
     log("wrote", path, len(data), "bytes,", info["gz_bytes"], "gzipped")
