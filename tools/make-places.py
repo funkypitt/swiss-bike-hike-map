@@ -25,7 +25,7 @@ VERSION = 1
 CELL = 0.02
 LAT0, LON0 = 45.0, 5.0
 BOUNDS = (45.5, 5.5, 48.2, 11.0)   # south, west, north, east: the extract spills a little over the border
-KEYS = ("amenity", "shop", "tourism", "leisure", "natural", "man_made", "historic")
+KEYS = ("amenity", "shop", "tourism", "leisure", "natural", "man_made", "historic", "office", "craft", "healthcare")
 
 def log(*a):
     print(time.strftime("%H:%M:%S"), *a, file=sys.stderr, flush=True)
@@ -70,6 +70,9 @@ CATS = [
     ("hairdresser", lambda t: _in(t, "shop", "hairdresser", "beauty", "barber")),
     # every other shop that has a name (vacant, disused and nameless ones say nothing to a passer-by)
     ("shop", lambda t: "shop" in t and t["shop"] not in ("vacant", "no", "yes") and "name" in t),
+    # the named practices and firms a person looks up by name (« Ardentis Lausanne »): found by the search, not drawn as dots
+    ("doctor", lambda t: "name" in t and (_in(t, "amenity", "doctors", "dentist", "veterinary") or t.get("healthcare", "no") not in ("no", "pharmacy", "hospital"))),
+    ("firm", lambda t: "name" in t and (t.get("office", "no") not in ("no", "vacant") or t.get("craft", "no") != "no")),
 ]
 
 # extra tags kept with a place, as "short=value" lines; the app shows them in the place's detail

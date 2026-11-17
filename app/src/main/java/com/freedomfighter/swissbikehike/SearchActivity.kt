@@ -37,8 +37,11 @@ import java.util.Locale
  * the categories of places around (« café », « fountain »), public-transport stops (online, or
  * from the offline timetable), addresses and place names (GeoAdmin), the places of the offline
  * OpenStreetMap pack by name, and typed coordinates. With the person's own search.ch key, the
- * Search key (or the last row) adds the directory: firms complete the places they name (phone,
- * address), people and other firms follow. An empty field lists the categories around and the
+ * Search key (or the directory row) adds the directory: firms complete the places they name
+ * (phone, address), people and other firms follow. A text that ends or starts with a town
+ * (« ardentis lausanne ») is read as a name looked for in that town. The answers that hold every
+ * typed word come first; what the servers merely find alike (the towns and stops called
+ * Lausanne, for that text) comes last. An empty field lists the categories around and the
  * favourites (with import and export of place lists). Every pick ends as a pin on the map.
  */
 class SearchActivity : AppCompatActivity() {
@@ -98,6 +101,8 @@ class SearchActivity : AppCompatActivity() {
     private val categories = Places.Cat.entries
     /** The text whose answers are on screen, so a late answer for an older text is dropped. */
     private var shownQuery = ""
+    /** The same text read as « what, where », when it names a town: the directory is asked that way. */
+    private var shownWhere: Places.Where? = null
 
     private val hits: List<Hit> get() = rows.mapNotNull { (it as? Row.Item)?.hit }
 
@@ -154,7 +159,7 @@ class SearchActivity : AppCompatActivity() {
             if (q.length < 2) { showHome(); return@doAfterTextChanged }
             val typed = Favourites.parseCoords(q)
             if (typed != null) {
-                shownQuery = q
+                shownQuery = q; shownWhere = null
                 setRows(listOf(Row.Item(Hit(Favourites.coordsName(typed.latitude, typed.longitude), typed.latitude, typed.longitude, Favourites.COORDS))))
                 return@doAfterTextChanged
             }
@@ -177,7 +182,8 @@ class SearchActivity : AppCompatActivity() {
         is Row.Item -> row(r.hit)
         is Row.FavItem -> listOf(glyph(r.fav.kind) + " " + r.fav.name, r.fav.detail).filter { it.isNotBlank() }.joinToString("\n")
         is Row.Dir -> (if (r.hit.person) "☺  " else "▣  ") + listOf(r.hit.name, r.hit.address, r.hit.phone).filter { it.isNotBlank() }.joinToString("\n")
-        Row.DirAsk -> getString(R.string.search_directory_row, b.query.text?.toString()?.trim() ?: "")
+        Row.DirAsk -> shownWhere?.let { getString(R.string.search_directory_row_in, it.what, it.town.name) }
+            ?: getString(R.string.search_directory_row, b.query.text?.toString()?.trim() ?: "")
         is Row.Info -> r.text
     }
 
@@ -208,7 +214,7 @@ class SearchActivity : AppCompatActivity() {
 
     /** The empty field: the favourites row, then the categories of places around. */
     private fun showHome() {
-        favView = false; category = null; shownQuery = ""
+        favView = false; category = null; shownQuery = ""; shownWhere = null
         b.favRow.visibility = View.GONE
         b.credit.visibility = View.VISIBLE
         b.credit.text = credit()
@@ -270,11 +276,11 @@ class SearchActivity : AppCompatActivity() {
         return pack.nearby(near.latitude, near.longitude, NEARBY_M, cats, limit)
     }
 
-    private fun hitOf(f: Places.Found): Hit {
+    private fun hitOf(f: Places.Found, metres: Double = f.metres): Hit {
         val p = f.place
         val lines = Places.describe(this, p)
         val detail = (listOf(Places.categoryText(this, p)) + lines).joinToString(" · ")
-        return Hit(p.label(this), p.at.latitude, p.at.longitude, Favourites.POI, detail, p, f.metres)
+        return Hit(p.label(this), p.at.latitude, p.at.longitude, Favourites.POI, detail, p, metres)
     }
 
     /** A place of the pack on two lines (glyph, name, distance; category and details); a stop or an address on one. */
@@ -296,47 +302,82 @@ class SearchActivity : AppCompatActivity() {
 
     // ---- everything at once ----
 
+    /** The categories whose label holds the text (or has a word that starts with it). */
+    private fun catsOf(fq: String): Set<Places.Cat> =
+        categories.filter { c -> val l = Transit.fold(getString(c.label)); l.contains(fq) || (fq.length >= 4 && l.split(Regex("[ ,]+")).any { it.startsWith(fq) }) }.toSet()
+
+    /** The kinds of shop whose name holds the text (« books », « fleuriste »). */
+    private fun kindsOf(fq: String): Set<String> =
+        Places.SHOP_KINDS.filter { (_, res) -> Transit.fold(getString(res)).let { it.contains(fq) || (fq.length >= 4 && it.split(' ').any { w -> w.startsWith(fq) }) } }.keys
+
     /**
      * A typed text: the favourites that hold it, the categories whose label matches (their places
-     * around), the stops of that name, GeoAdmin's towns, addresses and peaks, then the places of
-     * the pack whose name holds the words; the directory is offered last when a key is set.
+     * around), then what holds every typed word (stops, GeoAdmin's towns, addresses and peaks,
+     * places of the pack by name), nearest first. A text that names a town beside other words
+     * (« ardentis lausanne », « hotel bern ») is also read as those words looked for in that town:
+     * the places of that name, category or kind around its centre, nearest to it first. The
+     * answers GeoAdmin and the timetable give without the typed words in them come last. The
+     * directory is offered when a key is set: before those when nothing bears the name, else last.
      */
     private suspend fun searchAll(q: String) {
         val pack = PlacesPack.open(this)
         val fq = Transit.fold(q)
-        shownQuery = q
+        val words = Places.words(q)
+        shownQuery = q; shownWhere = null
         b.credit.text = credit()
         setRows(listOf(Row.Info("…")))
         val favs = Favourites.list(this).filter { Transit.fold(it.name).contains(fq) || Transit.fold(it.detail).contains(fq) }.take(5)
             .map { Hit(it.name, it.lat, it.lon, it.kind, it.detail, starred = true) }
-        val cats = categories.filter { c -> val l = Transit.fold(getString(c.label)); l.contains(fq) || (fq.length >= 4 && l.split(Regex("[ ,]+")).any { it.startsWith(fq) }) }.toSet()
+        val cats = catsOf(fq)
         // GeoAdmin and the stops are asked while the pack is searched
         val geoJob = lifecycleScope.async { runCatching { searchPlaces(q, limit = if (cats.isEmpty()) 12 else 6) } }
         val stopJob = lifecycleScope.async { runCatching { Planner.searchStops(this@SearchActivity, q) }.getOrDefault(emptyList()) }
+        fun away(lat: Double, lon: Double) = Places.distance(near.latitude, near.longitude, lat, lon)
+        fun away(f: Places.Found) = away(f.place.at.latitude, f.place.at.longitude)
         val catHits = ArrayList<Hit>(); val nameHits = ArrayList<Hit>(); val tagHits = ArrayList<Hit>()
+        val townNames = ArrayList<Hit>(); val townAround = ArrayList<Hit>()
+        var where: Places.Where? = null
         if (pack != null) withContext(Dispatchers.Default) {
             if (cats.isNotEmpty()) catHits.addAll(nearbyOf(pack, cats, 12).map { hitOf(it) })
             // a cuisine or a kind of shop around (« pizza », « sushi », « books »)
-            val kinds = Places.SHOP_KINDS.filter { (_, res) -> Transit.fold(getString(res)).let { it.contains(fq) || (fq.length >= 4 && it.split(' ').any { w -> w.startsWith(fq) }) } }.keys
-            tagHits.addAll(pack.nearbyTagged(near.latitude, near.longitude, q, kinds).map { hitOf(it) }.filter { t -> catHits.none { it.place?.index == t.place?.index } })
+            tagHits.addAll(pack.nearbyTagged(near.latitude, near.longitude, q, kindsOf(fq)).map { hitOf(it) })
             nameHits.addAll(pack.search(q, near.latitude, near.longitude, 15).map { hitOf(it) })
+            where = pack.where(q)
+            where?.let { w ->
+                val t = w.town.at
+                townNames.addAll(pack.search(w.what, t.latitude, t.longitude, 15, Places.TOWN_M).map { hitOf(it, away(it)) })
+                val townCats = catsOf(w.what)
+                if (townCats.isNotEmpty()) townAround.addAll(pack.nearby(t.latitude, t.longitude, NEARBY_M, townCats, 12, Places.TOWN_M).map { hitOf(it, away(it)) })
+                townAround.addAll(pack.nearbyTagged(t.latitude, t.longitude, w.what, kindsOf(w.what)).map { hitOf(it, away(it)) })
+            }
         }
         val geo = geoJob.await()
-        fun away(lat: Double, lon: Double) = Places.distance(near.latitude, near.longitude, lat, lon)
-        val stops = stopJob.await().take(8).map { Hit(it.name, it.at.latitude, it.at.longitude, Favourites.STOP, it.id, metres = away(it.at.latitude, it.at.longitude)) }
+        val allStops = stopJob.await().take(8).map { Hit(it.name, it.at.latitude, it.at.longitude, Favourites.STOP, it.id, metres = away(it.at.latitude, it.at.longitude)) }
         if (shownQuery != q) return
-        val around = catHits + tagHits
+        shownWhere = where
+        // what holds every typed word is an answer; the rest is what a server found alike
+        fun holds(h: Hit) = Transit.fold(h.label).let { l -> words.all { l.contains(it) } }
+        val (stops, looseStops) = allStops.partition { holds(it) }
         // a stop named like a GeoAdmin answer (« Lausanne, gare ») is said once, as a stop
-        val geoHits = geo.getOrDefault(emptyList()).filter { g -> stops.none { Transit.fold(it.label) == Transit.fold(g.label) } }
-            .map { g -> Hit(g.label, g.lat, g.lon, g.kind, g.detail, metres = away(g.lat, g.lon)) }
-        val names = nameHits.filter { n -> around.none { it.place?.index == n.place?.index } }
+        val (geoHits, looseGeo) = geo.getOrDefault(emptyList()).filter { g -> allStops.none { Transit.fold(it.label) == Transit.fold(g.label) } }
+            .map { g -> Hit(g.label, g.lat, g.lon, g.kind, g.detail, metres = away(g.lat, g.lon)) }.partition { holds(it) }
         // stops, addresses and places by name together, nearest first (the public-transport map: stops first)
-        val rest = if (mode == Mode.TRANSIT) stops.sortedBy { it.metres } + (geoHits + names).sortedBy { it.metres }
-            else (stops + geoHits + names).sortedBy { it.metres }
-        val found = favs + around + rest
+        val sure = if (mode == Mode.TRANSIT) stops.sortedBy { it.metres } + (geoHits + nameHits).sortedBy { it.metres }
+            else (stops + geoHits + nameHits).sortedBy { it.metres }
+        // of the look-alikes, those that hold none of the typed words (« Luzein » for « ardentis lausanne ») say nothing once there is an answer
+        val answered = favs.isNotEmpty() || catHits.isNotEmpty() || tagHits.isNotEmpty() || stops.isNotEmpty() || geoHits.isNotEmpty() || nameHits.isNotEmpty() || townNames.isNotEmpty() || townAround.isNotEmpty()
+        val loose = (if (mode == Mode.TRANSIT) looseStops + looseGeo else looseGeo + looseStops)
+            .filter { h -> !answered || Transit.fold(h.label).let { l -> words.any { it.length >= 3 && l.contains(it) } } }
+        // each place once, where it first comes
+        val seen = HashSet<Int>()
+        val found = (favs + catHits + tagHits + sure + townNames + townAround + loose).filter { h -> h.place == null || seen.add(h.place.index) }
         val out = ArrayList<Row>(found.map { Row.Item(it) })
         if (found.isEmpty() && geo.isFailure) out.add(Row.Info(getString(R.string.search_no_answer)))
-        if (Directory.enabled(this) && q.length >= 3) out.add(Row.DirAsk)
+        // the directory: before the look-alikes when no place bears the name, else last
+        if (Directory.enabled(this) && q.length >= 3) {
+            val named = nameHits.isNotEmpty() || townNames.isNotEmpty() || stops.isNotEmpty() || geoHits.isNotEmpty()
+            if (named) out.add(Row.DirAsk) else out.add(out.size - loose.size, Row.DirAsk)
+        }
         setRows(out)
     }
 
@@ -366,8 +407,9 @@ class SearchActivity : AppCompatActivity() {
     /**
      * Search pressed with a key (or the last row): the directory's answers for the typed text join
      * the list. A firm that names a place already listed (same name, same town when both say it)
-     * completes that row with its phone and address; people and the other firms are appended,
-     * placed through GeoAdmin when picked.
+     * completes that row with its phone and address; people and the other firms take the place of
+     * the directory row, placed through GeoAdmin when picked. A text that names a town is asked as
+     * the name in that town.
      */
     private fun mergeDirectory() {
         val q = b.query.text?.toString()?.trim() ?: ""
@@ -377,7 +419,10 @@ class SearchActivity : AppCompatActivity() {
             if (shownQuery != q) searchAll(q)
             val asking = rows.indexOfFirst { it === Row.DirAsk }
             if (asking >= 0) { rows[asking] = Row.Info("▣  …"); setRows(rows.toList()) }
-            val found = withContext(Dispatchers.IO) { runCatching { Directory.search(this@SearchActivity, q) } }
+            val w = shownWhere
+            val found = withContext(Dispatchers.IO) { runCatching { if (w != null) Directory.search(this@SearchActivity, w.what, w.town.name) else Directory.search(this@SearchActivity, q) } }
+            if (shownQuery != q) return@launch
+            val at = rows.indexOfFirst { it is Row.Info && it.text == "▣  …" }.let { if (it < 0) rows.size else it }
             rows.removeAll { it is Row.Info && it.text == "▣  …" }
             found.onFailure { e -> setRows(rows.toList()); Toast.makeText(this@SearchActivity, (e.message ?: "no answer").take(120), Toast.LENGTH_LONG).show() }
             found.onSuccess { list ->
@@ -395,7 +440,7 @@ class SearchActivity : AppCompatActivity() {
                 }
                 val people = list.filter { it.person }
                 rows.removeAll { it === Row.DirAsk || it is Row.Dir }
-                rows.addAll(rest.map { Row.Dir(it) }); rows.addAll(people.map { Row.Dir(it) })
+                rows.addAll(minOf(at, rows.size), rest.map { Row.Dir(it) } + people.map { Row.Dir(it) })
                 setRows(rows.toList())
                 if (list.isEmpty()) Toast.makeText(this@SearchActivity, R.string.directory_nobody, Toast.LENGTH_SHORT).show()
             }

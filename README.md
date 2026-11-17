@@ -38,11 +38,12 @@ the app was called Swiss Bike-Hike Map; the package name has not changed.)
 * **GPX**: follow a track as it is (turns read off its shape), or record your own.
 * **FIND**: one field for everything, as in any map app: favourites, places around by category or by word, offline (drinking water, shelters, huts,
   picnic and fire places, bike shops and repair stations, bakeries, cafés, restaurants, bars,
-  shops, post offices, campsites… from OpenStreetMap, with the street names that the steps use, a 15 MB pack), shown as a list or as numbered
+  shops, post offices, campsites, practices and firms… from OpenStreetMap, with the street names that the steps use, a 16 MB pack), shown as a list or as numbered
   dots on the map; a tap opens the place's card: open or closed now, the week's hours, address,
   phone (CALL), website, and CONTACT (adds it to your contacts), COPY, SHARE; places and addresses (GeoAdmin), typed coordinates (WGS84,
-  LV95, LV03) and public-transport stops, mixed and nearest first; people and firms from the
-  search.ch directory with your own free key (the Search key or the last row), which also
+  LV95, LV03) and public-transport stops, mixed and nearest first; a name with a town
+  (« Ardentis Lausanne », « hotel Bern ») is looked for in that town; people and firms from the
+  search.ch directory with your own free key (the Search key or the directory row), which also
   completes a place with its phone and address; and your favourites,
   which you can import and export (GPX, KML, GeoJSON, CSV). The places can be drawn on the map
   as coloured dots.

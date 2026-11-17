@@ -58,7 +58,9 @@ class Places private constructor(private val b: ByteBuffer) {
         BANK("bank", R.string.cat_bank, SERVICE_G, "$"),
         POST("post", R.string.cat_post, SERVICE_G, "✉"),
         HAIRDRESSER("hairdresser", R.string.cat_hairdresser, SHOP_G, "✂"),
-        SHOP("shop", R.string.cat_shop, SHOP_G, "■");
+        SHOP("shop", R.string.cat_shop, SHOP_G, "■"),
+        DOCTOR("doctor", R.string.cat_doctor, SERVICE_G, "✚"),
+        FIRM("firm", R.string.cat_firm, SERVICE_G, "▣");
 
         companion object { fun of(key: String): Cat? = entries.firstOrNull { it.key == key } }
     }
@@ -82,6 +84,21 @@ class Places private constructor(private val b: ByteBuffer) {
         /** Metres between two points, flat-earth, good to a percent at this scale. */
         fun distance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double =
             hypot((lat2 - lat1) * 110_540.0, (lon2 - lon1) * 111_320.0 * cos(Math.toRadians(lat1)))
+
+        /** The categories drawn as dots on the map: practices and firms are looked up by name, not met on the way. */
+        val ON_MAP: Set<Cat> = Cat.entries.toSet() - setOf(Cat.DOCTOR, Cat.FIRM)
+
+        /** How far from the centre of a named town a place still counts as « in » it. */
+        const val TOWN_M = 10_000.0
+        /** The places a town must count to be read as one at the start of a text. */
+        private const val START_TOWN_PLACES = 60
+
+        /** A town's name as it is compared: folded, hyphens, apostrophes and dots as spaces, a canton code at the end dropped (« Buchs SG »). */
+        fun townKey(name: String): String =
+            Transit.fold(name.trim().replace(Regex("\\s*\\(?\\b[A-Z]{2}\\)?$"), "")).replace(Regex("[-'’.,/]+"), " ").replace(Regex("\\s+"), " ").trim()
+
+        /** The words that only link a name to a town (« Ardentis à Lausanne », « Coop in Bern »). */
+        private val LINKS = setOf("a", "in", "im", "en", "em", "bei", "de", "v", "в")
 
         /** The commonest kinds of the shops that have no category of ours, named in the phone's language. */
         val SHOP_KINDS: Map<String, Int> = mapOf(
@@ -121,6 +138,9 @@ class Places private constructor(private val b: ByteBuffer) {
         /** The category as a person reads it; for such a shop, what it sells instead (« Books »). */
         fun categoryText(ctx: Context, p: Place): String =
             p.extras["shop"]?.let { shopKind(ctx, it) } ?: ctx.getString(p.cat.label)
+
+        /** The words of a typed text, folded. */
+        fun words(q: String): List<String> = Transit.fold(q).split(Regex("[\\s,]+")).filter { it.isNotBlank() }
 
         /** The extra tags as lines a person reads: hours, phone, website, address, altitude… */
         fun describe(ctx: Context, p: Place): List<String> {
@@ -173,7 +193,8 @@ class Places private constructor(private val b: ByteBuffer) {
         val s = b.getInt(offs + 4 * i); val e = b.getInt(offs + 4 * (i + 1))
         val bytes = ByteArray(e - s)
         val blob = secStrings + 4 + 4 * (nStrings + 1)
-        for (k in bytes.indices) bytes[k] = b.get(blob + s + k)
+        // read in one go, through a view of its own (the buffer's position is shared between threads)
+        b.duplicate().apply { position(blob + s) }.get(bytes)
         return String(bytes, Charsets.UTF_8)
     }
     fun lat(i: Int): Double = b.getInt(secPlaces + 20 * i) / 1e6
@@ -255,17 +276,81 @@ class Places private constructor(private val b: ByteBuffer) {
         }.take(limit)
     }
 
-    /** Folds every name once (a second or two for the country), so the first search answers at once. */
-    fun warm() { for (i in 0 until nPlaces) if (folded[i] == null) folded[i] = Transit.fold(name(i)) }
+    /** Folds every name once (a second or two for the country) and lists the towns, so the first search answers at once. */
+    fun warm() { for (i in 0 until nPlaces) if (folded[i] == null) folded[i] = Transit.fold(name(i)); towns.size }
 
-    /** The places whose name holds every word of `q`, nearest to the point first. */
-    fun search(q: String, lat: Double, lon: Double, limit: Int = 30): List<Found> {
-        val words = Transit.fold(q).split(Regex("[\\s,]+")).filter { it.isNotBlank() }
+    /** A town the places name in their address: its name as written, the middle of the places that say it, and how many do. */
+    class Town(val name: String, val at: LatLng, val places: Int)
+
+    /**
+     * The towns of the pack by `townKey`: every town at least two places give as their address,
+     * at the middle of those places. This is how « Ardentis Lausanne » is read without a network.
+     * Of several towns of one name (Buchs, Wil, Au), the one with the most places is kept: the
+     * middle is taken where they are densest (a tenth of a degree and its neighbours).
+     */
+    private val towns: Map<String, Town> by lazy {
+        class Sum(val name: String) { val cells = HashMap<Int, DoubleArray>(); var n = 0 }
+        val sums = HashMap<String, Sum>()
+        val byText = HashMap<Int, String>()   // the extras are shared strings: each is read once
+        for (i in 0 until nPlaces) {
+            val ref = b.getInt(secPlaces + 20 * i + 12)
+            if (ref <= 0) continue
+            val city = byText.getOrPut(ref) { cityOf(string(ref)) }
+            if (city.length < 2) continue
+            val s = sums.getOrPut(townKey(city)) { Sum(city) }
+            val c = s.cells.getOrPut(floor(lat(i) * 10).toInt() * 1000 + floor(lon(i) * 10).toInt()) { DoubleArray(3) }
+            c[0] += lat(i); c[1] += lon(i); c[2] += 1.0; s.n++
+        }
+        val out = HashMap<String, Town>()
+        for ((key, s) in sums) {
+            if (key.length < 2 || s.n < 2) continue
+            val top = s.cells.maxByOrNull { it.value[2] }!!.key
+            var la = 0.0; var lo = 0.0; var n = 0.0
+            for (dy in -1..1) for (dx in -1..1) s.cells[top + dy * 1000 + dx]?.let { la += it[0]; lo += it[1]; n += it[2] }
+            out[key] = Town(s.name, LatLng(la / n, lo / n), n.toInt())
+        }
+        out
+    }
+
+    /** The town in a place's extra lines (« city=Lausanne »), or nothing. */
+    private fun cityOf(extras: String): String {
+        val at = if (extras.startsWith("city=")) 0 else extras.indexOf("\ncity=").let { if (it < 0) return "" else it + 1 }
+        val end = extras.indexOf('\n', at).let { if (it < 0) extras.length else it }
+        return extras.substring(at + 5, end).trim()
+    }
+
+    /** A typed text read as « what, where »: what is looked for, and the town it is looked for in. */
+    class Where(val what: String, val town: Town)
+
+    /**
+     * « ardentis lausanne », « coop in bern », « lausanne ardentis »: the town named at the end (or
+     * at the start) of the text and the words left for the name. Null when no word is a town, or
+     * when nothing is left beside it. At the start, only a town of some size is taken for one:
+     * « rue du lac », « port vélo » and « champagne bar » begin with a word, not with a village.
+     */
+    fun where(q: String): Where? {
+        val w = townKey(q).split(' ').filter { it.isNotBlank() }
+        if (w.size < 2) return null
+        for (n in minOf(w.size - 1, 5) downTo 1) for (atEnd in booleanArrayOf(true, false)) {
+            val town = towns[(if (atEnd) w.takeLast(n) else w.take(n)).joinToString(" ")] ?: continue
+            if (!atEnd && town.places < START_TOWN_PLACES) continue
+            var rest = if (atEnd) w.dropLast(n) else w.drop(n)
+            if (rest.size > 1) rest = if (atEnd && rest.last() in LINKS) rest.dropLast(1) else if (!atEnd && rest.first() in LINKS) rest.drop(1) else rest
+            val what = rest.joinToString(" ")
+            if (what.length >= 2) return Where(what, town)
+        }
+        return null
+    }
+
+    /** The places whose name holds every word of `q`, nearest to the point first; only those within `withinM` of it. */
+    fun search(q: String, lat: Double, lon: Double, limit: Int = 30, withinM: Double = Double.MAX_VALUE): List<Found> {
+        val words = words(q)
         if (words.isEmpty()) return emptyList()
         val out = ArrayList<Found>()
         for (i in 0 until nPlaces) {
             val n = folded[i] ?: Transit.fold(name(i)).also { folded[i] = it }
             if (n.isEmpty() || !words.all { n.contains(it) }) continue
+            if (withinM < Double.MAX_VALUE && distance(lat, lon, lat(i), lon(i)) > withinM) continue
             place(i)?.let { out.add(Found(it, distance(lat, lon, it.at.latitude, it.at.longitude))) }
         }
         // a name that starts with the first word comes before one that merely holds it, then by distance

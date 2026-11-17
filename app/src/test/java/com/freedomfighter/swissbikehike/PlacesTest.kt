@@ -10,7 +10,7 @@ class PlacesTest {
 
     @Test fun readsHeaderAndCategories() {
         val p = pack()
-        assertEquals(10, p.nPlaces)
+        assertEquals(14, p.nPlaces)
         assertTrue(p.built.startsWith("20"))
         // a shelter of a bus stop and a node without our keys are not in; the toilets south of the border neither
         assertEquals(0, (0 until p.nPlaces).count { p.cat(it) == Places.Cat.SHELTER })
@@ -72,10 +72,36 @@ class PlacesTest {
         assertEquals(1, p.nearby(46.52, 6.63, 1000.0, setOf(Places.Cat.SHOP), 10).size)
     }
 
+    @Test fun aNameAndATownAreReadAsWhatAndWhere() {
+        val p = pack()
+        // the dentist says no town in its address: the town comes from the places around that do
+        val w = p.where("ardentis lausanne")!!
+        assertEquals("ardentis", w.what); assertEquals("Lausanne", w.town.name)
+        assertEquals(46.521, w.town.at.latitude, 5e-3)
+        val there = p.search(w.what, w.town.at.latitude, w.town.at.longitude, 15, Places.TOWN_M)
+        assertEquals(1, there.size)
+        assertEquals(Places.Cat.DOCTOR, there[0].place.cat)
+        assertEquals(6.6246, there[0].place.at.longitude, 1e-4)
+        // the other town's one, the town first, a linking word, accents and case
+        val bern = p.where("ardentis in Bern")!!
+        assertEquals(7.4474, p.search(bern.what, bern.town.at.latitude, bern.town.at.longitude, 15, Places.TOWN_M).single().place.at.longitude, 1e-4)
+        assertEquals("etude du lac", p.where("Étude du Lac à LAUSANNE")!!.what)
+        assertEquals(Places.Cat.FIRM, p.search("etude", 46.52, 6.63).single().place.cat)
+        // a town alone, a text without a town, a name that holds the town
+        assertEquals(null, p.where("lausanne"))
+        assertEquals(null, p.where("lausanne ardentis"))   // at the start, only a town of some size
+        assertEquals(null, p.where("ardentis morges"))
+        assertEquals("cafe", p.where("café bern")!!.what)
+        assertEquals("Café Bern", p.search("café bern", 46.52, 6.63).single().place.name)
+        assertEquals("buchs", Places.townKey("Buchs SG")); assertEquals("la tour de peilz", Places.townKey("La Tour-de-Peilz"))
+    }
+
     @Test fun boxLimitsAndFilters() {
         val p = pack()
         val all = p.inBox(46.51, 6.62, 46.54, 6.65, null)
-        assertEquals(9, all.size)
+        assertEquals(11, all.size)
+        // practices and firms are not among the dots of the map
+        assertEquals(9, p.inBox(46.51, 6.62, 46.54, 6.65, Places.ON_MAP).size)
         assertEquals(1, p.inBox(46.51, 6.62, 46.54, 6.65, setOf(Places.Cat.BIKE_SHOP)).size)
         assertEquals(2, p.inBox(46.51, 6.62, 46.54, 6.65, null, 2).size)
     }

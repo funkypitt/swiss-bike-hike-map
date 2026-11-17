@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.12.1 — 2026-11-17
+
+* A name with a town finds the firm, not the town: « ardentis lausanne » listed the communes and
+  stops called Lausanne (what GeoAdmin and the timetable find alike) and no Ardentis at all. A
+  town at the end of the text (or a larger one at its start; « in », « à », « bei » allowed) is
+  now read as where to look: the places of that name, category or kind in that town come first
+  (« migros vevey », « hotel bern », « dentiste vevey »), nearest to its centre first. The towns
+  are those of the places pack, so this works offline.
+* Answers that hold every typed word come first; the look-alikes of the servers come last, and
+  only those that hold at least one of the words.
+* The places pack also carries the named practices (doctors, dentists, vets, therapists) and
+  firms (offices, crafts) of OpenStreetMap: 202 000 places instead of 183 000, 16 MB. They are
+  found by the search and by two new categories, and are not drawn as dots on the map. Update
+  the places in MENU to get them.
+* Directory (search.ch key): a text with a town is asked as the name in that town; its row comes
+  before the look-alikes when no place bears the name, and its answers take that row's place.
+
 ## 0.12.0 — 2026-11-11
 
 * A route is previewed before it is followed, as in other map apps: the pin's DIRECTIONS (or

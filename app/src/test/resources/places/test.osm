@@ -13,6 +13,10 @@
   <node id="15" lat="46.5205" lon="6.6305"><tag k="amenity" v="cafe"/><tag k="name" v="Café Romand"/><tag k="contact:email" v="info@example.org"/><tag k="addr:postcode" v="1003"/><tag k="addr:city" v="Lausanne"/><tag k="opening_hours" v="Mo-Fr 07:00-19:00; Sa 08:00-14:00"/></node>
   <node id="16" lat="46.5215" lon="6.6315"><tag k="shop" v="books"/><tag k="name" v="Librairie Test"/></node>
   <node id="17" lat="46.5225" lon="6.6325"><tag k="shop" v="vacant"/></node>
+  <node id="18" lat="46.5254" lon="6.6246"><tag k="amenity" v="dentist"/><tag k="healthcare" v="dentist"/><tag k="name" v="Ardentis"/><tag k="opening_hours" v="Mo-Fr 07:00-19:00; Sa 08:00-17:00"/></node>
+  <node id="19" lat="46.5190" lon="6.6330"><tag k="office" v="lawyer"/><tag k="name" v="Étude du Lac"/><tag k="addr:city" v="Lausanne"/></node>
+  <node id="21" lat="46.9480" lon="7.4474"><tag k="amenity" v="dentist"/><tag k="name" v="Ardentis"/><tag k="addr:city" v="Bern"/></node>
+  <node id="22" lat="46.9490" lon="7.4480"><tag k="amenity" v="cafe"/><tag k="name" v="Café Bern"/><tag k="addr:city" v="Bern"/></node>
   <node id="11" lat="46.5300" lon="6.6400"/>
   <node id="12" lat="46.5300" lon="6.6420"/>
   <node id="13" lat="46.5320" lon="6.6420"/>

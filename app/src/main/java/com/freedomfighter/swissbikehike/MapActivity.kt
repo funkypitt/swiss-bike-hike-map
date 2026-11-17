@@ -376,7 +376,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
         placesJob?.cancel()
         placesJob = lifecycleScope.launch {
             val feats = withContext(Dispatchers.Default) {
-                pack.inBox(bb.latitudeSouth, bb.longitudeWest, bb.latitudeNorth, bb.longitudeEast, null, 600).map { p ->
+                pack.inBox(bb.latitudeSouth, bb.longitudeWest, bb.latitudeNorth, bb.longitudeEast, Places.ON_MAP, 600).map { p ->
                     Feature.fromGeometry(Point.fromLngLat(p.at.longitude, p.at.latitude)).also { f ->
                         f.addStringProperty("n", p.label(this@MapActivity))
                         f.addStringProperty("c", Places.GROUP_COLOURS[p.cat.group])

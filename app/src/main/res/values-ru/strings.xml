@@ -222,6 +222,8 @@
     <string name="cat_post">Почта</string>
     <string name="cat_hairdresser">Парикмахерская, салон красоты</string>
     <string name="cat_shop">Магазин</string>
+    <string name="cat_doctor">Врач, стоматолог, практика</string>
+    <string name="cat_firm">Фирма, офис</string>
     <string name="close">ЗАКРЫТЬ</string>
     <string name="place_contact">КОНТАКТ</string>
     <string name="place_copy">КОПИРОВАТЬ</string>
@@ -366,6 +368,7 @@
     <string name="step_roundabout">Кольцо, съезд %1$d</string>
     <string name="step_arrive">Прибытие</string>
     <string name="search_directory_row">▣  Искать « %1$s » в справочнике search.ch</string>
+    <string name="search_directory_row_in">▣  Искать « %1$s » в %2$s в справочнике search.ch</string>
     <string name="search_favs_row">★  Избранное (%1$d)</string>
     <string name="search_back">‹ НАЗАД</string>
     <string name="dur_h_min">%1$d ч %2$02d</string>

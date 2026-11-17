@@ -229,6 +229,8 @@
     <string name="cat_post">Post office</string>
     <string name="cat_hairdresser">Hairdresser, beauty</string>
     <string name="cat_shop">Shop</string>
+    <string name="cat_doctor">Doctor, dentist, practice</string>
+    <string name="cat_firm">Firm, office</string>
     <string name="close">CLOSE</string>
     <string name="place_contact">CONTACT</string>
     <string name="place_copy">COPY</string>
@@ -373,6 +375,7 @@
     <string name="step_roundabout">Roundabout, exit %1$d</string>
     <string name="step_arrive">Arrive</string>
     <string name="search_directory_row">▣  Look up « %1$s » in the search.ch directory</string>
+    <string name="search_directory_row_in">▣  Look up « %1$s » in %2$s in the search.ch directory</string>
     <string name="search_favs_row">★  Favourites (%1$d)</string>
     <string name="search_back">‹ BACK</string>
     <string name="dur_h_min">%1$d h %2$02d</string>
