@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.14.0 — 2026-11-18
+
+* TOURS has a second list, SWITZERLAND: the signposted routes of SwitzerlandMobility, on foot
+  (440 routes in 976 stages: national, regional, local and barrier-free ones) and by mountain
+  bike (307 routes in 403 stages). They are in the app itself, so the list works offline and
+  at once. Nearest first (from your position, or from where the map looks), each with its
+  start and end, length, walking time, climb and descent, and the fitness and technique its
+  signposts ask for.
+* Narrow the list: on foot, MTB or barrier-free; by time on foot (≤ 2 h, 2–4 h, > 4 h) or by
+  length by bike; by difficulty; by a name or a place (« Dôle », « Montreux »).
+* A tap draws the stage on the map from its start to its end, with its profile, its steps with
+  street names and its signposted walking time, ready for START; « ⋯ » shows it the other way
+  round, keeps it among your own tours (also KEEP in the preview) or opens its description on
+  schweizmobil.ch.
+* Source: Federal Roads Office FEDRO, SwitzerlandMobility and the cantons, open data of
+  data.geo.admin.ch (Wanderland Schweiz, Mountainbikeland Schweiz); `tools/make-tours.py` sews
+  the lines and packs them (3 MB), the weekly health check says when the source has changed.
+
 ## 0.13.0 — 2026-11-18
 
 * TOURS, a new button on the bike and walking maps (also in MENU): the lines you keep on the

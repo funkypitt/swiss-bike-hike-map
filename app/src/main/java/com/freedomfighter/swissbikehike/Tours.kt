@@ -23,7 +23,7 @@ class Tour(
  */
 object Tours {
     const val WALK = "walk"; const val BIKE = "bike"; const val MTB = "mtb"
-    const val IMPORTED = "import"; const val RECORDED = "rec"
+    const val IMPORTED = "import"; const val RECORDED = "rec"; const val SIGNPOSTED = "swiss"
     val KINDS = listOf(WALK, BIKE, MTB)
 
     fun kindOf(mode: Mode) = if (mode == Mode.BIKE) BIKE else WALK

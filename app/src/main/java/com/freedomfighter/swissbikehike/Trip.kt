@@ -35,6 +35,8 @@ class Trip(
     val hasElevation: Boolean get() = ele.any { !it.isNaN() }
     /** The street of each step: [0] from the start, [k + 1] after turn k; empty when unknown. */
     var names: List<String> = emptyList()
+    /** A line shown from the signposted tours, not yet among the person's own: KEEP adds it. */
+    var keep: Imported? = null
 
     /** The street taken after turn k, blank when unknown. */
     fun nameAfter(k: Int): String = names.getOrNull(k + 1) ?: ""
@@ -72,7 +74,7 @@ class Trip(
             Trip(r.points, r.elevations, r.turns, r.distanceM, r.ascendM, r.descendM, r.seconds, stops, false, stops.last().name).also { it.names = r.names }
 
         /** A GPX track becomes a trip: its end is the only stop; the turns come from its shape. */
-        fun fromTrack(t: Track, name: String): Trip? {
+        fun fromTrack(t: Track, name: String, seconds: Int = 0): Trip? {
             if (t.points.size < 2) return null
             val pts = t.latLngs
             val ele = DoubleArray(pts.size) { t.points[it].ele }
@@ -80,7 +82,7 @@ class Trip(
             for (i in 1 until pts.size) dist += pts[i - 1].distanceTo(pts[i])
             val (asc, desc) = climb(ele)
             val end = pts.last()
-            return Trip(pts, ele, turnsFromShape(pts), dist.toInt(), asc, desc, 0,
+            return Trip(pts, ele, turnsFromShape(pts), dist.toInt(), asc, desc, seconds,
                 listOf(Stop(end, name.ifBlank { Favourites.coordsName(end.latitude, end.longitude) })), true, name)
         }
 

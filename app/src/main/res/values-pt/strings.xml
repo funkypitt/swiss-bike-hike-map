@@ -405,4 +405,40 @@
         <item quantity="one">%d ficheiro sem trilho</item>
         <item quantity="other">%d ficheiros sem trilho</item>
     </plurals>
+    <string name="tab_mine">MEUS</string>
+    <string name="tab_swiss">SUÍÇA</string>
+    <string name="swiss_easy">Sem barreiras</string>
+    <string name="swiss_any">Tudo</string>
+    <string name="swiss_h_max">≤ %1$d h</string>
+    <string name="swiss_h_range">%1$d–%2$d h</string>
+    <string name="swiss_h_min">&gt; %1$d h</string>
+    <string name="swiss_km_max">≤ %1$d km</string>
+    <string name="swiss_km_range">%1$d–%2$d km</string>
+    <string name="swiss_km_min">&gt; %1$d km</string>
+    <string name="level_1">Fácil</string>
+    <string name="level_2">Médio</string>
+    <string name="level_3">Difícil</string>
+    <string name="swiss_filter_hint">Nome ou lugar</string>
+    <string name="swiss_none">Nenhum percurso corresponde.</string>
+    <string name="swiss_more">VER MAIS</string>
+    <string name="swiss_stage">etapa %1$d de %2$d</string>
+    <string name="swiss_loop">Circular a partir de %1$s</string>
+    <string name="swiss_fit">esforço: %1$s</string>
+    <string name="swiss_tech">técnica: %1$s</string>
+    <string name="swiss_kind_n">Rota nacional</string>
+    <string name="swiss_kind_r">Rota regional</string>
+    <string name="swiss_kind_l">Rota local</string>
+    <string name="swiss_away">a %1$s</string>
+    <string name="swiss_keep">Guardar nos meus percursos</string>
+    <string name="swiss_page">Descrição em schweizmobil.ch</string>
+    <string name="tour_src_swiss">guardado em</string>
+    <string name="swiss_credit">As rotas sinalizadas da SuíçaMobile, a pé e de BTT, etapa a etapa. Dados: Departamento Federal de Estradas FEDRO, SuíçaMobile e os cantões (data.geo.admin.ch), em %1$s. Os cortes e os desvios estão desenhados no mapa a vermelho e âmbar espessos: veja antes de partir.</string>
+    <plurals name="swiss_count">
+        <item quantity="one">%d percurso</item>
+        <item quantity="other">%d percursos</item>
+    </plurals>
+    <plurals name="swiss_count_near">
+        <item quantity="one">%d percurso</item>
+        <item quantity="other">%d percursos, os mais próximos primeiro</item>
+    </plurals>
 </resources>

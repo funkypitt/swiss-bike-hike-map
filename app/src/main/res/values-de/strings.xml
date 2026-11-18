@@ -405,4 +405,40 @@
         <item quantity="one">%d Datei ohne Spur</item>
         <item quantity="other">%d Dateien ohne Spur</item>
     </plurals>
+    <string name="tab_mine">MEINE</string>
+    <string name="tab_swiss">SCHWEIZ</string>
+    <string name="swiss_easy">Hindernisfrei</string>
+    <string name="swiss_any">Alle</string>
+    <string name="swiss_h_max">≤ %1$d h</string>
+    <string name="swiss_h_range">%1$d–%2$d h</string>
+    <string name="swiss_h_min">&gt; %1$d h</string>
+    <string name="swiss_km_max">≤ %1$d km</string>
+    <string name="swiss_km_range">%1$d–%2$d km</string>
+    <string name="swiss_km_min">&gt; %1$d km</string>
+    <string name="level_1">Leicht</string>
+    <string name="level_2">Mittel</string>
+    <string name="level_3">Schwer</string>
+    <string name="swiss_filter_hint">Name oder Ort</string>
+    <string name="swiss_none">Keine passende Tour.</string>
+    <string name="swiss_more">MEHR ANZEIGEN</string>
+    <string name="swiss_stage">Etappe %1$d von %2$d</string>
+    <string name="swiss_loop">Rundweg ab %1$s</string>
+    <string name="swiss_fit">Kondition: %1$s</string>
+    <string name="swiss_tech">Technik: %1$s</string>
+    <string name="swiss_kind_n">Nationale Route</string>
+    <string name="swiss_kind_r">Regionale Route</string>
+    <string name="swiss_kind_l">Lokale Route</string>
+    <string name="swiss_away">%1$s entfernt</string>
+    <string name="swiss_keep">In meinen Touren aufbewahren</string>
+    <string name="swiss_page">Beschreibung auf schweizmobil.ch</string>
+    <string name="tour_src_swiss">aufbewahrt am</string>
+    <string name="swiss_credit">Die signalisierten Wander- und Mountainbike-Routen von SchweizMobil, Etappe für Etappe. Daten: Bundesamt für Strassen ASTRA, SchweizMobil und die Kantone (data.geo.admin.ch), Stand %1$s. Sperrungen und Umleitungen sind auf der Karte dick rot und bernsteinfarben eingezeichnet: vor dem Aufbruch nachsehen.</string>
+    <plurals name="swiss_count">
+        <item quantity="one">%d Tour</item>
+        <item quantity="other">%d Touren</item>
+    </plurals>
+    <plurals name="swiss_count_near">
+        <item quantity="one">%d Tour</item>
+        <item quantity="other">%d Touren, die nächsten zuerst</item>
+    </plurals>
 </resources>

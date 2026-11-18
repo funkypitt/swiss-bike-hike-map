@@ -405,4 +405,40 @@
         <item quantity="one">%d fichier sans trace</item>
         <item quantity="other">%d fichiers sans trace</item>
     </plurals>
+    <string name="tab_mine">LES MIENS</string>
+    <string name="tab_swiss">SUISSE</string>
+    <string name="swiss_easy">Sans obstacles</string>
+    <string name="swiss_any">Tout</string>
+    <string name="swiss_h_max">≤ %1$d h</string>
+    <string name="swiss_h_range">%1$d–%2$d h</string>
+    <string name="swiss_h_min">&gt; %1$d h</string>
+    <string name="swiss_km_max">≤ %1$d km</string>
+    <string name="swiss_km_range">%1$d–%2$d km</string>
+    <string name="swiss_km_min">&gt; %1$d km</string>
+    <string name="level_1">Facile</string>
+    <string name="level_2">Moyen</string>
+    <string name="level_3">Difficile</string>
+    <string name="swiss_filter_hint">Nom ou lieu</string>
+    <string name="swiss_none">Aucun parcours ne correspond.</string>
+    <string name="swiss_more">EN VOIR PLUS</string>
+    <string name="swiss_stage">étape %1$d sur %2$d</string>
+    <string name="swiss_loop">Boucle depuis %1$s</string>
+    <string name="swiss_fit">effort : %1$s</string>
+    <string name="swiss_tech">technique : %1$s</string>
+    <string name="swiss_kind_n">Itinéraire national</string>
+    <string name="swiss_kind_r">Itinéraire régional</string>
+    <string name="swiss_kind_l">Itinéraire local</string>
+    <string name="swiss_away">à %1$s</string>
+    <string name="swiss_keep">Garder dans mes parcours</string>
+    <string name="swiss_page">Description sur schweizmobil.ch</string>
+    <string name="tour_src_swiss">gardé le</string>
+    <string name="swiss_credit">Les itinéraires balisés de SuisseMobile, à pied et à VTT, étape par étape. Données : Office fédéral des routes OFROU, SuisseMobile et les cantons (data.geo.admin.ch), état au %1$s. Les fermetures et les déviations sont dessinées sur la carte en rouge et en ambre épais : regardez avant de partir.</string>
+    <plurals name="swiss_count">
+        <item quantity="one">%d parcours</item>
+        <item quantity="other">%d parcours</item>
+    </plurals>
+    <plurals name="swiss_count_near">
+        <item quantity="one">%d parcours</item>
+        <item quantity="other">%d parcours, les plus proches d\'abord</item>
+    </plurals>
 </resources>

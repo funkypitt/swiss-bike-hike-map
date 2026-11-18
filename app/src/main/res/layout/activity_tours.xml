@@ -4,22 +4,61 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="vertical" android:padding="12dp">
 
-        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingTop="6dp" android:text="@string/tours_title"/>
-        <TextView android:id="@+id/btnImport" style="@style/Btn" android:layout_width="match_parent" android:layout_height="60dp"
-            android:background="@drawable/btn_active" android:textColor="@drawable/btn_active_text" android:text="@string/tours_import"/>
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:textColor="@color/grey"
-            android:lineSpacingExtra="3dp" android:paddingTop="8dp" android:text="@string/tours_formats"/>
-
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal"
-            android:baselineAligned="false" android:layout_marginTop="14dp">
-            <TextView android:id="@+id/fAll" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:autoSizeMaxTextSize="14sp" android:text="@string/tour_all"/>
-            <TextView android:id="@+id/fWalk" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:text="@string/tour_walk"/>
-            <TextView android:id="@+id/fBike" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:text="@string/tour_bike"/>
-            <TextView android:id="@+id/fMtb" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:text="@string/tour_mtb"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false">
+            <TextView android:id="@+id/tabMine" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp" android:text="@string/tab_mine"/>
+            <TextView android:id="@+id/tabSwiss" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp" android:layout_marginStart="6dp" android:text="@string/tab_swiss"/>
         </LinearLayout>
 
-        <TextView android:id="@+id/info" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="15sp"
-            android:textColor="@color/grey" android:paddingTop="14dp" android:text="@string/tours_empty"/>
-        <LinearLayout android:id="@+id/list" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingTop="6dp"/>
+        <!-- the person's own tours -->
+        <LinearLayout android:id="@+id/mine" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+            <TextView android:id="@+id/btnImport" style="@style/Btn" android:layout_width="match_parent" android:layout_height="60dp" android:layout_marginTop="14dp"
+                android:background="@drawable/btn_active" android:textColor="@drawable/btn_active_text" android:text="@string/tours_import"/>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:textColor="@color/grey"
+                android:lineSpacingExtra="3dp" android:paddingTop="8dp" android:text="@string/tours_formats"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal"
+                android:baselineAligned="false" android:layout_marginTop="14dp">
+                <TextView android:id="@+id/fAll" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:autoSizeMaxTextSize="14sp" android:text="@string/tour_all"/>
+                <TextView android:id="@+id/fWalk" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:text="@string/tour_walk"/>
+                <TextView android:id="@+id/fBike" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:text="@string/tour_bike"/>
+                <TextView android:id="@+id/fMtb" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:text="@string/tour_mtb"/>
+            </LinearLayout>
+            <TextView android:id="@+id/info" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="15sp"
+                android:textColor="@color/grey" android:paddingTop="14dp" android:text="@string/tours_empty"/>
+            <LinearLayout android:id="@+id/list" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingTop="6dp"/>
+        </LinearLayout>
+
+        <!-- the signposted tours of Switzerland -->
+        <LinearLayout android:id="@+id/swiss" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal"
+                android:baselineAligned="false" android:layout_marginTop="14dp">
+                <TextView android:id="@+id/sWalk" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:autoSizeMaxTextSize="14sp" android:text="@string/tour_walk"/>
+                <TextView android:id="@+id/sMtb" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:text="@string/tour_mtb"/>
+                <TextView android:id="@+id/sEasy" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1.6" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:text="@string/swiss_easy"/>
+            </LinearLayout>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal"
+                android:baselineAligned="false" android:layout_marginTop="6dp">
+                <TextView android:id="@+id/d0" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:autoSizeMaxTextSize="14sp" android:text="@string/swiss_any"/>
+                <TextView android:id="@+id/d1" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:textAllCaps="false"/>
+                <TextView android:id="@+id/d2" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:textAllCaps="false"/>
+                <TextView android:id="@+id/d3" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:textAllCaps="false"/>
+            </LinearLayout>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal"
+                android:baselineAligned="false" android:layout_marginTop="6dp">
+                <TextView android:id="@+id/l0" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:autoSizeMaxTextSize="14sp" android:text="@string/swiss_any"/>
+                <TextView android:id="@+id/l1" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:text="@string/level_1"/>
+                <TextView android:id="@+id/l2" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:text="@string/level_2"/>
+                <TextView android:id="@+id/l3" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:text="@string/level_3"/>
+            </LinearLayout>
+            <EditText android:id="@+id/sFilter" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="6dp"
+                android:hint="@string/swiss_filter_hint" android:textSize="17sp" android:inputType="text" android:imeOptions="actionDone"
+                android:background="@drawable/btn" android:paddingStart="14dp" android:paddingEnd="14dp"
+                android:textColor="@color/ink" android:textColorHint="@color/grey" android:singleLine="true"/>
+            <TextView android:id="@+id/sInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp"
+                android:textColor="@color/grey" android:paddingTop="12dp"/>
+            <LinearLayout android:id="@+id/sList" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"/>
+            <TextView android:id="@+id/sMore" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/swiss_more" android:visibility="gone"/>
+            <TextView android:id="@+id/sCredit" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="13sp" android:textColor="@color/grey"
+                android:lineSpacingExtra="3dp" android:paddingTop="14dp"/>
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

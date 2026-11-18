@@ -144,12 +144,16 @@ class MapActivity : AppCompatActivity(), LocationListener {
         d.getStringExtra(ToursActivity.EXTRA_ITINERARY)?.let { f ->
             Itineraries.list(this).firstOrNull { it.file == f }?.let { choices = emptyList(); loadItinerary(it) }
         }
+        if (d.hasExtra(ToursActivity.EXTRA_SWISS)) showSwiss(d.getIntExtra(ToursActivity.EXTRA_SWISS, 0), d.getBooleanExtra(ToursActivity.EXTRA_REVERSE, false))
         d.getStringExtra(ToursActivity.EXTRA_FILE)?.let { f ->
             Tours.list(this).firstOrNull { it.file == f }?.let { showTour(it, d.getBooleanExtra(ToursActivity.EXTRA_REVERSE, false)) }
         }
     }
 
-    private fun openTours() { toursLauncher.launch(ToursActivity.intent(this, mode)) }
+    private fun openTours() {
+        val near = lastLocation?.let { LatLng(it.latitude, it.longitude) } ?: map?.cameraPosition?.target
+        toursLauncher.launch(ToursActivity.intent(this, mode, near))
+    }
 
     private val menuLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
         when (r.resultCode) {
@@ -925,11 +929,32 @@ class MapActivity : AppCompatActivity(), LocationListener {
         }
     }
 
+    /** A signposted tour of Switzerland, drawn from its start to its end (or back), with the walking time of its signposts. */
+    private fun showSwiss(id: Int, reverse: Boolean) {
+        lifecycleScope.launch {
+            val found = withContext(Dispatchers.IO) {
+                runCatching { val s = SwissTours.load(this@MapActivity).tours[id]; Pair(s, SwissTours.line(this@MapActivity, s)) }.getOrNull()
+            } ?: return@launch
+            val (s, line) = found
+            val ends = if (s.loop) s.from else if (reverse) s.to + " → " + s.from else s.from + " → " + s.to
+            val name = if (s.name.isBlank() || s.name == ends) ends else s.name + ": " + ends
+            val pts = if (reverse) line.reversed() else line
+            showTrack(Track(name, pts), name, (if (reverse) s.back else s.minutes) * 60, Imported(name, s.tourKind, pts))
+        }
+    }
+
     /** A kept tour becomes the trip itself: followed as it is, with turns read off its shape. */
     private fun showTour(tour: Tour, reverse: Boolean) {
         lifecycleScope.launch {
             val track = withContext(Dispatchers.IO) { Tours.track(this@MapActivity, tour) }?.let { if (reverse) Track(it.name, it.points.reversed()) else it }
-            val t = track?.let { Trip.fromTrack(it, tour.name) }
+            showTrack(track, tour.name, 0, null)
+        }
+    }
+
+    private fun showTrack(track: Track?, name: String, seconds: Int, keep: Imported?) {
+        lifecycleScope.launch {
+            val t = track?.let { Trip.fromTrack(it, name, seconds) }
+            t?.keep = keep
             if (t == null) { Toast.makeText(this@MapActivity, R.string.no_track_in_file, Toast.LENGTH_SHORT).show(); return@launch }
             t.names = withContext(Dispatchers.Default) { Streets.names(this@MapActivity, t.points, t.turns) }
             routeFrom = Stop(t.points.first(), Favourites.coordsName(t.points.first().latitude, t.points.first().longitude)); routeDepart = System.currentTimeMillis(); choices = emptyList()
@@ -1028,7 +1053,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
         }
         b.pvSave.text = getString(if (keptFile.isBlank()) R.string.route_save else R.string.route_saved_ok)
         // a tour is kept already
-        b.pvSave.visibility = if (t?.fromGpx == true) View.GONE else View.VISIBLE
+        b.pvSave.visibility = if (t?.fromGpx == true && t.keep == null) View.GONE else View.VISIBLE
         renderChoices()
         renderSteps()
         updatePinStrip()
@@ -1152,6 +1177,14 @@ class MapActivity : AppCompatActivity(), LocationListener {
     }
 
     private fun keepItinerary() {
+        trip?.let { t ->
+            if (t.fromGpx) {
+                // a signposted tour joins the person's own
+                t.keep?.let { k -> Tours.add(this, k, k.kind, Tours.SIGNPOSTED); t.keep = null
+                    Toast.makeText(this, R.string.tour_kept, Toast.LENGTH_SHORT).show(); b.pvSave.text = getString(R.string.route_saved_ok) }
+                return
+            }
+        }
         val it = currentItinerary() ?: return
         keptFile = Itineraries.save(this, it).file
         Toast.makeText(this, R.string.route_saved_ok, Toast.LENGTH_SHORT).show()

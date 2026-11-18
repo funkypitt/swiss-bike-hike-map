@@ -38,7 +38,10 @@ the app was called Swiss Bike-Hike Map; the package name has not changed.)
 * **TOURS**: your own lines, kept on the phone: import GPX, KML, KMZ, GeoJSON, TCX and FIT files
   (or open or share them from another app), record your own with REC; each one with its length,
   climb and kind (on foot, bike, MTB), followed as it is (turns read off its shape), in either
-  direction, renamed, shared as GPX.
+  direction, renamed, shared as GPX. And **SWITZERLAND**, in the same place: the signposted routes
+  of SwitzerlandMobility, on foot (976 stages, barrier-free walks among them) and by mountain
+  bike (403), offline, nearest first, by walking time, difficulty or name; one tap draws a stage
+  with its profile, steps and signposted time.
 * **FIND**: one field for everything, as in any map app: favourites, places around by category or by word, offline (drinking water, shelters, huts,
   picnic and fire places, bike shops and repair stations, bakeries, cafés, restaurants, bars,
   shops, post offices, campsites, practices and firms… from OpenStreetMap, with the street names that the steps use, a 16 MB pack), shown as a list or as numbered
@@ -101,6 +104,9 @@ Map: swisstopo vector base map and style, hiking trail network, Veloland and Mou
 routes, closures — © swisstopo, © SchweizMobil, free open government data.
 Routing: [BRouter](https://github.com/abrensch/brouter) (MIT) on OpenStreetMap data (ODbL),
 segments from brouter.de. Rendering: [MapLibre Native](https://maplibre.org) (BSD).
+Signposted tours: « Wanderland Schweiz » and « Mountainbikeland Schweiz », Federal Roads Office
+FEDRO, SwitzerlandMobility and the cantons, open data of data.geo.admin.ch, packed by
+`tools/make-tours.py`.
 Search: GeoAdmin API; places (fountains, shelters, huts, shops…): © OpenStreetMap contributors
 (ODbL), extract by [Geofabrik](https://download.geofabrik.de), packed weekly by this repository;
 people and firms: search.ch directory (Swisscom Directories AG) with the user's own key. Public transport: [transport.opendata.ch](https://transport.opendata.ch)
