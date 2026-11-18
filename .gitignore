@@ -6,3 +6,4 @@ local.properties
 *.apk
 *.pmtiles
 .kotlin/
+__pycache__/
