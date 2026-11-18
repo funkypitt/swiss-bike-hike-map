@@ -66,7 +66,6 @@
     <string name="import_places">ИМПОРТ</string>
     <string name="export_places">ЭКСПОРТ</string>
     <string name="menu_trip">ПОЕЗДКА</string>
-    <string name="menu_follow_gpx">СЛЕДОВАТЬ ТРЕКУ GPX</string>
     <string name="menu_share_position">ПОДЕЛИТЬСЯ МОЕЙ ПОЗИЦИЕЙ</string>
     <string name="menu_night_off">НОЧНАЯ КАРТА: ВЫКЛ</string>
     <string name="menu_night_on">НОЧНАЯ КАРТА: ВКЛ</string>
@@ -372,4 +371,42 @@
     <string name="search_favs_row">★  Избранное (%1$d)</string>
     <string name="search_back">‹ НАЗАД</string>
     <string name="dur_h_min">%1$d ч %2$02d</string>
+    <string name="tours">ТРЕКИ</string>
+    <string name="tours_title">МОИ ТРЕКИ</string>
+    <string name="tours_import">ИМПОРТИРОВАТЬ ФАЙЛ</string>
+    <string name="tours_formats">Файлы GPX, KML, KMZ, GeoJSON, TCX и FIT с любого сайта или из любого приложения для походов и велопрогулок. Файл, открытый этим приложением или отправленный в него, хранится здесь, как и каждый трек, записанный кнопкой ЗАПИСЬ.</string>
+    <string name="tours_empty">Пока нет треков.</string>
+    <string name="tours_none_of_kind">Нет треков этого вида.</string>
+    <string name="tour_all">Все</string>
+    <string name="tour_walk">Пешком</string>
+    <string name="tour_bike">Велосипед</string>
+    <string name="tour_mtb">МТБ</string>
+    <string name="tour_unnamed">Трек</string>
+    <string name="tour_src_import">импортирован</string>
+    <string name="tour_src_rec">записан</string>
+    <string name="tour_src_plan">рассчитан</string>
+    <string name="tour_more">Ещё</string>
+    <string name="tour_show">Показать на карте</string>
+    <string name="tour_reverse">Показать в обратном направлении</string>
+    <string name="tour_rename">Переименовать</string>
+    <string name="tour_kind">Вид: %1$s</string>
+    <string name="tour_share">Поделиться файлом GPX</string>
+    <string name="tour_delete">Удалить</string>
+    <string name="tour_delete_q">Удалить « %1$s »?</string>
+    <string name="tours_known">Уже есть в ваших треках</string>
+    <string name="tour_kept">Сохранено в ТРЕКАХ</string>
+    <string name="ok">OK</string>
+    <string name="rec_saved">Сохранено в ТРЕКАХ и в Documents/Swiss Bikers and Pedestrians Map/%1$s</string>
+    <plurals name="tours_added">
+        <item quantity="one">Добавлен %d трек</item>
+        <item quantity="few">Добавлено %d трека</item>
+        <item quantity="many">Добавлено %d треков</item>
+        <item quantity="other">Добавлено %d трека</item>
+    </plurals>
+    <plurals name="tours_unread">
+        <item quantity="one">%d файл без трека</item>
+        <item quantity="few">%d файла без трека</item>
+        <item quantity="many">%d файлов без трека</item>
+        <item quantity="other">%d файла без трека</item>
+    </plurals>
 </resources>

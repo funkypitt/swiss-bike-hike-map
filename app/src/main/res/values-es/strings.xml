@@ -66,7 +66,6 @@
     <string name="import_places">IMPORTAR</string>
     <string name="export_places">EXPORTAR</string>
     <string name="menu_trip">VIAJE</string>
-    <string name="menu_follow_gpx">SEGUIR UN TRACK GPX</string>
     <string name="menu_share_position">COMPARTIR MI POSICIÓN</string>
     <string name="menu_night_off">MAPA NOCTURNO: NO</string>
     <string name="menu_night_on">MAPA NOCTURNO: SÍ</string>
@@ -372,4 +371,38 @@
     <string name="search_favs_row">★  Favoritos (%1$d)</string>
     <string name="search_back">‹ VOLVER</string>
     <string name="dur_h_min">%1$d h %2$02d</string>
+    <string name="tours">RECORRIDOS</string>
+    <string name="tours_title">MIS RECORRIDOS</string>
+    <string name="tours_import">IMPORTAR UN ARCHIVO</string>
+    <string name="tours_formats">Archivos GPX, KML, KMZ, GeoJSON, TCX y FIT, de cualquier sitio o aplicación de senderismo o ciclismo. Un archivo abierto con esta aplicación o compartido con ella se guarda aquí, igual que cada track grabado con REC.</string>
+    <string name="tours_empty">Ningún recorrido todavía.</string>
+    <string name="tours_none_of_kind">Ningún recorrido de este tipo.</string>
+    <string name="tour_all">Todos</string>
+    <string name="tour_walk">A pie</string>
+    <string name="tour_bike">Bici</string>
+    <string name="tour_mtb">BTT</string>
+    <string name="tour_unnamed">Recorrido</string>
+    <string name="tour_src_import">importado el</string>
+    <string name="tour_src_rec">grabado el</string>
+    <string name="tour_src_plan">calculado el</string>
+    <string name="tour_more">Más</string>
+    <string name="tour_show">Ver en el mapa</string>
+    <string name="tour_reverse">Ver en sentido inverso</string>
+    <string name="tour_rename">Cambiar el nombre</string>
+    <string name="tour_kind">Tipo: %1$s</string>
+    <string name="tour_share">Compartir el archivo GPX</string>
+    <string name="tour_delete">Eliminar</string>
+    <string name="tour_delete_q">¿Eliminar « %1$s »?</string>
+    <string name="tours_known">Ya está en sus recorridos</string>
+    <string name="tour_kept">Guardado en RECORRIDOS</string>
+    <string name="ok">OK</string>
+    <string name="rec_saved">Guardado en RECORRIDOS y en Documents/Swiss Bikers and Pedestrians Map/%1$s</string>
+    <plurals name="tours_added">
+        <item quantity="one">%d recorrido añadido</item>
+        <item quantity="other">%d recorridos añadidos</item>
+    </plurals>
+    <plurals name="tours_unread">
+        <item quantity="one">%d archivo sin track</item>
+        <item quantity="other">%d archivos sin track</item>
+    </plurals>
 </resources>

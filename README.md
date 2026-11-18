@@ -35,7 +35,10 @@ the app was called Swiss Bike-Hike Map; the package name has not changed.)
 * **PLAN**, on every map: a start (your position, a search, a point on the map), a destination,
   a date and a time; the route then opens in the preview. Kept itineraries are listed there.
   On the transit map a tap on any stop dot lists its lines with their next departure.
-* **GPX**: follow a track as it is (turns read off its shape), or record your own.
+* **TOURS**: your own lines, kept on the phone: import GPX, KML, KMZ, GeoJSON, TCX and FIT files
+  (or open or share them from another app), record your own with REC; each one with its length,
+  climb and kind (on foot, bike, MTB), followed as it is (turns read off its shape), in either
+  direction, renamed, shared as GPX.
 * **FIND**: one field for everything, as in any map app: favourites, places around by category or by word, offline (drinking water, shelters, huts,
   picnic and fire places, bike shops and repair stations, bakeries, cafés, restaurants, bars,
   shops, post offices, campsites, practices and firms… from OpenStreetMap, with the street names that the steps use, a 16 MB pack), shown as a list or as numbered

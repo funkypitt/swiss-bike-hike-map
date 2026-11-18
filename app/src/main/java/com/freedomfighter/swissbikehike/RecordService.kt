@@ -128,7 +128,7 @@ class RecordService : Service(), LocationListener {
         (getSystemService(LOCATION_SERVICE) as LocationManager).removeUpdates(this)
         wakeLock?.let { if (it.isHeld) it.release() }
         var saved: String? = null
-        if (points.size >= 2) saved = save()
+        if (points.size >= 2) { keep(); saved = save() }
         state.value = RecState(false, state.value.mode, emptyList(), distance, 0, saved)
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
@@ -146,5 +146,12 @@ class RecordService : Service(), LocationListener {
         val uri = contentResolver.insert(MediaStore.Files.getContentUri("external"), values) ?: return null
         contentResolver.openOutputStream(uri)?.use { it.write(Gpx.write(name, points).toByteArray()) } ?: return null
         return name
+    }
+
+    /** The track among the person's tours, named after the day and the hour it began. */
+    private fun keep() {
+        val started = state.value.startedAt
+        val name = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(Date(started))
+        runCatching { Tours.add(this, Tracks.clean(Imported(name, "", points.toList())), Tours.kindOf(mode), Tours.RECORDED, started) }
     }
 }

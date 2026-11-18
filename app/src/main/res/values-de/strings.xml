@@ -66,7 +66,6 @@
     <string name="import_places">IMPORT</string>
     <string name="export_places">EXPORT</string>
     <string name="menu_trip">FAHRT</string>
-    <string name="menu_follow_gpx">EINER GPX-SPUR FOLGEN</string>
     <string name="menu_share_position">MEINEN STANDORT TEILEN</string>
     <string name="menu_night_off">NACHTKARTE: AUS</string>
     <string name="menu_night_on">NACHTKARTE: EIN</string>
@@ -372,4 +371,38 @@
     <string name="search_favs_row">★  Favoriten (%1$d)</string>
     <string name="search_back">‹ ZURÜCK</string>
     <string name="dur_h_min">%1$d h %2$02d</string>
+    <string name="tours">TOUREN</string>
+    <string name="tours_title">MEINE TOUREN</string>
+    <string name="tours_import">DATEI IMPORTIEREN</string>
+    <string name="tours_formats">GPX-, KML-, KMZ-, GeoJSON-, TCX- und FIT-Dateien von jeder Wander- oder Velo-Website oder -App. Eine mit dieser App geöffnete oder an sie geteilte Datei wird hier aufbewahrt, ebenso jede mit REC aufgezeichnete Spur.</string>
+    <string name="tours_empty">Noch keine Tour.</string>
+    <string name="tours_none_of_kind">Keine Tour dieser Art.</string>
+    <string name="tour_all">Alle</string>
+    <string name="tour_walk">Zu Fuss</string>
+    <string name="tour_bike">Velo</string>
+    <string name="tour_mtb">MTB</string>
+    <string name="tour_unnamed">Tour</string>
+    <string name="tour_src_import">importiert am</string>
+    <string name="tour_src_rec">aufgezeichnet am</string>
+    <string name="tour_src_plan">geplant am</string>
+    <string name="tour_more">Mehr</string>
+    <string name="tour_show">Auf der Karte zeigen</string>
+    <string name="tour_reverse">In Gegenrichtung zeigen</string>
+    <string name="tour_rename">Umbenennen</string>
+    <string name="tour_kind">Art: %1$s</string>
+    <string name="tour_share">GPX-Datei teilen</string>
+    <string name="tour_delete">Löschen</string>
+    <string name="tour_delete_q">« %1$s » löschen?</string>
+    <string name="tours_known">Schon in Ihren Touren</string>
+    <string name="tour_kept">In TOUREN aufbewahrt</string>
+    <string name="ok">OK</string>
+    <string name="rec_saved">In TOUREN aufbewahrt und gespeichert in Documents/Swiss Bikers and Pedestrians Map/%1$s</string>
+    <plurals name="tours_added">
+        <item quantity="one">%d Tour hinzugefügt</item>
+        <item quantity="other">%d Touren hinzugefügt</item>
+    </plurals>
+    <plurals name="tours_unread">
+        <item quantity="one">%d Datei ohne Spur</item>
+        <item quantity="other">%d Dateien ohne Spur</item>
+    </plurals>
 </resources>

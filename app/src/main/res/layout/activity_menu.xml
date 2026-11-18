@@ -16,7 +16,7 @@
         <TextView android:id="@+id/offPolicy" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="13sp" android:textColor="@color/grey" android:lineSpacingExtra="3dp" android:paddingTop="8dp" android:text="@string/off_policy"/>
 
         <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/menu_trip"/>
-        <TextView android:id="@+id/btnFollowGpx" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:text="@string/menu_follow_gpx"/>
+        <TextView android:id="@+id/btnTours" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:text="@string/tours_title"/>
         <TextView android:id="@+id/btnSharePos" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_share_position"/>
         <TextView android:id="@+id/btnNight" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_night_off"/>
         <TextView android:id="@+id/btnPlacesMap" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_places_map_off"/>

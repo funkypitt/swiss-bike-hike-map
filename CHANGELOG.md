@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.13.0 — 2026-11-18
+
+* TOURS, a new button on the bike and walking maps (also in MENU): the lines you keep on the
+  phone, in one place. IMPORT A FILE reads GPX (tracks and routes), KML and KMZ, GeoJSON, TCX
+  and FIT, several files at once, several lines per file; a file opened with the app or shared
+  to it from another app is kept there too, and so is every track recorded with REC. The same
+  line imported twice is kept once.
+* Each tour shows its length, climb and descent, and its kind (on foot, bike, MTB: read from
+  the file when it says so, otherwise the map you are on; the list can be narrowed to one
+  kind). A tap opens it on the map with its profile and steps, ready for START; « ⋯ » shows it
+  the other way round, renames it, changes its kind, shares it as a GPX file (saved to
+  Documents first) or deletes it. The bike and foot itineraries kept from PLAN are listed there
+  as well.
+* MENU › FOLLOW A GPX TRACK is replaced by MY TOURS.
+
 ## 0.12.1 — 2026-11-17
 
 * A name with a town finds the firm, not the town: « ardentis lausanne » listed the communes and

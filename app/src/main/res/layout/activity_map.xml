@@ -166,7 +166,9 @@
             android:layout_height="56dp" android:letterSpacing="0.03" android:text="@string/route_plan"/>
         <TextView android:id="@+id/btnGo" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1.3"
             android:layout_height="56dp" android:layout_marginStart="6dp" android:text="@string/stop_nav" android:visibility="gone"/>
-        <TextView android:id="@+id/btnRec" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1"
+        <TextView android:id="@+id/btnTours" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1.2"
+            android:layout_height="56dp" android:layout_marginStart="6dp" android:letterSpacing="0.03" android:text="@string/tours"/>
+        <TextView android:id="@+id/btnRec" style="@style/Btn" android:layout_width="0dp" android:layout_weight="0.8"
             android:layout_height="56dp" android:text="@string/rec" android:layout_marginStart="6dp"/>
     </LinearLayout>
 

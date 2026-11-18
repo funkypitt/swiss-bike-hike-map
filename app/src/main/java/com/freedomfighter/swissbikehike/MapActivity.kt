@@ -138,9 +138,22 @@ class MapActivity : AppCompatActivity(), LocationListener {
         keptFile = it.file; showPreview()
     }
 
+    private val toursLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
+        val d = r.data ?: return@registerForActivityResult
+        if (r.resultCode != Activity.RESULT_OK) return@registerForActivityResult
+        d.getStringExtra(ToursActivity.EXTRA_ITINERARY)?.let { f ->
+            Itineraries.list(this).firstOrNull { it.file == f }?.let { choices = emptyList(); loadItinerary(it) }
+        }
+        d.getStringExtra(ToursActivity.EXTRA_FILE)?.let { f ->
+            Tours.list(this).firstOrNull { it.file == f }?.let { showTour(it, d.getBooleanExtra(ToursActivity.EXTRA_REVERSE, false)) }
+        }
+    }
+
+    private fun openTours() { toursLauncher.launch(ToursActivity.intent(this, mode)) }
+
     private val menuLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
         when (r.resultCode) {
-            Activity.RESULT_OK -> r.data?.data?.let { followGpx(it) }
+            MenuActivity.RESULT_TOURS -> openTours()
             MenuActivity.RESULT_TRIP -> r.data?.getStringExtra(MenuActivity.EXTRA_FILE)?.let { showTrip(File(it)) }
             MenuActivity.RESULT_RESTYLE -> loadStyle()
         }
@@ -175,6 +188,8 @@ class MapActivity : AppCompatActivity(), LocationListener {
         b.btnZoomOut.setOnClickListener { zoomBy(-1.0) }
         b.btnFollow.setOnClickListener { setFollow((follow + 1) % 3) }
         b.btnPlan.setOnClickListener { openPlanner() }
+        b.btnTours.setOnClickListener { openTours() }
+        if (mode == Mode.TRANSIT) b.btnTours.visibility = View.GONE
         b.btnGo.setOnClickListener { stopNav() }
         b.btnRoute.setOnClickListener { go() }
         b.pvClose.setOnClickListener { closePreview() }
@@ -256,6 +271,9 @@ class MapActivity : AppCompatActivity(), LocationListener {
         if (map != null) handleIntent(intent)
     }
 
+    @Suppress("DEPRECATION")
+    private fun sharedFile(i: Intent): Uri? = i.getParcelableExtra(Intent.EXTRA_STREAM) as? Uri
+
     /** A place handed over by another app: a geo: link, a shared text with coordinates, or a GPX file. */
     private fun handleIntent(i: Intent?) {
         i ?: return
@@ -272,6 +290,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
                 addStop(Stop(p, label ?: Favourites.coordsName(p.latitude, p.longitude), Favourites.PLACE))
                 map?.animateCamera(CameraUpdateFactory.newLatLngZoom(p, 15.0))
             }
+            i.action == Intent.ACTION_SEND && sharedFile(i) != null -> openFile(sharedFile(i)!!)
             i.action == Intent.ACTION_SEND -> {
                 val text = i.getStringExtra(Intent.EXTRA_TEXT) ?: return
                 val (p, span) = Favourites.coordsIn(text) ?: run { Toast.makeText(this, R.string.no_coords_in_text, Toast.LENGTH_LONG).show(); return }
@@ -279,7 +298,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
                 addStop(Stop(p, name ?: Favourites.coordsName(p.latitude, p.longitude), Favourites.PLACE))
                 map?.animateCamera(CameraUpdateFactory.newLatLngZoom(p, 15.0))
             }
-            i.action == Intent.ACTION_VIEW && uri != null -> followGpx(uri)
+            i.action == Intent.ACTION_VIEW && uri != null -> openFile(uri)
         }
     }
 
@@ -891,14 +910,26 @@ class MapActivity : AppCompatActivity(), LocationListener {
         }
     }
 
-    /** A GPX file becomes the trip itself: followed as it is, with turns read off its shape. */
-    private fun followGpx(uri: Uri) {
+    /**
+     * A file of lines handed by another app (GPX, KML, KMZ, GeoJSON, TCX, FIT): its lines are kept
+     * among the tours, and the first one is shown, ready to be followed.
+     */
+    private fun openFile(uri: Uri) {
         lifecycleScope.launch {
-            val track = withContext(Dispatchers.IO) {
-                runCatching { contentResolver.openInputStream(uri)?.use { Gpx.readTrack(it) } }.getOrNull()
-            }
-            val name = track?.name?.ifBlank { null } ?: uri.lastPathSegment?.substringAfterLast('/')?.removeSuffix(".gpx") ?: "GPX"
-            val t = track?.let { Trip.fromTrack(it, name) }
+            val r = withContext(Dispatchers.IO) { Tours.import(this@MapActivity, uri, Tours.kindOf(mode)) }
+            val first = r?.all?.firstOrNull()
+            if (first == null) { Toast.makeText(this@MapActivity, R.string.no_track_in_file, Toast.LENGTH_SHORT).show(); return@launch }
+            if (r.added.isNotEmpty()) Toast.makeText(this@MapActivity,
+                if (r.all.size == 1) getString(R.string.tour_kept) else ToursActivity.importText(this@MapActivity, r.added.size, r.known.size), Toast.LENGTH_LONG).show()
+            showTour(first, reverse = false)
+        }
+    }
+
+    /** A kept tour becomes the trip itself: followed as it is, with turns read off its shape. */
+    private fun showTour(tour: Tour, reverse: Boolean) {
+        lifecycleScope.launch {
+            val track = withContext(Dispatchers.IO) { Tours.track(this@MapActivity, tour) }?.let { if (reverse) Track(it.name, it.points.reversed()) else it }
+            val t = track?.let { Trip.fromTrack(it, tour.name) }
             if (t == null) { Toast.makeText(this@MapActivity, R.string.no_track_in_file, Toast.LENGTH_SHORT).show(); return@launch }
             t.names = withContext(Dispatchers.Default) { Streets.names(this@MapActivity, t.points, t.turns) }
             routeFrom = Stop(t.points.first(), Favourites.coordsName(t.points.first().latitude, t.points.first().longitude)); routeDepart = System.currentTimeMillis(); choices = emptyList()
@@ -996,6 +1027,8 @@ class MapActivity : AppCompatActivity(), LocationListener {
             b.pvProfile.visibility = View.GONE
         }
         b.pvSave.text = getString(if (keptFile.isBlank()) R.string.route_save else R.string.route_saved_ok)
+        // a tour is kept already
+        b.pvSave.visibility = if (t?.fromGpx == true) View.GONE else View.VISIBLE
         renderChoices()
         renderSteps()
         updatePinStrip()
@@ -1213,6 +1246,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
         b.pinStrip.visibility = View.GONE
         b.btnGo.visibility = View.VISIBLE
         b.btnPlan.visibility = View.GONE
+        b.btnTours.visibility = View.GONE
         b.profile.visibility = if (!transit && trip?.hasElevation == true) View.VISIBLE else View.GONE
         b.lAlt.text = getString(R.string.eta)
         b.vAlt.text = "--:--"
@@ -1232,6 +1266,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
         b.transitPanel.visibility = View.GONE
         b.btnGo.visibility = View.GONE
         b.btnPlan.visibility = View.VISIBLE
+        b.btnTours.visibility = if (mode == Mode.TRANSIT) View.GONE else View.VISIBLE
         b.profile.visibility = View.GONE
         b.navStreet.visibility = View.GONE
         showPreview()
@@ -1270,7 +1305,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
         b.btnRec.setBackgroundResource(if (s.running) R.drawable.btn_active else R.drawable.btn)
         b.btnRec.setTextColor(AppCompatResources.getColorStateList(this, if (s.running) R.drawable.btn_active_text else R.drawable.btn_text))
         if (s.running) drawTrack(s.points)
-        s.lastSaved?.let { Toast.makeText(this, getString(R.string.saved, it), Toast.LENGTH_LONG).show() }
+        s.lastSaved?.let { Toast.makeText(this, getString(R.string.rec_saved, it), Toast.LENGTH_LONG).show() }
         updateDist()
     }
 
