@@ -25,7 +25,7 @@ import java.util.Locale
 
 /** Everything that is not the map: trip tools, history, data ages and refreshes (routing, timetable, places), saved areas, the directory key. */
 class MenuActivity : AppCompatActivity() {
-    companion object { const val RESULT_RESTYLE = 7; const val RESULT_TRIP = 8; const val RESULT_TOURS = 9; const val EXTRA_FILE = "file" }
+    companion object { const val RESULT_RESTYLE = 7; const val RESULT_TRIP = 8; const val RESULT_TOURS = 9; const val RESULT_FAVS = 10; const val EXTRA_FILE = "file" }
     private lateinit var b: ActivityMenuBinding
     private lateinit var prefs: Prefs
 
@@ -36,6 +36,7 @@ class MenuActivity : AppCompatActivity() {
         Insets.pad(b.root)
         prefs = Prefs(this)
         b.btnTours.setOnClickListener { setResult(RESULT_TOURS); finish() }
+        b.btnFavs.setOnClickListener { setResult(RESULT_FAVS); finish() }
         b.btnSharePos.setOnClickListener { sharePosition() }
         b.btnNight.setOnClickListener {
             prefs.night = when (prefs.night) { Night.OFF -> Night.ON; Night.ON -> Night.AUTO; else -> Night.OFF }

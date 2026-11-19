@@ -46,6 +46,8 @@ object MapStyle {
     const val SRC_JOURNEY_PTS = "journey-pts"
     const val SRC_PLACES = "places"
     val placeLayers = listOf("places", "places-name")
+    /** The favourites: yellow dots ringed in black, always there, the name close up. */
+    const val SRC_FAVS = "favs"
     /** The places of a search shown on the map (SHOW ON THE MAP): numbered red dots. */
     const val SRC_RESULTS = "results"
 
@@ -84,7 +86,7 @@ object MapStyle {
         sources.put("closures-walk", raster(WMS.format("ch.astra.wanderland-sperrungen_umleitungen"), 256, 18))
         sources.put("closures-bike", raster(WMS.format("ch.astra.veloland-sperrungen_umleitungen"), 256, 18))
         sources.put("closures-mtb", raster(WMS.format("ch.astra.mountainbikeland-sperrungen_umleitungen"), 256, 18))
-        for (id in listOf(SRC_ROUTE, SRC_TRACK, SRC_PIN, SRC_JOURNEY, SRC_JOURNEY_PTS, SRC_PLACES, SRC_RESULTS))
+        for (id in listOf(SRC_ROUTE, SRC_TRACK, SRC_PIN, SRC_JOURNEY, SRC_JOURNEY_PTS, SRC_PLACES, SRC_FAVS, SRC_RESULTS))
             sources.put(id, JSONObject().put("type", "geojson").put("data", emptyCollection()))
 
         // --- layers: prune, remember, insert ---
@@ -165,6 +167,16 @@ object MapStyle {
                 .put("text-font", JSONArray().put("Frutiger Neue Regular")).put("text-size", 11).put("text-anchor", "top")
                 .put("text-offset", JSONArray().put(0).put(0.8)).put("text-max-width", 8).put("text-optional", true))
             .put("paint", JSONObject().put("text-color", JSONArray().put("get").put("c")).put("text-halo-color", "#FFFFFF").put("text-halo-width", 1.5)))
+        // The favourites: a yellow dot ringed in black, the name from the scale of a town on.
+        merged.put(JSONObject().put("id", "favs").put("type", "circle").put("source", SRC_FAVS)
+            .put("paint", JSONObject().put("circle-color", "#FFD500").put("circle-stroke-color", "#000000")
+                .put("circle-radius", JSONArray().put("interpolate").put(JSONArray().put("linear")).put(JSONArray().put("zoom")).put(8).put(4).put(14).put(7))
+                .put("circle-stroke-width", 2.5)))
+        merged.put(JSONObject().put("id", "favs-name").put("type", "symbol").put("source", SRC_FAVS).put("minzoom", 12)
+            .put("layout", JSONObject().put("text-field", JSONArray().put("get").put("n"))
+                .put("text-font", JSONArray().put("Frutiger Neue Regular")).put("text-size", 12).put("text-anchor", "top")
+                .put("text-offset", JSONArray().put(0).put(0.9)).put("text-max-width", 8).put("text-optional", true))
+            .put("paint", JSONObject().put("text-color", "#000000").put("text-halo-color", "#FFFFFF").put("text-halo-width", 1.8)))
         // The places of a search: numbered red dots, the name close up.
         merged.put(JSONObject().put("id", "results").put("type", "circle").put("source", SRC_RESULTS)
             .put("paint", JSONObject().put("circle-color", "#E30613").put("circle-stroke-color", "#FFFFFF")

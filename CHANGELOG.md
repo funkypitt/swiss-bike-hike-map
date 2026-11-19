@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.18.0 — 2026-11-19
+
+* The favourites are on the map: a yellow dot ringed in black, with the name from the scale of
+  a town on. A tap on one puts the point in the strip, with DIRECTIONS and ★ FAVOURITE.
+* MENU has FAVOURITES, under MY TOURS: the list with its filter, import and export, as behind
+  « ★ Favourites » in FIND.
+
 ## 0.17.0 — 2026-11-19
 
 * Favourites are easier to reach. The card of a place, a business or a person found with FIND

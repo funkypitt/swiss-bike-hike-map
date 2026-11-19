@@ -150,6 +150,13 @@ class MapActivity : AppCompatActivity(), LocationListener {
         }
     }
 
+    /** FIND, or its list of favourites straight away (MENU › FAVOURITES). */
+    private fun openSearch(favourites: Boolean) {
+        // "around you" in the search: the position when there is one, else the centre of the map
+        val l = lastLocation?.let { LatLng(it.latitude, it.longitude) }; val c = map?.cameraPosition?.target
+        searchLauncher.launch(SearchActivity.intent(this, mode, l ?: c, l != null, c).putExtra(SearchActivity.EXTRA_FAVS, favourites))
+    }
+
     private fun openTours() {
         val near = lastLocation?.let { LatLng(it.latitude, it.longitude) } ?: map?.cameraPosition?.target
         toursLauncher.launch(ToursActivity.intent(this, mode, near))
@@ -158,6 +165,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
     private val menuLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
         when (r.resultCode) {
             MenuActivity.RESULT_TOURS -> openTours()
+            MenuActivity.RESULT_FAVS -> openSearch(favourites = true)
             MenuActivity.RESULT_TRIP -> r.data?.getStringExtra(MenuActivity.EXTRA_FILE)?.let { showTrip(File(it)) }
             MenuActivity.RESULT_RESTYLE -> loadStyle()
         }
@@ -178,11 +186,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
         b.modeBadge.setBackgroundResource(when (mode) { Mode.BIKE -> R.drawable.badge_bike; Mode.WALK -> R.drawable.badge_walk; Mode.TRANSIT -> R.drawable.badge_transit })
         b.modeBadgeText.setTextColor(ContextCompat.getColor(this, if (mode == Mode.WALK) R.color.ink else R.color.paper))
         b.modeBadge.setOnClickListener { finish() }
-        b.btnFind.setOnClickListener {
-            // "around you" in the search: the position when there is one, else the centre of the map
-            val l = lastLocation?.let { LatLng(it.latitude, it.longitude) }; val c = map?.cameraPosition?.target
-            searchLauncher.launch(SearchActivity.intent(this, mode, l ?: c, l != null, c))
-        }
+        b.btnFind.setOnClickListener { openSearch(favourites = false) }
         b.btnPlaces.setOnClickListener { togglePlaces() }
         b.btnMenu.setOnClickListener {
             map?.let { prefs.lastBounds = it.projection.visibleRegion.latLngBounds }
@@ -240,6 +244,13 @@ class MapActivity : AppCompatActivity(), LocationListener {
                 m.queryRenderedFeatures(box, "results").firstOrNull()?.let { f ->
                     val g = f.geometry() as? Point ?: return@let
                     if (showPlaceAt(LatLng(g.latitude(), g.longitude()), f.getStringProperty("n") ?: "", pin = !nav)) return@addOnMapClickListener true
+                }
+                // a favourite: the point with its name, DIRECTIONS and ★ in the strip
+                if (!nav) m.queryRenderedFeatures(box, "favs").firstOrNull()?.let { f ->
+                    val g = f.geometry() as? Point ?: return@let
+                    val fav = Favourites.find(this, g.latitude(), g.longitude()) ?: return@let
+                    addStop(Stop(LatLng(fav.lat, fav.lon), fav.name, fav.kind, fav.detail))
+                    return@addOnMapClickListener true
                 }
                 if (prefs.placesOnMap) m.queryRenderedFeatures(box, "places").firstOrNull()?.let { f ->
                     val g = f.geometry() as? Point ?: return@let
@@ -339,6 +350,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
                 applyVisibility()
                 enableLocationLayer()
                 drawStops()
+                drawFavourites()
                 trip?.let { drawTrip(it) }
                 journey?.let { drawJourney(it) }
                 RecordService.state.value.let { if (it.running) drawTrack(it.points) }
@@ -614,7 +626,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
         val detail = (listOf(Places.categoryText(this, p)) + Places.describe(this, p)).joinToString(" · ")
         PlaceCard.show(this, PlaceInfo.of(this, p), from, if (pin) R.string.place_pin to {
             addStop(Stop(p.at, p.label(this), Favourites.POI, detail))
-        } else null, favourite = { Fav(p.label(this), p.at.latitude, p.at.longitude, Favourites.POI, detail) }, onFavourite = { updatePinStrip() })
+        } else null, favourite = { Fav(p.label(this), p.at.latitude, p.at.longitude, Favourites.POI, detail) }, onFavourite = { updatePinStrip(); drawFavourites() })
         return true
     }
 
@@ -634,6 +646,14 @@ class MapActivity : AppCompatActivity(), LocationListener {
         if (journey != null) { journey = null; clearJourneyDrawing(); b.lDist.text = getString(R.string.dist); updateDist() }
         drawStops()
         updatePinStrip()
+    }
+
+    /** The favourites on the map, from the file: after a style load, a return to the map, a star pressed. */
+    private fun drawFavourites() {
+        val feats = Favourites.list(this).map { fav ->
+            Feature.fromGeometry(Point.fromLngLat(fav.lon, fav.lat)).also { it.addStringProperty("n", fav.name) }
+        }
+        style?.getSourceAs<GeoJsonSource>(MapStyle.SRC_FAVS)?.setGeoJson(FeatureCollection.fromFeatures(feats))
     }
 
     private fun drawStops() {
@@ -739,9 +759,9 @@ class MapActivity : AppCompatActivity(), LocationListener {
         if (saved == null) {
             Favourites.add(this, Fav(s.name, s.at.latitude, s.at.longitude, s.kind, s.detail))
             Toast.makeText(this, R.string.fav_added, Toast.LENGTH_SHORT).show()
-            updatePinStrip()
+            updatePinStrip(); drawFavourites()
         } else AlertDialog.Builder(this).setMessage(getString(R.string.fav_remove_q, saved.name))
-            .setPositiveButton(R.string.remove) { _, _ -> Favourites.remove(this, saved); Toast.makeText(this, R.string.fav_removed, Toast.LENGTH_SHORT).show(); updatePinStrip() }
+            .setPositiveButton(R.string.remove) { _, _ -> Favourites.remove(this, saved); Toast.makeText(this, R.string.fav_removed, Toast.LENGTH_SHORT).show(); updatePinStrip(); drawFavourites() }
             .setNegativeButton(R.string.cancel, null).show()
     }
 
@@ -1354,7 +1374,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
     override fun onStart() { super.onStart(); b.map.onStart() }
     override fun onResume() {
         super.onResume(); b.map.onResume(); startLocation()
-        if (map != null) { checkNight(force = true); refreshPlaces() }
+        if (map != null) { checkNight(force = true); refreshPlaces(); drawFavourites() }
         // back from the background during navigation: the map takes the course up again once it is laid out
         b.root.postDelayed({ if (nav && follow == 0 && map != null) setFollow(2) }, 700)
     }

@@ -56,6 +56,8 @@ class SearchActivity : AppCompatActivity() {
         private const val NEARBY_M = 2000.0
         /** Set with RESULT_OK when the list is to be shown on the map: the places are in `results`. */
         const val EXTRA_RESULTS = "results"
+        /** Open on the list of favourites. */
+        const val EXTRA_FAVS = "favs"
         /** A place of a result list drawn on the map; `placeIndex` = its index in the places pack. */
         class Result(val label: String, val at: LatLng, val placeIndex: Int, val detail: String)
         /** The list handed to the map by SHOW ON THE MAP (kept in memory: an Intent is too small for it). */
@@ -169,7 +171,7 @@ class SearchActivity : AppCompatActivity() {
             if (actionId != EditorInfo.IME_ACTION_SEARCH || favView) return@setOnEditorActionListener false
             if (Directory.enabled(this)) { mergeDirectory(); true } else false
         }
-        showHome()
+        if (intent.getBooleanExtra(EXTRA_FAVS, false)) showFavs() else showHome()
         b.query.requestFocus()
     }
 
