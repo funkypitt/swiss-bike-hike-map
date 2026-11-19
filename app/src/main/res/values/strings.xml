@@ -455,4 +455,16 @@
         <item quantity="one">%d tour</item>
         <item quantity="other">%d tours, nearest first</item>
     </plurals>
+    <!-- firms of the commercial register, a contact's address, search.ch in the browser -->
+    <string name="about_firms">Firms: Zefix, the central index of the Swiss commercial register (Federal Commercial Registry Office), placed with swisstopo\'s directory of building addresses.</string>
+    <string name="firms_credit">Firms: commercial register (Zefix)</string>
+    <string name="search_web_row">☺  Look up « %1$s » on search.ch (in the browser)</string>
+    <string name="search_web_row_in">☺  Look up « %1$s » in %2$s on search.ch (in the browser)</string>
+    <string name="search_contact_row">☺  The address of a contact</string>
+    <string name="contact_no_address">This contact has no address that can be placed</string>
+    <string name="contact_no_app">No contacts app on this phone</string>
+    <string name="web_copy_hint">Copy the address there, then come back: it will be offered here.</string>
+    <string name="copied_use_q">Use the address you copied?</string>
+    <string name="copied_use">USE</string>
+    <string name="place_card_more">Tap a place for its card (hours, phone, address).</string>
 </resources>

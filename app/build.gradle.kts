@@ -15,6 +15,14 @@ android {
         versionName = "0.18.0"
     }
 
+    // where the app is published: « libre » (F-Droid, GitHub) asks the directory of search.ch with
+    // the person's own key; « play » (Google Play) holds no such request (src/play, src/libre)
+    flavorDimensions += "store"
+    productFlavors {
+        create("libre") { dimension = "store"; isDefault = true }
+        create("play") { dimension = "store" }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -28,7 +36,10 @@ android {
     packaging { resources.excludes += setOf("META-INF/*.md", "META-INF/LICENSE*") }
 }
 
-tasks.withType<Test> { systemProperty("transit.pack", System.getProperty("transit.pack") ?: "") }
+tasks.withType<Test> {
+    systemProperty("transit.pack", System.getProperty("transit.pack") ?: "")
+    systemProperty("firms.pack", System.getProperty("firms.pack") ?: "")
+}
 
 dependencies {
     implementation(project(":brouter"))

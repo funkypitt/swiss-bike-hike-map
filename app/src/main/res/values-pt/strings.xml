@@ -448,4 +448,16 @@
         <item quantity="one">%d percurso</item>
         <item quantity="other">%d percursos, os mais próximos primeiro</item>
     </plurals>
+    <!-- firms of the commercial register, a contact's address, search.ch in the browser -->
+    <string name="about_firms">Empresas: Zefix, o índice central do registo comercial suíço (Serviço Federal do Registo Comercial), situadas com o diretório de moradas de edifícios da swisstopo.</string>
+    <string name="firms_credit">Empresas: registo comercial (Zefix)</string>
+    <string name="search_web_row">☺  Procurar « %1$s » em search.ch (no navegador)</string>
+    <string name="search_web_row_in">☺  Procurar « %1$s » em %2$s em search.ch (no navegador)</string>
+    <string name="search_contact_row">☺  A morada de um contacto</string>
+    <string name="contact_no_address">Este contacto não tem uma morada que se possa situar</string>
+    <string name="contact_no_app">Não há aplicação de contactos neste telefone</string>
+    <string name="web_copy_hint">Copie lá a morada e volte: ela será proposta aqui.</string>
+    <string name="copied_use_q">Usar a morada copiada?</string>
+    <string name="copied_use">USAR</string>
+    <string name="place_card_more">Toque num lugar para ver a ficha (horário, telefone, morada).</string>
 </resources>

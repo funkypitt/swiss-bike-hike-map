@@ -26,14 +26,14 @@
         <TextView android:id="@+id/tripsInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:textColor="@color/grey" android:text="@string/menu_trips_empty"/>
         <LinearLayout android:id="@+id/tripsList" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"/>
 
-        <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/menu_people"/>
+        <TextView android:id="@+id/dirHead" style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/menu_people"/>
         <EditText android:id="@+id/dirKey" android:layout_width="match_parent" android:layout_height="56dp"
             android:hint="@string/directory_key_hint" android:textSize="18sp" android:inputType="textVisiblePassword"
             android:background="@drawable/btn" android:paddingStart="14dp" android:paddingEnd="14dp"
             android:textColor="@color/ink" android:textColorHint="@color/grey" android:singleLine="true"/>
         <TextView android:id="@+id/btnDirSave" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_save_key"/>
         <TextView android:id="@+id/btnDirOrder" style="@style/Btn" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="8dp" android:text="@string/menu_order_key"/>
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="13sp" android:textColor="@color/grey" android:paddingTop="6dp" android:text="@string/directory_credit"/>
+        <TextView android:id="@+id/dirNote" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="13sp" android:textColor="@color/grey" android:paddingTop="6dp" android:text="@string/directory_credit"/>
 
         <TextView style="@style/MenuHead" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/menu_about"/>
         <TextView android:id="@+id/about" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:lineSpacingExtra="4dp"/>

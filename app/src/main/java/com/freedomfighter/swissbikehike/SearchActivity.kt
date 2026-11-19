@@ -1,6 +1,9 @@
 package com.freedomfighter.swissbikehike
 
 import android.app.Activity
+import android.content.ClipDescription
+import android.content.ClipboardManager
+import android.provider.ContactsContract
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -43,6 +46,13 @@ import java.util.Locale
  * typed word come first; what the servers merely find alike (the towns and stops called
  * Lausanne, for that text) comes last. An empty field lists the categories around and the
  * favourites (with import and export of place lists). Every pick ends as a pin on the map.
+ *
+ * Firms come from the commercial register (the firms pack, [Firms]): by their legal name, each
+ * once — a firm that is also a place of OpenStreetMap, or an answer of the directory, is said by
+ * that row. A person is reached through the phone's own contacts (the row under the favourites:
+ * Android's picker hands over the one address chosen, no permission asked) or, in the build
+ * without the directory's interface, on the website of search.ch: the address copied there is
+ * offered on the way back.
  */
 class SearchActivity : AppCompatActivity() {
     companion object {
@@ -74,7 +84,7 @@ class SearchActivity : AppCompatActivity() {
     }
     private class Hit(val label: String, val lat: Double, val lon: Double, val kind: String = Favourites.PLACE, var detail: String = "",
                       val place: Place? = null, val metres: Double = -1.0, var extraLine: String = "", var dir: Directory.Hit? = null,
-                      val starred: Boolean = false)
+                      val starred: Boolean = false, val firm: Firms.Hit? = null)
 
     /** One row of the list. */
     private sealed class Row {
@@ -85,6 +95,10 @@ class SearchActivity : AppCompatActivity() {
         class FavItem(val fav: Fav) : Row()
         class Dir(val hit: Directory.Hit) : Row()
         object DirAsk : Row()
+        /** The same question asked of the website of search.ch, in the browser. */
+        object Web : Row()
+        /** The address of one of the phone's contacts. */
+        object Contact : Row()
         class Info(val text: String) : Row()
     }
 
@@ -107,6 +121,28 @@ class SearchActivity : AppCompatActivity() {
     private var shownWhere: Places.Where? = null
 
     private val hits: List<Hit> get() = rows.mapNotNull { (it as? Row.Item)?.hit }
+
+    /** When the browser was opened on search.ch (0: it was not): an address copied since then is offered on the way back. */
+    private var leftForWeb = 0L
+    private var webName = ""
+
+    /** Android's own picker of a contact's postal address: the app is handed the one address chosen, and needs no access to the contacts. */
+    private val pickContact = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
+        val uri = r.data?.data ?: return@registerForActivityResult
+        if (r.resultCode != Activity.RESULT_OK) return@registerForActivityResult
+        var name = ""; var street = ""; var zip = ""; var city = ""; var whole = ""
+        runCatching {
+            contentResolver.query(uri, arrayOf(ContactsContract.Data.DISPLAY_NAME, ContactsContract.CommonDataKinds.StructuredPostal.STREET, ContactsContract.CommonDataKinds.StructuredPostal.POSTCODE, ContactsContract.CommonDataKinds.StructuredPostal.CITY, ContactsContract.CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS), null, null, null)?.use { c ->
+                if (c.moveToFirst()) {
+                    name = c.getString(0).orEmpty(); street = c.getString(1).orEmpty().lines().lastOrNull { it.isNotBlank() }.orEmpty().trim()
+                    zip = c.getString(2).orEmpty().trim(); city = c.getString(3).orEmpty().trim(); whole = c.getString(4).orEmpty()
+                }
+            }
+        }
+        val known = if (city.isNotBlank() || zip.isNotBlank()) Firms.Copied(name, street, zip, city) else Firms.copiedAddress(whole)?.let { Firms.Copied(name, it.street, it.zip, it.city) }
+        if (known == null) { Toast.makeText(this, R.string.contact_no_address, Toast.LENGTH_LONG).show(); return@registerForActivityResult }
+        pick(Directory.Hit(name.ifBlank { known.address }, known.street, known.zip, known.city, "", person = true))
+    }
 
     private val pickFile = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri ?: return@registerForActivityResult
@@ -186,6 +222,9 @@ class SearchActivity : AppCompatActivity() {
         is Row.Dir -> (if (r.hit.person) "☺  " else "▣  ") + listOf(r.hit.name, r.hit.address, r.hit.phone).filter { it.isNotBlank() }.joinToString("\n")
         Row.DirAsk -> shownWhere?.let { getString(R.string.search_directory_row_in, it.what, it.town.name) }
             ?: getString(R.string.search_directory_row, b.query.text?.toString()?.trim() ?: "")
+        Row.Web -> shownWhere?.let { getString(R.string.search_web_row_in, it.what, it.town.name) }
+            ?: getString(R.string.search_web_row, b.query.text?.toString()?.trim() ?: "")
+        Row.Contact -> getString(R.string.search_contact_row)
         is Row.Info -> r.text
     }
 
@@ -222,6 +261,7 @@ class SearchActivity : AppCompatActivity() {
         b.credit.text = credit()
         val out = ArrayList<Row>()
         out.add(Row.Favs)
+        out.add(Row.Contact)
         if (PlacesPack.isReady(this)) categories.forEach { out.add(Row.Category(it)) }
         else out.add(Row.Info(getString(R.string.places_pack_missing)))
         setRows(out)
@@ -232,7 +272,9 @@ class SearchActivity : AppCompatActivity() {
         val parts = ArrayList<String>()
         if (PlacesPack.isReady(this)) parts.add(PlacesPack.CREDIT + " · " + getString(if (nearIsGps) R.string.around_you else R.string.around_map))
         parts.add(if (Planner.online(this)) TransitOnline.CREDIT else if (Timetable.isReady(this)) getString(R.string.offline_timetable) else getString(R.string.timetable_missing))
-        parts.add(if (Directory.enabled(this)) Directory.CREDIT + " (" + getString(R.string.directory_press_search) + ")" else getString(R.string.directory_need_key))
+        if (FirmsPack.isReady(this)) parts.add(getString(R.string.firms_credit))
+        if (Directory.enabled(this)) parts.add(Directory.CREDIT + " (" + getString(R.string.directory_press_search) + ")")
+        else if (DirectoryApi.AVAILABLE) parts.add(getString(R.string.directory_need_key))
         return parts.joinToString("\n")
     }
 
@@ -247,10 +289,13 @@ class SearchActivity : AppCompatActivity() {
             is Row.Category -> showNearby(r.cat)
             Row.Back -> if (favView) { b.query.setText(""); showHome() } else { category = null; showHome() }
             Row.Favs -> { favView = true; b.query.setText(""); showFavs() }
-            is Row.Item -> if (r.hit.place != null) showPlace(r.hit) else finishWith(r.hit)
+            is Row.Item -> if (r.hit.place != null) showPlace(r.hit) else if (r.hit.firm != null) showFirm(r.hit) else finishWith(r.hit)
             is Row.FavItem -> finishWith(Hit(r.fav.name, r.fav.lat, r.fav.lon, r.fav.kind, r.fav.detail))
             is Row.Dir -> showDirectory(r.hit)
             Row.DirAsk -> mergeDirectory()
+            Row.Web -> openWeb()
+            Row.Contact -> runCatching { pickContact.launch(Intent(Intent.ACTION_PICK).setType(ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_TYPE)) }
+                .onFailure { Toast.makeText(this, R.string.contact_no_app, Toast.LENGTH_LONG).show() }
             is Row.Info -> {}
         }
     }
@@ -266,7 +311,7 @@ class SearchActivity : AppCompatActivity() {
             val found = withContext(Dispatchers.Default) { nearbyOf(pack, setOf(cat), 40) }
             if (category != cat) return@launch
             setRows(listOf<Row>(Row.Back) + found.map { Row.Item(hitOf(it)) })
-            b.credit.text = PlacesPack.CREDIT + " · " + getString(if (nearIsGps) R.string.around_you else R.string.around_map) + " · " + getString(R.string.place_directory_more)
+            b.credit.text = PlacesPack.CREDIT + " · " + getString(if (nearIsGps) R.string.around_you else R.string.around_map) + " · " + getString(if (DirectoryApi.AVAILABLE) R.string.place_directory_more else R.string.place_card_more)
         }
     }
 
@@ -287,6 +332,7 @@ class SearchActivity : AppCompatActivity() {
 
     /** A place of the pack on two lines (glyph, name, distance; category and details); a stop or an address on one. */
     private fun row(h: Hit): String {
+        h.firm?.let { f -> return "▣  " + h.label + (if (h.metres >= 0 && f.exact) "   " + Fmt.dist(h.metres) else "") + "\n" + f.address }
         val p = h.place ?: return when {
             h.starred -> "★  "
             h.kind == Favourites.STOP -> "◉  "
@@ -353,6 +399,12 @@ class SearchActivity : AppCompatActivity() {
                 townAround.addAll(pack.nearbyTagged(t.latitude, t.longitude, w.what, kindsOf(w.what)).map { hitOf(it, away(it)) })
             }
         }
+        // the firms of the register: every typed word in the name (or the town); around the town named, else around here
+        val firmsPack = FirmsPack.open(this)
+        val firmHits = if (firmsPack == null) emptyList() else withContext(Dispatchers.Default) {
+            val ref = where?.town?.at ?: near
+            firmsPack.search(q, ref.latitude, ref.longitude, 12).map { f -> Hit(f.name, f.lat, f.lon, Favourites.FIRM, f.address, metres = away(f.lat, f.lon), firm = f) }
+        }
         val geo = geoJob.await()
         val allStops = stopJob.await().take(8).map { Hit(it.name, it.at.latitude, it.at.longitude, Favourites.STOP, it.id, metres = away(it.at.latitude, it.at.longitude)) }
         if (shownQuery != q) return
@@ -372,15 +424,70 @@ class SearchActivity : AppCompatActivity() {
             .filter { h -> !answered || Transit.fold(h.label).let { l -> words.any { it.length >= 3 && l.contains(it) } } }
         // each place once, where it first comes
         val seen = HashSet<Int>()
-        val found = (favs + catHits + tagHits + sure + townNames + townAround + loose).filter { h -> h.place == null || seen.add(h.place.index) }
+        val named = (favs + catHits + tagHits + sure + townNames + townAround).filter { h -> h.place == null || seen.add(h.place.index) }
+        // a firm that is already there as a place of OpenStreetMap is said by that row
+        val firms = firmHits.filter { f -> named.none { h -> sameFirm(h, f.firm!!) } }
+        val found = named + firms + loose.filter { h -> h.place == null || seen.add(h.place.index) }
         val out = ArrayList<Row>(found.map { Row.Item(it) })
         if (found.isEmpty() && geo.isFailure) out.add(Row.Info(getString(R.string.search_no_answer)))
         // the directory: before the look-alikes when no place bears the name, else last
-        if (Directory.enabled(this) && q.length >= 3) {
-            val named = nameHits.isNotEmpty() || townNames.isNotEmpty() || stops.isNotEmpty() || geoHits.isNotEmpty()
-            if (named) out.add(Row.DirAsk) else out.add(out.size - loose.size, Row.DirAsk)
+        if (q.length >= 3 && (Directory.enabled(this) || !DirectoryApi.AVAILABLE)) {
+            // with the directory's interface and a key: its answers join the list; without the interface: the same question on its website
+            val ask = if (Directory.enabled(this)) Row.DirAsk else Row.Web
+            val bears = nameHits.isNotEmpty() || townNames.isNotEmpty() || stops.isNotEmpty() || geoHits.isNotEmpty() || firms.isNotEmpty()
+            if (bears) out.add(ask) else out.add(out.size - loose.size, ask)
         }
         setRows(out)
+    }
+
+    /** Is this row (a place of OpenStreetMap, a favourite…) the firm of the register? Same name at the same door, or by what both say of the address. */
+    private fun sameFirm(h: Hit, f: Firms.Hit): Boolean {
+        val p = h.place
+        val street = p?.extras?.get("addr") ?: ""; val zip = p?.extras?.get("pc") ?: ""; val city = p?.extras?.get("city") ?: ""
+        val name = p?.name?.ifBlank { h.label } ?: h.label
+        if (f.exact && Places.distance(h.lat, h.lon, f.lat, f.lon) <= Firms.SAME_PLACE_M) return Firms.same(name, "", "", f.city, f.name, "", "", f.city)
+        return Firms.same(name, street, zip, city, f.name, f.street, f.zip, f.city)
+    }
+
+    /** The card of a firm of the register: ON THE MAP puts it there (its address is looked up first when the pack only knows its postcode). */
+    private fun showFirm(h: Hit) {
+        val f = h.firm ?: return
+        val e = Directory.Hit(f.name, f.street, f.zip, f.city, "")
+        if (!f.exact) { showDirectory(e); return }
+        PlaceCard.show(this, PlaceInfo.of(e, LatLng(f.lat, f.lon)), if (nearIsGps) near else null, R.string.place_on_map to { finishWith(h) },
+            favourite = { Fav(h.label, h.lat, h.lon, h.kind, h.detail) })
+    }
+
+    // ---- a person on the website of search.ch (the build without the directory's interface) ----
+
+    /** Opens search.ch on the typed name; an address copied there is offered when the person comes back. */
+    private fun openWeb() {
+        val q = b.query.text?.toString()?.trim() ?: ""
+        val w = shownWhere
+        val url = "https://search.ch/tel/?was=" + URLEncoder.encode(w?.what ?: q, "UTF-8") + (if (w != null) "&wo=" + URLEncoder.encode(w.town.name, "UTF-8") else "")
+        runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }.onSuccess {
+            leftForWeb = System.currentTimeMillis(); webName = w?.what ?: q
+            Toast.makeText(this, R.string.web_copy_hint, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    /**
+     * Back from the browser: Android lets an app read the clipboard only while it has the focus,
+     * and this one looks only after it sent the person to search.ch, only at a text copied since
+     * then (the clip's own date is read first, which shows nothing to the person), and asks before using it.
+     */
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (!hasFocus || leftForWeb == 0L) return
+        val cm = getSystemService(ClipboardManager::class.java) ?: return
+        val d = runCatching { cm.primaryClipDescription }.getOrNull() ?: return
+        if (d.timestamp < leftForWeb || !(d.hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN) || d.hasMimeType(ClipDescription.MIMETYPE_TEXT_HTML))) return
+        val text = runCatching { cm.primaryClip?.getItemAt(0)?.coerceToText(this)?.toString() }.getOrNull() ?: return
+        leftForWeb = 0L
+        val a = Firms.copiedAddress(text) ?: return
+        AlertDialog.Builder(this).setTitle(R.string.copied_use_q).setMessage(a.address)
+            .setPositiveButton(R.string.copied_use) { _, _ -> pick(Directory.Hit(a.name.ifBlank { webName.ifBlank { a.address } }, a.street, a.zip, a.city, "", person = true)) }
+            .setNegativeButton(R.string.cancel, null).show()
     }
 
     /** The card of a place of the pack (hours, phone, address…): PIN puts it on the map. */
@@ -443,6 +550,8 @@ class SearchActivity : AppCompatActivity() {
                     if (match != null) { if (match.extraLine.isBlank()) enrich(match, e) } else rest.add(e)
                 }
                 val people = list.filter { it.person }
+                // the directory's entry carries the phone: it is the one kept when the register has the firm too
+                rows.removeAll { r -> (r as? Row.Item)?.hit?.firm?.let { f -> firms.any { e -> Firms.same(e.name, e.street, e.zip, e.city, f.name, f.street, f.zip, f.city) } } == true }
                 rows.removeAll { it === Row.DirAsk || it is Row.Dir }
                 rows.addAll(minOf(at, rows.size), rest.map { Row.Dir(it) } + people.map { Row.Dir(it) })
                 setRows(rows.toList())

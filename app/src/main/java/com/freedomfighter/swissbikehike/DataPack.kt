@@ -157,6 +157,30 @@ object PlacesPack : DataPack("places-data", "switzerland.places", "places", Offl
 }
 
 /**
+ * The firms of the Swiss commercial register with their addresses: built by tools/make-firms.py
+ * for the rolling release "firms-data". It travels with the places ([OfflineWorker] fetches it
+ * after them, and goes on without it while the release does not exist).
+ */
+object FirmsPack : DataPack("firms-data", "switzerland.firms", "firms", Offline.Part.PLACES) {
+    @Volatile private var cached: Firms? = null
+    @Volatile private var cachedStamp = 0L
+
+    override fun info(o: JSONObject, remote: Boolean) = Info(o.optInt("firms").toString(), o.optString("built"), o.optLong(if (remote) "gz_bytes" else "bytes"))
+    override fun check(f: File) = Firms.open(f).nFirms > 100_000
+    override fun replaced() { cached = null }
+
+    fun open(ctx: Context): Firms? {
+        val f = file(ctx)
+        if (!f.exists() || unpacking) return null
+        val c = cached
+        if (c != null && cachedStamp == f.lastModified()) return c
+        return runCatching { Firms.open(f) }.getOrNull()?.also { cached = it; cachedStamp = f.lastModified() }
+    }
+
+    override fun local(ctx: Context): Info? = super.local(ctx) ?: open(ctx)?.let { Info(it.nFirms.toString(), it.built, file(ctx).length()) }
+}
+
+/**
  * The signposted tours of Switzerland: a pack ships with the app (assets), and the workflow
  * tours-data (tools/make-tours.py) publishes a new one on the rolling release "tours-data" when
  * the Federal Roads Office has published newer routes, about once a year. A fetched pack is used

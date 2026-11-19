@@ -82,7 +82,7 @@ class OfflineWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ct
     private suspend fun get(part: Offline.Part): Boolean = when (part) {
         Offline.Part.TIMETABLE -> pack(Timetable)
         Offline.Part.TOURS -> pack(ToursPack)
-        Offline.Part.PLACES -> pack(PlacesPack)
+        Offline.Part.PLACES -> pack(PlacesPack).let { places -> firms() || places }
         Offline.Part.ROUTING -> routing()
         Offline.Part.MAP -> map()
     }
@@ -94,6 +94,12 @@ class OfflineWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ct
 
     private fun bytesLine(part: Offline.Part, done: Long, total: Long) =
         app.getString(R.string.off_line_bytes, app.getString(part.label), Fmt.mb(done), if (total > 0) Fmt.mb(total) else "?")
+
+    /** The firms pack, fetched with the places. A server without it yet, or a failure, is not a reason to stop: the places are there. */
+    private suspend fun firms(): Boolean {
+        if (FirmsPack.remoteText() == null) return false
+        return try { pack(FirmsPack) } catch (e: Stop) { false }
+    }
 
     private suspend fun pack(p: DataPack): Boolean {
         val part = p.part

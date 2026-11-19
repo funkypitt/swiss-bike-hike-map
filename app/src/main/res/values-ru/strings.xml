@@ -456,4 +456,16 @@
         <item quantity="many">%d маршрутов, сначала ближайшие</item>
         <item quantity="other">%d маршрута, сначала ближайшие</item>
     </plurals>
+    <!-- firms of the commercial register, a contact's address, search.ch in the browser -->
+    <string name="about_firms">Фирмы: Zefix, центральный указатель швейцарского торгового реестра (Федеральное ведомство торгового реестра); расположение по справочнику адресов зданий swisstopo.</string>
+    <string name="firms_credit">Фирмы: торговый реестр (Zefix)</string>
+    <string name="search_web_row">☺  Искать « %1$s » на search.ch (в браузере)</string>
+    <string name="search_web_row_in">☺  Искать « %1$s » в %2$s на search.ch (в браузере)</string>
+    <string name="search_contact_row">☺  Адрес одного из контактов</string>
+    <string name="contact_no_address">У этого контакта нет адреса, который можно найти на карте</string>
+    <string name="contact_no_app">На этом телефоне нет приложения контактов</string>
+    <string name="web_copy_hint">Скопируйте там адрес и вернитесь: он будет предложен здесь.</string>
+    <string name="copied_use_q">Использовать скопированный адрес?</string>
+    <string name="copied_use">ИСПОЛЬЗОВАТЬ</string>
+    <string name="place_card_more">Нажмите на место, чтобы открыть карточку (часы работы, телефон, адрес).</string>
 </resources>

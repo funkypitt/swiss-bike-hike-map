@@ -52,9 +52,11 @@ class MenuActivity : AppCompatActivity() {
             prefs.directoryKey = b.dirKey.text.toString()
             Toast.makeText(this, if (prefs.directoryKey.isBlank()) R.string.people_off else R.string.people_on, Toast.LENGTH_SHORT).show()
         }
-        b.btnDirOrder.setOnClickListener { runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(Directory.ORDER_URL))) } }
+        b.btnDirOrder.setOnClickListener { runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(DirectoryApi.ORDER_URL))) } }
+        // the build for Google Play asks nothing of the directory: no key to paste
+        if (!DirectoryApi.AVAILABLE) for (v in listOf(b.dirHead, b.dirKey, b.btnDirSave, b.btnDirOrder, b.dirNote)) v.visibility = android.view.View.GONE
         val pm = packageManager.getPackageInfo(packageName, 0)
-        b.about.text = getString(R.string.app_name) + " ${pm.versionName}\n\n" + getString(R.string.about_text)
+        b.about.text = getString(R.string.app_name) + " ${pm.versionName}\n\n" + getString(R.string.about_text) + "\n" + getString(R.string.about_firms)
         updateNightButton(); updatePlacesMapButton()
     }
 
@@ -172,7 +174,7 @@ class MenuActivity : AppCompatActivity() {
     private fun bytes(p: Offline.Part): Long = when (p) {
         Offline.Part.TIMETABLE -> Timetable.file(this).length()
         Offline.Part.TOURS -> if (ToursPack.fetched(this)) ToursPack.file(this).length() else 0L
-        Offline.Part.PLACES -> PlacesPack.file(this).length()
+        Offline.Part.PLACES -> PlacesPack.file(this).length() + FirmsPack.file(this).length()
         Offline.Part.ROUTING -> Segments.bytes(this)
         Offline.Part.MAP -> mapBytes
     }
@@ -347,7 +349,7 @@ class MenuActivity : AppCompatActivity() {
                         OfflineMaps.country(this@MenuActivity)?.let { OfflineMaps.delete(it) }
                         Offline.setMapRefreshing(this@MenuActivity, false)
                     }
-                    for (p in listOf(Timetable, PlacesPack, ToursPack)) p.part(this@MenuActivity).let { it.delete(); java.io.File(it.path + ".tag").delete() }
+                    for (p in listOf(Timetable, PlacesPack, FirmsPack, ToursPack)) p.part(this@MenuActivity).let { it.delete(); java.io.File(it.path + ".tag").delete() }
                     for (n in Segments.names) Segments.part(this@MenuActivity, n).let { it.delete(); java.io.File(it.path + ".tag").delete() }
                     refreshOffline(false)
                 }

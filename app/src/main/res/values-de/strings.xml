@@ -448,4 +448,16 @@
         <item quantity="one">%d Tour</item>
         <item quantity="other">%d Touren, die nächsten zuerst</item>
     </plurals>
+    <!-- firms of the commercial register, a contact's address, search.ch in the browser -->
+    <string name="about_firms">Firmen: Zefix, der zentrale Firmenindex des Schweizer Handelsregisters (Eidgenössisches Amt für das Handelsregister), verortet mit dem amtlichen Verzeichnis der Gebäudeadressen von swisstopo.</string>
+    <string name="firms_credit">Firmen: Handelsregister (Zefix)</string>
+    <string name="search_web_row">☺  « %1$s » auf search.ch suchen (im Browser)</string>
+    <string name="search_web_row_in">☺  « %1$s » in %2$s auf search.ch suchen (im Browser)</string>
+    <string name="search_contact_row">☺  Die Adresse eines Kontakts</string>
+    <string name="contact_no_address">Dieser Kontakt hat keine Adresse, die sich verorten lässt</string>
+    <string name="contact_no_app">Keine Kontakte-App auf diesem Telefon</string>
+    <string name="web_copy_hint">Kopieren Sie dort die Adresse und kommen Sie zurück: Sie wird hier angeboten.</string>
+    <string name="copied_use_q">Die kopierte Adresse verwenden?</string>
+    <string name="copied_use">VERWENDEN</string>
+    <string name="place_card_more">Tippen Sie auf einen Ort für seine Karte (Öffnungszeiten, Telefon, Adresse).</string>
 </resources>

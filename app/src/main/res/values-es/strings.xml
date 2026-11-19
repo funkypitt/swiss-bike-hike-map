@@ -448,4 +448,16 @@
         <item quantity="one">%d recorrido</item>
         <item quantity="other">%d recorridos, los más cercanos primero</item>
     </plurals>
+    <!-- firms of the commercial register, a contact's address, search.ch in the browser -->
+    <string name="about_firms">Empresas: Zefix, el índice central del registro mercantil suizo (Oficina Federal del Registro Mercantil), situadas con el directorio de direcciones de edificios de swisstopo.</string>
+    <string name="firms_credit">Empresas: registro mercantil (Zefix)</string>
+    <string name="search_web_row">☺  Buscar « %1$s » en search.ch (en el navegador)</string>
+    <string name="search_web_row_in">☺  Buscar « %1$s » en %2$s en search.ch (en el navegador)</string>
+    <string name="search_contact_row">☺  La dirección de un contacto</string>
+    <string name="contact_no_address">Este contacto no tiene una dirección que se pueda situar</string>
+    <string name="contact_no_app">No hay aplicación de contactos en este teléfono</string>
+    <string name="web_copy_hint">Copie allí la dirección y vuelva: se le ofrecerá aquí.</string>
+    <string name="copied_use_q">¿Usar la dirección copiada?</string>
+    <string name="copied_use">USAR</string>
+    <string name="place_card_more">Toque un lugar para ver su ficha (horario, teléfono, dirección).</string>
 </resources>
