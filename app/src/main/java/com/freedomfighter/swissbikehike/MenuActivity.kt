@@ -56,7 +56,8 @@ class MenuActivity : AppCompatActivity() {
         // the build for Google Play asks nothing of the directory: no key to paste
         if (!DirectoryApi.AVAILABLE) for (v in listOf(b.dirHead, b.dirKey, b.btnDirSave, b.btnDirOrder, b.dirNote)) v.visibility = android.view.View.GONE
         val pm = packageManager.getPackageInfo(packageName, 0)
-        b.about.text = getString(R.string.app_name) + " ${pm.versionName}\n\n" + getString(R.string.about_text) + "\n" + getString(R.string.about_firms)
+        b.about.text = getString(R.string.app_name) + " ${pm.versionName}\n\n" + getString(R.string.about_text) + "\n" + getString(R.string.about_firms) +
+            (if (DirectoryApi.AVAILABLE) "\n" + getString(R.string.about_directory) else "")
         updateNightButton(); updatePlacesMapButton()
     }
 

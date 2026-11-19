@@ -82,7 +82,7 @@
     <string name="people_on">Personensuche ein</string>
     <string name="people_off">Personensuche aus</string>
     <string name="menu_about">ÜBER</string>
-    <string name="about_text">Karte: swisstopo-Vektorgrundkarte, Wanderwegnetz, Veloland- und Mountainbikeland-Routen, Sperrungen (© swisstopo, © SchweizMobil).\nRouting: BRouter (MIT) auf OpenStreetMap-Daten (ODbL), Profile « trekking » und « hiking-mountain ».\nÖffentlicher Verkehr: Fahrplan von transport.opendata.ch (Opendata.ch) online; offline der offizielle Schweizer Fahrplan (opentransportdata.swiss, GTFS), wöchentlich vom Repository der App gepackt.\nDarstellung: MapLibre Native (BSD).\nSuche: GeoAdmin-API; Orte (Brunnen, Unterstände, Hütten, Läden…): © OpenStreetMap-Mitwirkende (ODbL), wöchentlich vom Repository der App gepackt; Personen und Firmen: search.ch-Verzeichnis (Swisscom Directories AG) mit Ihrem eigenen Schlüssel.\nDie ÖV-Karte sendet Ihre Position an transport.opendata.ch, um die Haltestellen in der Nähe zu finden; sonst verlässt nichts das Telefon.</string>
+    <string name="about_text">Karte: swisstopo-Vektorgrundkarte, Wanderwegnetz, Veloland- und Mountainbikeland-Routen, Sperrungen (© swisstopo, © SchweizMobil).\nRouting: BRouter (MIT) auf OpenStreetMap-Daten (ODbL), Profile « trekking » und « hiking-mountain ».\nÖffentlicher Verkehr: Fahrplan von transport.opendata.ch (Opendata.ch) online; offline der offizielle Schweizer Fahrplan (opentransportdata.swiss, GTFS), wöchentlich vom Repository der App gepackt.\nDarstellung: MapLibre Native (BSD).\nSuche: GeoAdmin-API; Orte (Brunnen, Unterstände, Hütten, Läden…): © OpenStreetMap-Mitwirkende (ODbL), wöchentlich vom Repository der App gepackt.\nDie ÖV-Karte sendet Ihre Position an transport.opendata.ch, um die Haltestellen in der Nähe zu finden; sonst verlässt nichts das Telefon.</string>
     <string name="nav_channel">Navigation</string>
     <string name="nav_starting">Navigation startet…</string>
     <string name="eta_short">Ankunft %1$s</string>
@@ -449,6 +449,7 @@
         <item quantity="other">%d Touren, die nächsten zuerst</item>
     </plurals>
     <!-- firms of the commercial register, a contact's address, search.ch in the browser -->
+    <string name="about_directory">Personen und Firmen: search.ch-Verzeichnis (Swisscom Directories AG) mit Ihrem eigenen Schlüssel.</string>
     <string name="about_firms">Firmen: Zefix, der zentrale Firmenindex des Schweizer Handelsregisters (Eidgenössisches Amt für das Handelsregister), verortet mit dem amtlichen Verzeichnis der Gebäudeadressen von swisstopo.</string>
     <string name="firms_credit">Firmen: Handelsregister (Zefix)</string>
     <string name="search_web_row">☺  « %1$s » auf search.ch suchen (im Browser)</string>

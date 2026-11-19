@@ -82,7 +82,7 @@
     <string name="people_on">Recherche de personnes activée</string>
     <string name="people_off">Recherche de personnes désactivée</string>
     <string name="menu_about">À PROPOS</string>
-    <string name="about_text">Carte : fond vectoriel swisstopo, réseau des chemins de randonnée, itinéraires Veloland et Mountainbikeland, fermetures (© swisstopo, © SuisseMobile).\nItinéraires : BRouter (MIT) sur données OpenStreetMap (ODbL), profils « trekking » et « hiking-mountain ».\nTransports publics : horaires de transport.opendata.ch (Opendata.ch) en ligne ; hors ligne, l\'horaire officiel suisse (opentransportdata.swiss, GTFS) empaqueté chaque semaine par le dépôt de l\'app.\nRendu : MapLibre Native (BSD).\nRecherche : API GeoAdmin ; lieux (fontaines, abris, cabanes, magasins…) : © les contributeurs OpenStreetMap (ODbL), empaquetés chaque semaine par le dépôt de l\'app ; personnes et entreprises : annuaire search.ch (Swisscom Directories AG) avec votre propre clé.\nLa carte transports publics envoie votre position à transport.opendata.ch pour trouver les arrêts voisins ; rien d\'autre ne quitte le téléphone.</string>
+    <string name="about_text">Carte : fond vectoriel swisstopo, réseau des chemins de randonnée, itinéraires Veloland et Mountainbikeland, fermetures (© swisstopo, © SuisseMobile).\nItinéraires : BRouter (MIT) sur données OpenStreetMap (ODbL), profils « trekking » et « hiking-mountain ».\nTransports publics : horaires de transport.opendata.ch (Opendata.ch) en ligne ; hors ligne, l\'horaire officiel suisse (opentransportdata.swiss, GTFS) empaqueté chaque semaine par le dépôt de l\'app.\nRendu : MapLibre Native (BSD).\nRecherche : API GeoAdmin ; lieux (fontaines, abris, cabanes, magasins…) : © les contributeurs OpenStreetMap (ODbL), empaquetés chaque semaine par le dépôt de l\'app.\nLa carte transports publics envoie votre position à transport.opendata.ch pour trouver les arrêts voisins ; rien d\'autre ne quitte le téléphone.</string>
     <string name="nav_channel">Navigation</string>
     <string name="nav_starting">Navigation en cours de démarrage…</string>
     <string name="eta_short">arrivée %1$s</string>
@@ -449,6 +449,7 @@
         <item quantity="other">%d parcours, les plus proches d\'abord</item>
     </plurals>
     <!-- firms of the commercial register, a contact's address, search.ch in the browser -->
+    <string name="about_directory">Personnes et entreprises : annuaire search.ch (Swisscom Directories AG) avec votre propre clé.</string>
     <string name="about_firms">Entreprises : Zefix, l\'index central du registre du commerce suisse (Office fédéral du registre du commerce), placées avec le répertoire des adresses de bâtiments de swisstopo.</string>
     <string name="firms_credit">Entreprises : registre du commerce (Zefix)</string>
     <string name="search_web_row">☺  Chercher « %1$s » sur search.ch (dans le navigateur)</string>

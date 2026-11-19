@@ -33,7 +33,21 @@ Data © swisstopo, © SchweizMobil, © OpenStreetMap contributors.
 
 ## Build
 
-    ./gradlew assembleDebug        # or assembleRelease, then sign
+    ./gradlew assembleLibreDebug   # or assembleLibreRelease, then sign; « play » is the build without the directory's interface
+
+Two builds (flavour dimension `store`): `libre` and `play` differ by one file, `DirectoryApi.kt`
+(`app/src/libre`, `app/src/play`): the request to the directory of search.ch, or nothing. Tests:
+`testLibreDebugUnitTest`, `testPlayDebugUnitTest`.
+
+Firms (not published yet): `tools/make-firms.py out/` builds `switzerland.firms` from the commercial
+register (Zefix, one query to lindas.admin.ch; opendata.swiss terms « Open use. Must provide the
+source. ») and places each firm with swisstopo's directory of building addresses (93 % at their
+building, 2 % in their street, 5 % at the middle of their postcode; 789 000 firms, 61 MB, 33 MB
+gzipped). `Firms.kt` reads it in place: an index of the names' words, sorted. `FirmsPack` expects
+it on a rolling release `firms-data` and fetches it after the places; until that release exists
+the download goes on without it. A search asked online took 4 to 12 s (no word index on the
+server), hence the pack. A firm that is also a place of OpenStreetMap or an answer of the
+directory is listed once (`Firms.same`, `SearchActivity.sameFirm`).
 
 `local.properties` must point at an Android SDK. The `brouter` module is plain Java copied from
 upstream (`brouter/UPSTREAM-COMMIT.txt`); the two profile files and `lookups.dat` are in `app/src/main/assets/brouter`.

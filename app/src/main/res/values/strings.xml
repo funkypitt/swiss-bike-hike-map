@@ -89,7 +89,7 @@
     <string name="people_on">People search on</string>
     <string name="people_off">People search off</string>
     <string name="menu_about">ABOUT</string>
-    <string name="about_text">Map: swisstopo vector base map, hiking trail network, Veloland and Mountainbikeland routes, closures (© swisstopo, © SchweizMobil).\nRouting: BRouter (MIT) on OpenStreetMap data (ODbL), profiles « trekking » and « hiking-mountain ».\nPublic transport: timetable of transport.opendata.ch (Opendata.ch) when connected; offline, the official Swiss timetable (opentransportdata.swiss, GTFS) packed weekly by the app\'s repository.\nMap rendering: MapLibre Native (BSD).\nSearch: GeoAdmin API; places (fountains, shelters, huts, shops…): © OpenStreetMap contributors (ODbL), packed weekly by the app\'s repository; people and firms: search.ch directory (Swisscom Directories AG) with your own key.\nThe transit map sends your position to transport.opendata.ch to find the stops around you; nothing else leaves the phone.</string>
+    <string name="about_text">Map: swisstopo vector base map, hiking trail network, Veloland and Mountainbikeland routes, closures (© swisstopo, © SchweizMobil).\nRouting: BRouter (MIT) on OpenStreetMap data (ODbL), profiles « trekking » and « hiking-mountain ».\nPublic transport: timetable of transport.opendata.ch (Opendata.ch) when connected; offline, the official Swiss timetable (opentransportdata.swiss, GTFS) packed weekly by the app\'s repository.\nMap rendering: MapLibre Native (BSD).\nSearch: GeoAdmin API; places (fountains, shelters, huts, shops…): © OpenStreetMap contributors (ODbL), packed weekly by the app\'s repository.\nThe transit map sends your position to transport.opendata.ch to find the stops around you; nothing else leaves the phone.</string>
     <string name="nav_channel">Navigation</string>
     <string name="nav_starting">Navigation starting…</string>
     <string name="eta_short">arrival %1$s</string>
@@ -456,6 +456,7 @@
         <item quantity="other">%d tours, nearest first</item>
     </plurals>
     <!-- firms of the commercial register, a contact's address, search.ch in the browser -->
+    <string name="about_directory">People and firms: search.ch directory (Swisscom Directories AG) with your own key.</string>
     <string name="about_firms">Firms: Zefix, the central index of the Swiss commercial register (Federal Commercial Registry Office), placed with swisstopo\'s directory of building addresses.</string>
     <string name="firms_credit">Firms: commercial register (Zefix)</string>
     <string name="search_web_row">☺  Look up « %1$s » on search.ch (in the browser)</string>

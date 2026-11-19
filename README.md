@@ -81,8 +81,12 @@ All three deliver the same file, with the same signature. Android 9 or newer, ar
 ## Build
 
 ```
-./gradlew assembleRelease
+./gradlew assembleLibreRelease      # app/build/outputs/apk/libre/release/app-libre-release-unsigned.apk
 ```
+
+Two builds of the same app: `libre` (the one published here and on F-Droid) can ask the directory
+of search.ch with your own key; `play` (`assemblePlayRelease`) holds no such request and sends to
+the directory's website instead. Everything else is the same code.
 
 `local.properties` must point at an Android SDK. The `brouter` module is BRouter's routing core
 (MIT) copied from upstream, see `brouter/UPSTREAM-COMMIT.txt`; the profiles and `lookups.dat`
