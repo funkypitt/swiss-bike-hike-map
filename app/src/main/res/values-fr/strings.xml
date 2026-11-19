@@ -216,7 +216,7 @@
     <string name="menu_places_map_off">LIEUX SUR LA CARTE : NON</string>
     <string name="menu_places_map_on">LIEUX SUR LA CARTE : OUI</string>
     <string name="places_zoom_in">Zoomez pour voir les lieux (dès le zoom 13)</string>
-    <string name="places_offer_msg">Fontaines, abris, cabanes, magasins… d\'OpenStreetMap ne sont pas encore sur le téléphone : environ 5 Mo, en Wi-Fi. Ensuite ils s\'affichent sur la carte et dans CHERCHER sans connexion.</string>
+    <string name="places_offer_msg">Fontaines, abris, cabanes, magasins… d\'OpenStreetMap et les entreprises du registre du commerce ne sont pas encore sur le téléphone : environ 40 Mo, en Wi-Fi. Ensuite CHERCHER les trouve sans connexion, et les lieux s\'affichent sur la carte.</string>
     <string name="cat_cafe">Café, tea-room</string>
     <string name="cat_bar">Bar, pub</string>
     <string name="cat_fast_food">Restauration rapide, à l\'emporter</string>
@@ -311,7 +311,7 @@
     <string name="off_download_msg">Tout pour utiliser l\'app sans réseau, sur toute la Suisse :\n%1$s\n\n%2$s. La carte prend quelques heures, idéalement téléphone en charge ; l\'app reste utilisable pendant ce temps. La notification montre la progression et offre PAUSE. Si la connexion tombe ou si le téléphone redémarre, cela reprend tout seul.</string>
     <string name="off_update_msg">Mise à jour conseillée :\n%1$s\n\n%2$s, en arrière-plan, progression dans la notification.</string>
     <string name="off_why_timetable">l\'horaire de la semaine (≈ 15 Mo)</string>
-    <string name="off_why_places">un mois de changements OpenStreetMap (≈ 5 Mo)</string>
+    <string name="off_why_places">un mois de changements dans OpenStreetMap et au registre du commerce (≈ 40 Mo)</string>
     <string name="off_why_routing">un mois de changements OpenStreetMap (≈ 450 Mo)</string>
     <string name="off_why_map">swisstopo ou l\'OFROU ont publié une nouvelle carte : chaque tuile est vérifiée, seules celles qui ont changé sont téléchargées (quelques heures, peu de données)</string>
     <string name="off_fresh_msg">Tout est à jour sur le téléphone. Tout revérifier quand même ? Les fichiers ne sont retéléchargés que si le serveur en a de plus récents ; chaque tuile de la carte est vérifiée (quelques heures en Wi-Fi, peu de données).</string>

@@ -58,7 +58,7 @@ else
       *) bad "workflow $name: last run $concl ($when)" ;;
     esac
   done < <(gh api "repos/$REPO/actions/workflows" --jq '.workflows[] | select(.name != "android") | [.name, .state, (.path | sub(".*/"; ""))] | @tsv' 2>/dev/null)
-  for pack in transit-data:switzerland.transit places-data:switzerland.places; do
+  for pack in transit-data:switzerland.transit places-data:switzerland.places firms-data:switzerland.firms; do
     rel=${pack%%:*}; name=${pack#*:}
     built=$(curl -sSL -m 30 "https://github.com/$REPO/releases/download/$rel/$name.json" 2>/dev/null | python3 -c 'import sys,json; print(json.load(sys.stdin).get("built",""))' 2>/dev/null)
     if [ -z "$built" ]; then bad "release $rel: $name.json unreadable"; else

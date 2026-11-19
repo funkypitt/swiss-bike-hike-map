@@ -216,7 +216,7 @@
     <string name="menu_places_map_off">ORTE AUF DER KARTE: AUS</string>
     <string name="menu_places_map_on">ORTE AUF DER KARTE: EIN</string>
     <string name="places_zoom_in">Hineinzoomen, um die Orte zu sehen (ab Zoom 13)</string>
-    <string name="places_offer_msg">Brunnen, Unterstände, Hütten, Läden… aus OpenStreetMap sind noch nicht auf dem Telefon: etwa 5 MB, über WLAN. Danach erscheinen sie auf der Karte und in SUCHEN ohne Verbindung.</string>
+    <string name="places_offer_msg">Brunnen, Unterstände, Hütten, Läden… aus OpenStreetMap und die Firmen des Handelsregisters sind noch nicht auf dem Telefon: etwa 40 MB, über WLAN. Danach findet SUCHEN sie ohne Verbindung, und die Orte erscheinen auf der Karte.</string>
     <string name="cat_cafe">Café, Tea-Room</string>
     <string name="cat_bar">Bar, Pub</string>
     <string name="cat_fast_food">Imbiss, Take-away</string>
@@ -311,7 +311,7 @@
     <string name="off_download_msg">Alles, um die App ohne Netz zu nutzen, für die ganze Schweiz:\n%1$s\n\n%2$s. Die Karte dauert einige Stunden, am besten mit dem Telefon am Ladegerät; die App bleibt währenddessen nutzbar. Die Benachrichtigung zeigt den Fortschritt und hat PAUSE. Fällt die Verbindung aus oder startet das Telefon neu, geht es von selbst weiter.</string>
     <string name="off_update_msg">Jetzt lohnt sich ein Update:\n%1$s\n\n%2$s, im Hintergrund, Fortschritt in der Benachrichtigung.</string>
     <string name="off_why_timetable">der Fahrplan dieser Woche (≈ 15 MB)</string>
-    <string name="off_why_places">ein Monat OpenStreetMap-Änderungen (≈ 5 MB)</string>
+    <string name="off_why_places">ein Monat Änderungen in OpenStreetMap und im Handelsregister (≈ 40 MB)</string>
     <string name="off_why_routing">ein Monat OpenStreetMap-Änderungen (≈ 450 MB)</string>
     <string name="off_why_map">swisstopo oder das ASTRA haben eine neue Karte veröffentlicht: Jede Kachel wird geprüft, nur geänderte werden geladen (einige Stunden, wenig Daten)</string>
     <string name="off_fresh_msg">Alles auf dem Telefon ist aktuell. Trotzdem alles neu prüfen? Dateien werden nur geladen, wenn der Server neuere hat; jede Kachel der Karte wird geprüft (einige Stunden im WLAN, wenig Daten).</string>

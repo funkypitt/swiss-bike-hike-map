@@ -431,8 +431,8 @@ class SearchActivity : AppCompatActivity() {
         val out = ArrayList<Row>(found.map { Row.Item(it) })
         if (found.isEmpty() && geo.isFailure) out.add(Row.Info(getString(R.string.search_no_answer)))
         // the directory: before the look-alikes when no place bears the name, else last
-        if (q.length >= 3 && (Directory.enabled(this) || !DirectoryApi.AVAILABLE)) {
-            // with the directory's interface and a key: its answers join the list; without the interface: the same question on its website
+        if (q.length >= 3) {
+            // with a key of the directory: its answers join the list; without one (or in the build without its interface): the same question on its website
             val ask = if (Directory.enabled(this)) Row.DirAsk else Row.Web
             val bears = nameHits.isNotEmpty() || townNames.isNotEmpty() || stops.isNotEmpty() || geoHits.isNotEmpty() || firms.isNotEmpty()
             if (bears) out.add(ask) else out.add(out.size - loose.size, ask)

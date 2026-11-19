@@ -216,7 +216,7 @@
     <string name="menu_places_map_off">LUGARES EN EL MAPA: NO</string>
     <string name="menu_places_map_on">LUGARES EN EL MAPA: SÍ</string>
     <string name="places_zoom_in">Acerque para ver los lugares (desde el zoom 13)</string>
-    <string name="places_offer_msg">Fuentes, refugios, cabañas, tiendas… de OpenStreetMap aún no están en el teléfono: unos 5 MB, por Wi-Fi. Después aparecen en el mapa y en BUSCAR sin conexión.</string>
+    <string name="places_offer_msg">Fuentes, refugios, cabañas, tiendas… de OpenStreetMap y las empresas del registro mercantil aún no están en el teléfono: unos 40 MB, por Wi-Fi. Después BUSCAR las encuentra sin conexión, y los lugares aparecen en el mapa.</string>
     <string name="cat_cafe">Café, salón de té</string>
     <string name="cat_bar">Bar, pub</string>
     <string name="cat_fast_food">Comida rápida, para llevar</string>
@@ -311,7 +311,7 @@
     <string name="off_download_msg">Todo para usar la app sin red, en toda Suiza:\n%1$s\n\n%2$s. El mapa tarda unas horas, mejor con el teléfono cargando; mientras tanto puede usar la app. La notificación muestra el progreso y tiene PAUSA. Si se corta la conexión o el teléfono se reinicia, sigue solo.</string>
     <string name="off_update_msg">Conviene actualizar:\n%1$s\n\n%2$s, en segundo plano, con el progreso en la notificación.</string>
     <string name="off_why_timetable">el horario de esta semana (≈ 15 MB)</string>
-    <string name="off_why_places">un mes de cambios en OpenStreetMap (≈ 5 MB)</string>
+    <string name="off_why_places">un mes de cambios en OpenStreetMap y en el registro mercantil (≈ 40 MB)</string>
     <string name="off_why_routing">un mes de cambios en OpenStreetMap (≈ 450 MB)</string>
     <string name="off_why_map">swisstopo o la ASTRA publicaron un mapa nuevo: se comprueba cada tesela y solo se descargan las que cambiaron (unas horas, pocos datos)</string>
     <string name="off_fresh_msg">Todo está al día en el teléfono. ¿Comprobarlo todo de nuevo de todos modos? Los archivos solo se descargan si el servidor tiene versiones nuevas; se comprueba cada tesela del mapa (unas horas por wifi, pocos datos).</string>

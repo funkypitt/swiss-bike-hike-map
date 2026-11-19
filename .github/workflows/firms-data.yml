@@ -1,0 +1,32 @@
+# Builds the offline pack of firms (the Swiss commercial register with its addresses, placed
+# with swisstopo's directory of building addresses) and keeps it on the rolling release
+# "firms-data", which the app downloads with the places. Runs weekly and on demand.
+name: firms-data
+
+on:
+  schedule:
+    - cron: "41 4 * * 4"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build the pack
+        run: python3 tools/make-firms.py out
+      - name: Publish on the firms-data release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view firms-data --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+            gh release create firms-data --repo "$GITHUB_REPOSITORY" --title "Firms pack (commercial register)" \
+              --notes "Offline firms of the app: the Swiss commercial register with its registered addresses (Zefix, Federal Commercial Registry Office; open use, source to be named), placed with the official directory of building addresses (swisstopo). Rebuilt weekly. Not an app release." --prerelease
+          gh release upload firms-data out/switzerland.firms.gz out/switzerland.firms.json --repo "$GITHUB_REPOSITORY" --clobber
+          cat out/switzerland.firms.json

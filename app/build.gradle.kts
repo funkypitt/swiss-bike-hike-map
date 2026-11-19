@@ -11,8 +11,8 @@ android {
         applicationId = "com.freedomfighter.swissbikehike"
         minSdk = 28
         targetSdk = 35
-        versionCode = 31
-        versionName = "0.18.0"
+        versionCode = 32
+        versionName = "0.19.0"
     }
 
     // where the app is published: « libre » (F-Droid, GitHub) asks the directory of search.ch with

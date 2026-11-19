@@ -216,7 +216,7 @@
     <string name="menu_places_map_off">LUGARES NO MAPA: NÃO</string>
     <string name="menu_places_map_on">LUGARES NO MAPA: SIM</string>
     <string name="places_zoom_in">Aproxime para ver os lugares (a partir do zoom 13)</string>
-    <string name="places_offer_msg">Fontes, abrigos, refúgios, lojas… do OpenStreetMap ainda não estão no telemóvel: cerca de 5 MB, por Wi-Fi. Depois aparecem no mapa e em PROCURAR sem ligação.</string>
+    <string name="places_offer_msg">Fontes, abrigos, refúgios, lojas… do OpenStreetMap e as empresas do registo comercial ainda não estão no telemóvel: cerca de 40 MB, por Wi-Fi. Depois PROCURAR encontra-as sem ligação, e os lugares aparecem no mapa.</string>
     <string name="cat_cafe">Café, salão de chá</string>
     <string name="cat_bar">Bar, pub</string>
     <string name="cat_fast_food">Comida rápida, take-away</string>
@@ -311,7 +311,7 @@
     <string name="off_download_msg">Tudo para usar a app sem rede, em toda a Suíça:\n%1$s\n\n%2$s. O mapa demora algumas horas, de preferência com o telemóvel a carregar; pode usar a app entretanto. A notificação mostra o progresso e tem PAUSA. Se a ligação cair ou o telemóvel reiniciar, continua sozinho.</string>
     <string name="off_update_msg">Vale a pena atualizar:\n%1$s\n\n%2$s, em segundo plano, com o progresso na notificação.</string>
     <string name="off_why_timetable">o horário desta semana (≈ 15 MB)</string>
-    <string name="off_why_places">um mês de alterações no OpenStreetMap (≈ 5 MB)</string>
+    <string name="off_why_places">um mês de alterações no OpenStreetMap e no registo comercial (≈ 40 MB)</string>
     <string name="off_why_routing">um mês de alterações no OpenStreetMap (≈ 450 MB)</string>
     <string name="off_why_map">a swisstopo ou o ASTRA publicaram um mapa novo: cada mosaico é verificado, só os alterados são descarregados (algumas horas, poucos dados)</string>
     <string name="off_fresh_msg">Tudo está atualizado no telemóvel. Verificar tudo de novo mesmo assim? Os ficheiros só são descarregados se o servidor tiver versões novas; cada mosaico do mapa é verificado (algumas horas em Wi-Fi, poucos dados).</string>

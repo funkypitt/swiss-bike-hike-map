@@ -223,7 +223,7 @@
     <string name="menu_places_map_off">PLACES ON THE MAP: OFF</string>
     <string name="menu_places_map_on">PLACES ON THE MAP: ON</string>
     <string name="places_zoom_in">Zoom in to see the places (from zoom 13)</string>
-    <string name="places_offer_msg">Fountains, shelters, huts, shops… from OpenStreetMap are not on the phone yet: about 5 MB, over Wi-Fi. Then they show on the map and in FIND without a connection.</string>
+    <string name="places_offer_msg">Fountains, shelters, huts, shops… from OpenStreetMap and the firms of the commercial register are not on the phone yet: about 40 MB, over Wi-Fi. Then FIND knows them without a connection, and the places show on the map.</string>
     <string name="cat_cafe">Café, tea room</string>
     <string name="cat_bar">Bar, pub</string>
     <string name="cat_fast_food">Fast food, takeaway</string>
@@ -318,7 +318,7 @@
     <string name="off_download_msg">Everything for using the app without a network, all of Switzerland:\n%1$s\n\n%2$s. The map takes a few hours, best with the phone charging; you can use the app meanwhile. The notification shows the progress and has PAUSE. If the connection drops or the phone restarts, it goes on by itself.</string>
     <string name="off_update_msg">Worth updating now:\n%1$s\n\n%2$s, in the background, with the progress in the notification.</string>
     <string name="off_why_timetable">this week\'s timetable (≈ 15 MB)</string>
-    <string name="off_why_places">a month of OpenStreetMap changes (≈ 5 MB)</string>
+    <string name="off_why_places">a month of changes in OpenStreetMap and in the commercial register (≈ 40 MB)</string>
     <string name="off_why_routing">a month of OpenStreetMap changes (≈ 450 MB)</string>
     <string name="off_why_map">swisstopo or ASTRA published a new map: every tile is checked, only the changed ones are fetched (a few hours, little data)</string>
     <string name="off_fresh_msg">Everything on the phone is current. Check it all again anyway? Files are fetched only if the server has newer ones; every map tile is checked (a few hours over Wi-Fi, little data).</string>

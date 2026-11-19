@@ -48,9 +48,13 @@ the app was called Swiss Bike-Hike Map; the package name has not changed.)
   dots on the map; a tap opens the place's card: open or closed now, the week's hours, address,
   phone (CALL), website, and CONTACT (adds it to your contacts), COPY, SHARE; places and addresses (GeoAdmin), typed coordinates (WGS84,
   LV95, LV03) and public-transport stops, mixed and nearest first; a name with a town
-  (« Ardentis Lausanne », « hotel Bern ») is looked for in that town; people and firms from the
+  (« Ardentis Lausanne », « hotel Bern ») is looked for in that town; the firms of the Swiss
+  commercial register, offline (about 789 000, at their registered address, a 33 MB pack that comes
+  with the places); the postal address of one of your contacts, through Android's own picker (no
+  access to the contacts is asked); people and firms from the
   search.ch directory with your own free key (the Search key or the directory row), which also
-  completes a place with its phone and address; and your favourites,
+  completes a place with its phone and address — without a key, the name is looked up on search.ch
+  in the browser, and an address copied there is offered as a point when you come back; and your favourites,
   which you can import and export (GPX, KML, GeoJSON, CSV). The places can be drawn on the map
   as coloured dots.
 * **Offline**: one option, all of Switzerland — map, routing, places and timetable (about
@@ -113,6 +117,8 @@ FEDRO, SwitzerlandMobility and the cantons, open data of data.geo.admin.ch, pack
 `tools/make-tours.py`.
 Search: GeoAdmin API; places (fountains, shelters, huts, shops…): © OpenStreetMap contributors
 (ODbL), extract by [Geofabrik](https://download.geofabrik.de), packed weekly by this repository;
+firms: the Swiss commercial register (Zefix, Federal Commercial Registry Office, open government
+data), placed with swisstopo's directory of building addresses, packed weekly by this repository;
 people and firms: search.ch directory (Swisscom Directories AG) with the user's own key. Public transport: [transport.opendata.ch](https://transport.opendata.ch)
 (Opendata.ch) online; the offline pack comes from the official Swiss timetable (GTFS) of
 [opentransportdata.swiss](https://opentransportdata.swiss), open data of the Federal Office of

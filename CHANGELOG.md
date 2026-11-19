@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.19.0 — 2026-11-19
+
+* FIND knows the firms of the Swiss commercial register, offline: about 789 000 names with
+  their registered address, placed at their building. A name with a town (« Ardentis
+  Lausanne ») finds the firm, which goes on the map like any place: a stop, DIRECTIONS, a
+  favourite. They come with the places (MENU › Switzerland offline, about 40 MB together). A
+  firm that OpenStreetMap or the directory also knows is listed once.
+* « The address of a contact »: FIND takes a postal address from your contacts, through
+  Android's own picker; the app asks for no access to the contacts.
+* Without a search.ch key, FIND offers to look the name up on search.ch in the browser; an
+  address copied there is offered as a point when you come back.
+* Source of the firms: Zefix, Federal Commercial Registry Office (open government data).
+
 ## 0.18.0 — 2026-11-19
 
 * The favourites are on the map: a yellow dot ringed in black, with the name from the scale of
