@@ -297,6 +297,7 @@
     <string name="off_s_queued">wartet, bis es dran ist</string>
     <string name="off_s_partial">unvollständig (%1$s)</string>
     <string name="off_s_missing">nicht auf dem Telefon</string>
+    <string name="off_s_firms_missing">die Firmen fehlen noch</string>
     <string name="off_s_due">Update empfohlen</string>
     <string name="off_s_newer_later">neuer auf dem Server, noch nicht nötig</string>
     <string name="off_s_current">aktuell</string>

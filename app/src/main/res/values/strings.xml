@@ -304,6 +304,7 @@
     <string name="off_s_queued">waiting its turn</string>
     <string name="off_s_partial">incomplete (%1$s)</string>
     <string name="off_s_missing">not on the phone</string>
+    <string name="off_s_firms_missing">the firms are still to fetch</string>
     <string name="off_s_due">update due</string>
     <string name="off_s_newer_later">newer on the server, not needed yet</string>
     <string name="off_s_current">up to date</string>

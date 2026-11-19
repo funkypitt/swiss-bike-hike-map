@@ -210,6 +210,7 @@ class MenuActivity : AppCompatActivity() {
                 p in wanted && p == wanted.first() && !running && !Offline.networkOk(this) -> getString(if (Offline.mobile(this)) R.string.dl_waiting_net else R.string.dl_waiting_wifi)
                 p in wanted -> getString(R.string.off_s_queued)
                 !present(p) && p == Offline.Part.MAP && mapBytes > 0 -> getString(R.string.off_s_partial, Fmt.size(mapBytes))
+                !present(p) && p == Offline.Part.PLACES && PlacesPack.file(this).exists() -> getString(R.string.off_s_firms_missing)   // the places are there, the firms are not yet
                 !present(p) -> getString(R.string.off_s_missing)
                 else -> (if (p.shipped) toursLine() else Fmt.size(bytes(p)) + " · " + date(Offline.updated(this, p))) + when {
                     p in due -> " · " + getString(R.string.off_s_due)

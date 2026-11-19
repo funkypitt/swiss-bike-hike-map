@@ -297,6 +297,7 @@
     <string name="off_s_queued">ждёт своей очереди</string>
     <string name="off_s_partial">не полностью (%1$s)</string>
     <string name="off_s_missing">нет на телефоне</string>
+    <string name="off_s_firms_missing">не хватает фирм</string>
     <string name="off_s_due">стоит обновить</string>
     <string name="off_s_newer_later">на сервере новее, пока не нужно</string>
     <string name="off_s_current">актуально</string>

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.19.1 — 2026-11-19
+
+* MENU › Switzerland offline: a phone that has the places but not yet the firms reads « the
+  firms are still to fetch » on the places line, instead of « not on the phone ».
+
 ## 0.19.0 — 2026-11-19
 
 * FIND knows the firms of the Swiss commercial register, offline: about 789 000 names with
