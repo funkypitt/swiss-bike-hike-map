@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.15.0 — 2026-11-19
+
+* SWITZERLAND (in TOURS) also has the signposted cycling routes of SwitzerlandMobility: 128
+  routes in 292 stages, national (Rhone Route, Lakes Route…), regional and local. BIKE sits
+  between ON FOOT and MTB, and is the list the bike map opens on; its lengths narrow by
+  ≤ 30 km, 30–50 km and > 50 km. A stage kept from there is a bike tour among your own.
+* A route signposted on different roads each way is drawn on its outward roads; shown the
+  other way round, it follows the same roads back.
+* Source: « Veloland Schweiz » on data.geo.admin.ch, same owners; the pack is 3.9 MB and the
+  weekly health check watches the third source too.
+
 ## 0.14.0 — 2026-11-18
 
 * TOURS has a second list, SWITZERLAND: the signposted routes of SwitzerlandMobility, on foot

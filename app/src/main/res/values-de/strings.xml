@@ -432,7 +432,7 @@
     <string name="swiss_keep">In meinen Touren aufbewahren</string>
     <string name="swiss_page">Beschreibung auf schweizmobil.ch</string>
     <string name="tour_src_swiss">aufbewahrt am</string>
-    <string name="swiss_credit">Die signalisierten Wander- und Mountainbike-Routen von SchweizMobil, Etappe für Etappe. Daten: Bundesamt für Strassen ASTRA, SchweizMobil und die Kantone (data.geo.admin.ch), Stand %1$s. Sperrungen und Umleitungen sind auf der Karte dick rot und bernsteinfarben eingezeichnet: vor dem Aufbruch nachsehen.</string>
+    <string name="swiss_credit">Die signalisierten Wander-, Velo- und Mountainbike-Routen von SchweizMobil, Etappe für Etappe. Daten: Bundesamt für Strassen ASTRA, SchweizMobil und die Kantone (data.geo.admin.ch), Stand %1$s. Sperrungen und Umleitungen sind auf der Karte dick rot und bernsteinfarben eingezeichnet: vor dem Aufbruch nachsehen.</string>
     <plurals name="swiss_count">
         <item quantity="one">%d Tour</item>
         <item quantity="other">%d Touren</item>

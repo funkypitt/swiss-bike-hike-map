@@ -2,7 +2,7 @@
 """
 The signposted tours of Switzerland, as one small file for the app's assets.
 
-Source: « Wanderland Schweiz » and « Mountainbikeland Schweiz » (Federal Roads Office FEDRO,
+Source: « Wanderland Schweiz », « Mountainbikeland Schweiz » and « Veloland Schweiz » (Federal Roads Office FEDRO,
 SwitzerlandMobility and the cantons), open data on data.geo.admin.ch — free use, the source must
 be named. The GeoPackages hold the routes (name, kind) and their stages (from, to, length, climb,
 fitness, technique, walking times) as heaps of unordered little lines in Swiss coordinates with
@@ -23,6 +23,7 @@ import argparse, collections, datetime, json, math, os, sqlite3, struct, sys, te
 SOURCES = [
     ("walk", "https://data.geo.admin.ch/ch.astra.wanderland/wanderland/wanderland_2056.gpkg"),
     ("mtb", "https://data.geo.admin.ch/ch.astra.mountainbikeland/mountainbikeland/mountainbikeland_2056.gpkg"),
+    ("bike", "https://data.geo.admin.ch/ch.astra.veloland/veloland/veloland_2056.gpkg"),
 ]
 TOLERANCE_M = 3.0
 LEVEL = {"easy": 1, "medium": 2, "difficult": 3}

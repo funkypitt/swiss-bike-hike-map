@@ -15,25 +15,25 @@ class SwissTour(
     val from: String, val to: String, val metres: Int, val up: Int, val down: Int,
     /** 1 easy, 2 medium, 3 difficult; 0 unknown. */
     val fit: Int, val tech: Int,
-    /** Walking time from start to end and back, 0 when the source gives none (mountain bike). */
+    /** Walking time from start to end and back, 0 when the source gives none (by bike). */
     val minutes: Int, val back: Int, val loop: Boolean,
     val lat: Double, val lon: Double, val lat2: Double, val lon2: Double,
     val offset: Long, val bytes: Int,
 ) {
     /** What the person's own tours call this kind. */
-    val tourKind: String get() = if (land == SwissTours.MTB) Tours.MTB else Tours.WALK
+    val tourKind: String get() = when (land) { SwissTours.MTB -> Tours.MTB; SwissTours.BIKE -> Tours.BIKE; else -> Tours.WALK }
     val barrierFree: Boolean get() = kind == 'h'
     /** Lower-case, without accents: what the filter is matched against. */
     val words: String by lazy { SwissTours.fold("$name $from $to $nr") }
 }
 
 /**
- * The signposted hiking and mountain-bike tours, read from the file shipped with the app
+ * The signposted hiking, cycling and mountain-bike tours, read from the file shipped with the app
  * (tools/make-tours.py builds it from the open data of the Federal Roads Office, SwitzerlandMobility
  * and the cantons). The list is small and kept in memory; a tour's line is read when it is opened.
  */
 object SwissTours {
-    const val WALK = "walk"; const val MTB = "mtb"
+    const val WALK = "walk"; const val BIKE = "bike"; const val MTB = "mtb"
     private const val ASSET = "tours.pack"
 
     class Pack(val built: String, val tours: List<SwissTour>, val linesAt: Long)
@@ -100,12 +100,12 @@ object SwissTours {
 
     /** The route's page on schweizmobil.ch, in the person's language when the site has it (German, French, Italian), else in English. */
     fun page(t: SwissTour, language: String): String {
-        val walk = t.land != MTB
+        fun of(walk: String, bike: String, mtb: String) = when (t.land) { MTB -> mtb; BIKE -> bike; else -> walk }
         val path = when (language) {
-            "de" -> if (walk) "de/wanderland/route-" else "de/mountainbikeland/route-"
-            "fr" -> if (walk) "fr/suisse-a-pied/itineraire-" else "fr/suisse-a-vtt/itineraire-"
-            "it" -> if (walk) "it/svizzera-a-piedi/percorso-" else "it/svizzera-in-mountain-bike/percorso-"
-            else -> if (walk) "en/hiking-in-switzerland/route-" else "en/mountainbiking-in-switzerland/route-"
+            "de" -> "de/" + of("wanderland", "veloland", "mountainbikeland") + "/route-"
+            "fr" -> "fr/suisse-" + of("a-pied", "a-velo", "a-vtt") + "/itineraire-"
+            "it" -> "it/svizzera-" + of("a-piedi", "in-bici", "in-mountain-bike") + "/percorso-"
+            else -> "en/" + of("hiking", "cycling", "mountainbiking") + "-in-switzerland/route-"
         }
         return "https://schweizmobil.ch/" + path + t.nr
     }

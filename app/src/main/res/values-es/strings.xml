@@ -432,7 +432,7 @@
     <string name="swiss_keep">Guardar en mis recorridos</string>
     <string name="swiss_page">Descripción en schweizmobil.ch</string>
     <string name="tour_src_swiss">guardado el</string>
-    <string name="swiss_credit">Las rutas señalizadas de SuizaMóvil, a pie y en BTT, etapa por etapa. Datos: Oficina Federal de Carreteras OFROU, SuizaMóvil y los cantones (data.geo.admin.ch), a fecha de %1$s. Los cierres y los desvíos están dibujados en el mapa en rojo y ámbar gruesos: mire antes de salir.</string>
+    <string name="swiss_credit">Las rutas señalizadas de SuizaMóvil, a pie, en bici y en BTT, etapa por etapa. Datos: Oficina Federal de Carreteras OFROU, SuizaMóvil y los cantones (data.geo.admin.ch), a fecha de %1$s. Los cierres y los desvíos están dibujados en el mapa en rojo y ámbar gruesos: mire antes de salir.</string>
     <plurals name="swiss_count">
         <item quantity="one">%d recorrido</item>
         <item quantity="other">%d recorridos</item>

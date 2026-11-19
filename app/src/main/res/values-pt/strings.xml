@@ -432,7 +432,7 @@
     <string name="swiss_keep">Guardar nos meus percursos</string>
     <string name="swiss_page">Descrição em schweizmobil.ch</string>
     <string name="tour_src_swiss">guardado em</string>
-    <string name="swiss_credit">As rotas sinalizadas da SuíçaMobile, a pé e de BTT, etapa a etapa. Dados: Departamento Federal de Estradas FEDRO, SuíçaMobile e os cantões (data.geo.admin.ch), em %1$s. Os cortes e os desvios estão desenhados no mapa a vermelho e âmbar espessos: veja antes de partir.</string>
+    <string name="swiss_credit">As rotas sinalizadas da SuíçaMobile, a pé, de bicicleta e de BTT, etapa a etapa. Dados: Departamento Federal de Estradas FEDRO, SuíçaMobile e os cantões (data.geo.admin.ch), em %1$s. Os cortes e os desvios estão desenhados no mapa a vermelho e âmbar espessos: veja antes de partir.</string>
     <plurals name="swiss_count">
         <item quantity="one">%d percurso</item>
         <item quantity="other">%d percursos</item>

@@ -432,7 +432,7 @@
     <string name="swiss_keep">Garder dans mes parcours</string>
     <string name="swiss_page">Description sur schweizmobil.ch</string>
     <string name="tour_src_swiss">gardé le</string>
-    <string name="swiss_credit">Les itinéraires balisés de SuisseMobile, à pied et à VTT, étape par étape. Données : Office fédéral des routes OFROU, SuisseMobile et les cantons (data.geo.admin.ch), état au %1$s. Les fermetures et les déviations sont dessinées sur la carte en rouge et en ambre épais : regardez avant de partir.</string>
+    <string name="swiss_credit">Les itinéraires balisés de SuisseMobile, à pied, à vélo et à VTT, étape par étape. Données : Office fédéral des routes OFROU, SuisseMobile et les cantons (data.geo.admin.ch), état au %1$s. Les fermetures et les déviations sont dessinées sur la carte en rouge et en ambre épais : regardez avant de partir.</string>
     <plurals name="swiss_count">
         <item quantity="one">%d parcours</item>
         <item quantity="other">%d parcours</item>

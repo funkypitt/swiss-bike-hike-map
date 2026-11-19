@@ -436,7 +436,7 @@
     <string name="swiss_keep">Сохранить в моих треках</string>
     <string name="swiss_page">Описание на schweizmobil.ch</string>
     <string name="tour_src_swiss">сохранён</string>
-    <string name="swiss_credit">Размеченные пешие и горновелосипедные маршруты SwitzerlandMobility, по этапам. Данные: Федеральное дорожное ведомство ASTRA, SwitzerlandMobility и кантоны (data.geo.admin.ch), по состоянию на %1$s. Закрытия и объезды показаны на карте толстыми красными и янтарными линиями: посмотрите перед выходом.</string>
+    <string name="swiss_credit">Размеченные пешие, велосипедные и горновелосипедные маршруты SwitzerlandMobility, по этапам. Данные: Федеральное дорожное ведомство ASTRA, SwitzerlandMobility и кантоны (data.geo.admin.ch), по состоянию на %1$s. Закрытия и объезды показаны на карте толстыми красными и янтарными линиями: посмотрите перед выходом.</string>
     <plurals name="swiss_count">
         <item quantity="one">%d маршрут</item>
         <item quantity="few">%d маршрута</item>

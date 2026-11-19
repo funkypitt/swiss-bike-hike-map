@@ -18,6 +18,7 @@ class SwissToursTest {
     @Test fun indexHoldsBothLands() {
         assertTrue(pack.tours.count { it.land == SwissTours.WALK } > 800)
         assertTrue(pack.tours.count { it.land == SwissTours.MTB } > 300)
+        assertTrue(pack.tours.count { it.land == SwissTours.BIKE } > 250)
         assertTrue(pack.tours.count { it.barrierFree } > 50)
         assertTrue(pack.built.matches(Regex("\\d{4}-\\d{2}-\\d{2}")))
         // walking stages carry their signposted time
@@ -62,5 +63,10 @@ class SwissToursTest {
         assertEquals("https://schweizmobil.ch/en/hiking-in-switzerland/route-116", SwissTours.page(dole, "ru"))
         val bike = pack.tours.first { it.land == SwissTours.MTB && it.nr == "116" }
         assertEquals("https://schweizmobil.ch/de/mountainbikeland/route-116", SwissTours.page(bike, "de"))
+        val rhone = pack.tours.first { it.land == SwissTours.BIKE && it.nr == "1" }
+        assertEquals(Tours.BIKE, rhone.tourKind)
+        assertEquals("https://schweizmobil.ch/fr/suisse-a-velo/itineraire-1", SwissTours.page(rhone, "fr"))
+        assertEquals("https://schweizmobil.ch/it/svizzera-in-bici/percorso-1", SwissTours.page(rhone, "it"))
+        assertEquals("https://schweizmobil.ch/en/cycling-in-switzerland/route-1", SwissTours.page(rhone, "pt"))
     }
 }

@@ -39,7 +39,7 @@ the app was called Swiss Bike-Hike Map; the package name has not changed.)
   (or open or share them from another app), record your own with REC; each one with its length,
   climb and kind (on foot, bike, MTB), followed as it is (turns read off its shape), in either
   direction, renamed, shared as GPX. And **SWITZERLAND**, in the same place: the signposted routes
-  of SwitzerlandMobility, on foot (976 stages, barrier-free walks among them) and by mountain
+  of SwitzerlandMobility, on foot (976 stages, barrier-free walks among them), by bike (292) and by mountain
   bike (403), offline, nearest first, by walking time, difficulty or name; one tap draws a stage
   with its profile, steps and signposted time.
 * **FIND**: one field for everything, as in any map app: favourites, places around by category or by word, offline (drinking water, shelters, huts,

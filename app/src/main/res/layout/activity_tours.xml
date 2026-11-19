@@ -31,9 +31,10 @@
         <LinearLayout android:id="@+id/swiss" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal"
                 android:baselineAligned="false" android:layout_marginTop="14dp">
-                <TextView android:id="@+id/sWalk" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:autoSizeMaxTextSize="14sp" android:text="@string/tour_walk"/>
-                <TextView android:id="@+id/sMtb" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:text="@string/tour_mtb"/>
-                <TextView android:id="@+id/sEasy" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1.6" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:text="@string/swiss_easy"/>
+                <TextView android:id="@+id/sWalk" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1" android:letterSpacing="0.02" android:layout_height="48dp" android:autoSizeMaxTextSize="14sp" android:text="@string/tour_walk"/>
+                <TextView android:id="@+id/sBike" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1.15" android:letterSpacing="0.02" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:text="@string/tour_bike"/>
+                <TextView android:id="@+id/sMtb" style="@style/Btn" android:layout_width="0dp" android:layout_weight="0.75" android:letterSpacing="0.02" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:text="@string/tour_mtb"/>
+                <TextView android:id="@+id/sEasy" style="@style/Btn" android:layout_width="0dp" android:layout_weight="1.6" android:letterSpacing="0.02" android:layout_height="48dp" android:layout_marginStart="6dp" android:autoSizeMaxTextSize="14sp" android:text="@string/swiss_easy"/>
             </LinearLayout>
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal"
                 android:baselineAligned="false" android:layout_marginTop="6dp">

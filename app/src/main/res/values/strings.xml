@@ -439,7 +439,7 @@
     <string name="swiss_keep">Keep in my tours</string>
     <string name="swiss_page">Description on schweizmobil.ch</string>
     <string name="tour_src_swiss">kept</string>
-    <string name="swiss_credit">The signposted hiking and mountain-bike routes of SwitzerlandMobility, stage by stage. Data: Federal Roads Office FEDRO, SwitzerlandMobility and the cantons (data.geo.admin.ch), as of %1$s. Closures and diversions are drawn on the map in thick red and amber: look before you leave.</string>
+    <string name="swiss_credit">The signposted hiking, cycling and mountain-bike routes of SwitzerlandMobility, stage by stage. Data: Federal Roads Office FEDRO, SwitzerlandMobility and the cantons (data.geo.admin.ch), as of %1$s. Closures and diversions are drawn on the map in thick red and amber: look before you leave.</string>
     <plurals name="swiss_count">
         <item quantity="one">%d tour</item>
         <item quantity="other">%d tours</item>

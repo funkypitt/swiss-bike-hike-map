@@ -100,10 +100,11 @@ class ToursActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("tours", MODE_PRIVATE)
         // the first time, with nothing of one's own yet: what there is to walk around here
         swissTab = savedInstanceState?.getBoolean("swiss") ?: prefs.getBoolean("swiss", Tours.list(this).isEmpty())
-        land = savedInstanceState?.getString("land") ?: if (mode == Mode.BIKE) SwissTours.MTB else SwissTours.WALK
+        land = savedInstanceState?.getString("land") ?: if (mode == Mode.BIKE) SwissTours.BIKE else SwissTours.WALK
         b.tabMine.setOnClickListener { swissTab = false; prefs.edit().putBoolean("swiss", false).apply(); render() }
         b.tabSwiss.setOnClickListener { swissTab = true; prefs.edit().putBoolean("swiss", true).apply(); render() }
         b.sWalk.setOnClickListener { land = SwissTours.WALK; span = 0; shown = PAGE; renderSwiss() }
+        b.sBike.setOnClickListener { land = SwissTours.BIKE; easyOnly = false; span = 0; shown = PAGE; renderSwiss() }
         b.sMtb.setOnClickListener { land = SwissTours.MTB; easyOnly = false; span = 0; shown = PAGE; renderSwiss() }
         b.sEasy.setOnClickListener { easyOnly = !easyOnly; if (easyOnly) land = SwissTours.WALK; shown = PAGE; renderSwiss() }
         for ((i, v) in listOf(b.d0, b.d1, b.d2, b.d3).withIndex()) v.setOnClickListener { span = i; shown = PAGE; renderSwiss() }
@@ -144,12 +145,14 @@ class ToursActivity : AppCompatActivity() {
 
     private fun renderSwiss() {
         val p = pack
-        mark(b.sWalk, land == SwissTours.WALK && !easyOnly); mark(b.sMtb, land == SwissTours.MTB); mark(b.sEasy, easyOnly)
+        mark(b.sWalk, land == SwissTours.WALK && !easyOnly); mark(b.sBike, land == SwissTours.BIKE); mark(b.sMtb, land == SwissTours.MTB); mark(b.sEasy, easyOnly)
         val walk = land == SwissTours.WALK
         // on foot the signposts give hours, by bike kilometres
-        b.d1.text = if (walk) getString(R.string.swiss_h_max, 2) else getString(R.string.swiss_km_max, 20)
-        b.d2.text = if (walk) getString(R.string.swiss_h_range, 2, 4) else getString(R.string.swiss_km_range, 20, 40)
-        b.d3.text = if (walk) getString(R.string.swiss_h_min, 4) else getString(R.string.swiss_km_min, 40)
+        // …and a stage of a cycling route is about twice a mountain-bike one
+        val (short, long) = if (land == SwissTours.BIKE) Pair(30, 50) else Pair(20, 40)
+        b.d1.text = if (walk) getString(R.string.swiss_h_max, 2) else getString(R.string.swiss_km_max, short)
+        b.d2.text = if (walk) getString(R.string.swiss_h_range, 2, 4) else getString(R.string.swiss_km_range, short, long)
+        b.d3.text = if (walk) getString(R.string.swiss_h_min, 4) else getString(R.string.swiss_km_min, long)
         for ((i, v) in listOf(b.d0, b.d1, b.d2, b.d3).withIndex()) mark(v, span == i)
         for ((i, v) in listOf(b.l0, b.l1, b.l2, b.l3).withIndex()) mark(v, level == i)
         b.sList.removeAllViews()
@@ -161,9 +164,9 @@ class ToursActivity : AppCompatActivity() {
         val found = p.tours.filter { s ->
             s.land == land && (!easyOnly || s.barrierFree) && (level == 0 || s.fit == level) && words.all { it in s.words } && when (span) {
                 0 -> true
-                1 -> if (walk) s.minutes <= 120 else s.metres <= 20_000
-                2 -> if (walk) s.minutes in 121..240 else s.metres in 20_001..40_000
-                else -> if (walk) s.minutes > 240 else s.metres > 40_000
+                1 -> if (walk) s.minutes <= 120 else s.metres <= short * 1000
+                2 -> if (walk) s.minutes in 121..240 else s.metres > short * 1000 && s.metres <= long * 1000
+                else -> if (walk) s.minutes > 240 else s.metres > long * 1000
             }
         }.map { Pair(it, away(it)) }.sortedWith(compareBy({ it.second }, { it.first.id }))
         b.sInfo.text = if (found.isEmpty()) getString(R.string.swiss_none)

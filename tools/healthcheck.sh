@@ -103,7 +103,7 @@ http GET "https://search.ch/tel/api/?was=test&key=none" "" "search.ch directory 
 # the signposted tours ship inside the app (tools/make-tours.py): newer data at the source means a new build
 pack="$(dirname "$0")/../app/src/main/assets/tours.pack"
 built=$(python3 -c 'import sys,json,struct; b=open(sys.argv[1],"rb").read(); print(json.loads(b[9:9+struct.unpack_from("<I",b,5)[0]]).get("built",""))' "$pack" 2>/dev/null)
-for land in wanderland mountainbikeland; do
+for land in wanderland mountainbikeland veloland; do
   upd=$(curl -sS -m 30 -A "$UA" "https://data.geo.admin.ch/api/stac/v0.9/collections/ch.astra.$land/items" 2>/dev/null | python3 -c 'import sys,json; a=json.load(sys.stdin)["features"][0]["assets"]; print(next(v["updated"][:10] for k,v in a.items() if k.endswith(".gpkg")))' 2>/dev/null)
   if [ -z "$built" ] || [ -z "$upd" ]; then bad "signposted tours ($land): the date of the pack or of the source could not be read"
   elif [[ "$upd" > "$built" ]]; then bad "signposted tours ($land): source updated $upd, pack built $built — run tools/make-tours.py and release"
