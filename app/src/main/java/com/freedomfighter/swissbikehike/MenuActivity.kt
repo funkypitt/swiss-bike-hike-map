@@ -147,6 +147,7 @@ class MenuActivity : AppCompatActivity() {
         asking = true; renderOffline()
         val ctx = this
         if (Timetable.file(ctx).exists()) newer[Offline.Part.TIMETABLE] = Timetable.remote()?.let { Timetable.newer(Timetable.local(ctx), it) }
+        newer[Offline.Part.TOURS] = ToursPack.remote()?.let { ToursPack.newer(ToursPack.local(ctx), it) }
         if (PlacesPack.file(ctx).exists()) newer[Offline.Part.PLACES] = PlacesPack.remote()?.let { PlacesPack.newer(PlacesPack.local(ctx), it) }
         if (Segments.isReady(ctx)) {
             val dates = Segments.names.map { Offline.serverModified(Segments.url(it)) }
@@ -169,6 +170,7 @@ class MenuActivity : AppCompatActivity() {
 
     private fun bytes(p: Offline.Part): Long = when (p) {
         Offline.Part.TIMETABLE -> Timetable.file(this).length()
+        Offline.Part.TOURS -> if (ToursPack.fetched(this)) ToursPack.file(this).length() else 0L
         Offline.Part.PLACES -> PlacesPack.file(this).length()
         Offline.Part.ROUTING -> Segments.bytes(this)
         Offline.Part.MAP -> mapBytes
@@ -178,6 +180,13 @@ class MenuActivity : AppCompatActivity() {
         present(p) && Policy.due(p, Offline.updated(this, p), System.currentTimeMillis(), newer[p] == true)
     }
     private fun missing(): List<Offline.Part> = Offline.Part.entries.filter { !present(it) }
+    /** How many parts a phone without anything lacks (the signposted tours ship with the app). */
+    private val absentAtFirst = Offline.Part.entries.count { !it.shipped }
+    /** The pack of signposted tours in use: where it comes from and how recent its data are. */
+    private fun toursLine(): String {
+        val stamp = ToursPack.local(this)?.version?.take(10) ?: "?"
+        return (if (ToursPack.fetched(this)) Fmt.size(bytes(Offline.Part.TOURS)) else getString(R.string.off_s_with_app)) + " · " + getString(R.string.off_s_data_of, stamp)
+    }
     private fun missingBytes(): Long = missing().sumOf { if (it == Offline.Part.MAP) (it.estimate - mapBytes).coerceAtLeast(0L) else it.estimate }
 
     private fun renderOffline() {
@@ -198,7 +207,7 @@ class MenuActivity : AppCompatActivity() {
                 p in wanted -> getString(R.string.off_s_queued)
                 !present(p) && p == Offline.Part.MAP && mapBytes > 0 -> getString(R.string.off_s_partial, Fmt.size(mapBytes))
                 !present(p) -> getString(R.string.off_s_missing)
-                else -> Fmt.size(bytes(p)) + " · " + date(Offline.updated(this, p)) + when {
+                else -> (if (p.shipped) toursLine() else Fmt.size(bytes(p)) + " · " + date(Offline.updated(this, p))) + when {
                     p in due -> " · " + getString(R.string.off_s_due)
                     newer[p] == true -> " · " + getString(R.string.off_s_newer_later)
                     newer[p] == false -> " · " + getString(R.string.off_s_current)
@@ -229,16 +238,17 @@ class MenuActivity : AppCompatActivity() {
         b.btnOffMain.text = when {
             inRun && job != null && !paused -> getString(R.string.off_pause)
             inRun -> getString(R.string.off_resume)
-            miss.size == Offline.Part.entries.size -> getString(R.string.off_download_size, Fmt.size(missingBytes()))
-            miss.isNotEmpty() -> getString(R.string.off_complete_size, Fmt.size(missingBytes()))
+            // what is on the phone and due comes before the rest: an update is small, the rest is gigabytes
             due.isNotEmpty() -> getString(R.string.off_update_n, due.joinToString(", ") { getString(it.label).lowercase(Locale.getDefault()) })
+            miss.size == absentAtFirst -> getString(R.string.off_download_size, Fmt.size(missingBytes()))
+            miss.isNotEmpty() -> getString(R.string.off_complete_size, Fmt.size(missingBytes()))
             else -> getString(R.string.off_up_to_date)
         }
         val quiet = !inRun && miss.isEmpty() && due.isEmpty()
         b.btnOffMain.setBackgroundResource(if (quiet) R.drawable.btn else R.drawable.btn_active)
         b.btnOffMain.setTextColor(androidx.appcompat.content.res.AppCompatResources.getColorStateList(this, if (quiet) R.drawable.btn_text else R.drawable.btn_active_text))
         val stopped = inRun && (paused || job == null)
-        b.btnOffDelete.visibility = if (stopped || (!inRun && Offline.Part.entries.any { present(it) || (it == Offline.Part.MAP && mapBytes > 0) })) View.VISIBLE else View.GONE
+        b.btnOffDelete.visibility = if (stopped || (!inRun && (ToursPack.file(this).exists() || Offline.Part.entries.any { (!it.shipped && present(it)) || (it == Offline.Part.MAP && mapBytes > 0) }))) View.VISIBLE else View.GONE
         b.btnOffDelete.text = getString(if (stopped) R.string.off_cancel else R.string.off_delete)
         b.btnOffOld.visibility = if (oldCount > 0 && !inRun) View.VISIBLE else View.GONE
         b.btnOffOld.text = getString(R.string.off_delete_old, oldCount, Fmt.size(oldBytes))
@@ -260,8 +270,8 @@ class MenuActivity : AppCompatActivity() {
         when {
             inRun && job != null && !Offline.paused(this) -> Offline.pause(this)
             inRun -> Offline.resume(this)
-            missing().isNotEmpty() -> confirmDownload()
             due().isNotEmpty() -> confirmUpdate(due())
+            missing().isNotEmpty() -> confirmDownload()
             else -> confirmFresh()
         }
         lifecycleScope.launch { kotlinx.coroutines.delay(400); renderOffline() }
@@ -293,6 +303,7 @@ class MenuActivity : AppCompatActivity() {
     private fun confirmUpdate(due: List<Offline.Part>) {
         val lines = due.joinToString("\n") { "• " + getString(it.label) + " — " + getString(when (it) {
             Offline.Part.TIMETABLE -> R.string.off_why_timetable
+            Offline.Part.TOURS -> R.string.off_why_tours
             Offline.Part.PLACES -> R.string.off_why_places
             Offline.Part.ROUTING -> R.string.off_why_routing
             Offline.Part.MAP -> R.string.off_why_map
@@ -317,7 +328,7 @@ class MenuActivity : AppCompatActivity() {
                     Offline.pause(this@MenuActivity); Offline.clearRun(this@MenuActivity)
                     for (r in OfflineMaps.list(this@MenuActivity)) OfflineMaps.delete(r)
                     Offline.setMapComplete(this@MenuActivity, false); Offline.setMapRefreshing(this@MenuActivity, false)
-                    Segments.delete(this@MenuActivity); Timetable.delete(this@MenuActivity); PlacesPack.delete(this@MenuActivity)
+                    Segments.delete(this@MenuActivity); Timetable.delete(this@MenuActivity); PlacesPack.delete(this@MenuActivity); ToursPack.delete(this@MenuActivity)
                     newer.clear()
                     refreshOffline(false)
                 }
@@ -335,7 +346,7 @@ class MenuActivity : AppCompatActivity() {
                         OfflineMaps.country(this@MenuActivity)?.let { OfflineMaps.delete(it) }
                         Offline.setMapRefreshing(this@MenuActivity, false)
                     }
-                    for (p in listOf(Timetable, PlacesPack)) p.part(this@MenuActivity).let { it.delete(); java.io.File(it.path + ".tag").delete() }
+                    for (p in listOf(Timetable, PlacesPack, ToursPack)) p.part(this@MenuActivity).let { it.delete(); java.io.File(it.path + ".tag").delete() }
                     for (n in Segments.names) Segments.part(this@MenuActivity, n).let { it.delete(); java.io.File(it.path + ".tag").delete() }
                     refreshOffline(false)
                 }

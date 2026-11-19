@@ -271,6 +271,10 @@
     <string name="off_part_places">Lieux</string>
     <string name="off_part_routing">Itinéraires</string>
     <string name="off_part_map">Carte</string>
+    <string name="off_part_tours">Parcours balisés</string>
+    <string name="off_s_with_app">avec l\'app</string>
+    <string name="off_s_data_of">données du %1$s</string>
+    <string name="off_why_tours">l\'Office fédéral des routes a publié des itinéraires balisés plus récents (≈ 3 Mo)</string>
     <string name="off_head">LA SUISSE HORS LIGNE</string>
     <string name="off_download">TÉLÉCHARGER TOUTE LA SUISSE</string>
     <string name="off_download_size">TÉLÉCHARGER TOUTE LA SUISSE · ≈ %1$s</string>
@@ -284,7 +288,7 @@
     <string name="off_delete_q">Supprimer du téléphone la carte, les itinéraires, les lieux et l\'horaire ? Les itinéraires (GO) demanderont ensuite à nouveau leurs données.</string>
     <string name="off_delete_old">SUPPRIMER LES ANCIENNES ZONES (%1$d · %2$s)</string>
     <string name="off_delete_old_q">Supprimer les %1$d zone(s) enregistrée(s) par une version précédente ? La carte de toute la Suisse les remplace.</string>
-    <string name="off_policy">Les mises à jour suivent le rythme réel des changements : l\'horaire chaque semaine, les lieux et les itinéraires chaque mois, la carte quand swisstopo ou l\'OFROU en publient une nouvelle (les tuiles inchangées sont seulement vérifiées, pas retéléchargées). Rien n\'est téléchargé sans vous ; une ligne sur le premier écran signale quand une mise à jour vaut la peine.</string>
+    <string name="off_policy">Les mises à jour suivent le rythme réel des changements : l\'horaire chaque semaine, les lieux et les itinéraires chaque mois, les parcours balisés quand l\'Office fédéral des routes en publie de nouveaux (environ une fois par an), la carte quand swisstopo ou l\'OFROU en publient une nouvelle (les tuiles inchangées sont seulement vérifiées, pas retéléchargées). Rien n\'est téléchargé sans vous ; une ligne sur le premier écran signale quand une mise à jour vaut la peine.</string>
     <string name="off_s_paused">en pause à %1$d %%</string>
     <string name="off_s_downloading">téléchargement %1$d %%</string>
     <string name="off_s_queued">en attente de son tour</string>

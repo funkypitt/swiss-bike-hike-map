@@ -278,6 +278,10 @@
     <string name="off_part_places">Places</string>
     <string name="off_part_routing">Routing</string>
     <string name="off_part_map">Map</string>
+    <string name="off_part_tours">Signposted tours</string>
+    <string name="off_s_with_app">with the app</string>
+    <string name="off_s_data_of">data of %1$s</string>
+    <string name="off_why_tours">the Federal Roads Office published newer signposted routes (≈ 3 MB)</string>
     <string name="off_head">SWITZERLAND OFFLINE</string>
     <string name="off_download">DOWNLOAD ALL OF SWITZERLAND</string>
     <string name="off_download_size">DOWNLOAD ALL OF SWITZERLAND · ≈ %1$s</string>
@@ -291,7 +295,7 @@
     <string name="off_delete_q">Delete the map, routing, places and timetable from the phone? Routes (GO) need the routing data again afterwards.</string>
     <string name="off_delete_old">DELETE THE OLD SAVED AREAS (%1$d · %2$s)</string>
     <string name="off_delete_old_q">Delete the %1$d area(s) saved by an older version? The map of all Switzerland replaces them.</string>
-    <string name="off_policy">Updates follow how often things change: the timetable every week, places and routing every month, the map when swisstopo or ASTRA publish a new one (unchanged tiles are only checked, not fetched again). Nothing is downloaded without you; a line on the first screen says when something is worth updating.</string>
+    <string name="off_policy">Updates follow how often things change: the timetable every week, places and routing every month, the signposted tours when the Federal Roads Office publishes new ones (about once a year), the map when swisstopo or ASTRA publish a new one (unchanged tiles are only checked, not fetched again). Nothing is downloaded without you; a line on the first screen says when something is worth updating.</string>
     <string name="off_s_paused">paused at %1$d%%</string>
     <string name="off_s_downloading">downloading %1$d%%</string>
     <string name="off_s_queued">waiting its turn</string>

@@ -271,6 +271,10 @@
     <string name="off_part_places">Locais</string>
     <string name="off_part_routing">Rotas</string>
     <string name="off_part_map">Mapa</string>
+    <string name="off_part_tours">Percursos sinalizados</string>
+    <string name="off_s_with_app">com a app</string>
+    <string name="off_s_data_of">dados de %1$s</string>
+    <string name="off_why_tours">o Departamento Federal de Estradas publicou rotas sinalizadas mais recentes (≈ 3 MB)</string>
     <string name="off_head">A SUÍÇA OFFLINE</string>
     <string name="off_download">DESCARREGAR TODA A SUÍÇA</string>
     <string name="off_download_size">DESCARREGAR TODA A SUÍÇA · ≈ %1$s</string>
@@ -284,7 +288,7 @@
     <string name="off_delete_q">Apagar do telemóvel o mapa, as rotas, os locais e o horário? As rotas (GO) voltarão a precisar dos seus dados.</string>
     <string name="off_delete_old">APAGAR AS ZONAS ANTIGAS (%1$d · %2$s)</string>
     <string name="off_delete_old_q">Apagar as %1$d zona(s) guardada(s) por uma versão anterior? O mapa de toda a Suíça substitui-as.</string>
-    <string name="off_policy">As atualizações seguem o ritmo real das mudanças: o horário todas as semanas, os locais e as rotas todos os meses, o mapa quando a swisstopo ou o ASTRA publicam um novo (os mosaicos inalterados são só verificados, não descarregados de novo). Nada é descarregado sem si; uma linha no primeiro ecrã avisa quando vale a pena atualizar.</string>
+    <string name="off_policy">As atualizações seguem o ritmo real das mudanças: o horário todas as semanas, os locais e as rotas todos os meses, os percursos sinalizados quando o Departamento Federal de Estradas publica novos (cerca de uma vez por ano), o mapa quando a swisstopo ou o ASTRA publicam um novo (os mosaicos inalterados são só verificados, não descarregados de novo). Nada é descarregado sem si; uma linha no primeiro ecrã avisa quando vale a pena atualizar.</string>
     <string name="off_s_paused">em pausa a %1$d %%</string>
     <string name="off_s_downloading">a descarregar %1$d %%</string>
     <string name="off_s_queued">à espera da sua vez</string>

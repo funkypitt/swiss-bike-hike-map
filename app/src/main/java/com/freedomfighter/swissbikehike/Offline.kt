@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit
 
 /**
  * Switzerland offline: one thing to download, made of four parts (timetable, places, routing,
- * map), fetched one after the other by [OfflineWorker] with one notification and one progress
+ * map) and of the signposted tours, which ship with the app and are only ever updated, fetched one after the other by [OfflineWorker] with one notification and one progress
  * bar. Nothing starts by itself: the person asks (the menu, or the map when it needs a part),
  * and the job then goes on through lost Wi-Fi, a closed app or a restart until it is done or
  * paused. A pause is never undone by the app.
@@ -32,8 +32,9 @@ import java.util.concurrent.TimeUnit
  * gigabytes for nothing: see [Policy].
  */
 object Offline {
-    enum class Part(val key: String, val label: Int, val estimate: Long) {
+    enum class Part(val key: String, val label: Int, val estimate: Long, /** Ships with the app: never missing, only updated. */ val shipped: Boolean = false) {
         TIMETABLE("timetable", R.string.off_part_timetable, 16_000_000L),
+        TOURS("tours", R.string.off_part_tours, 3_100_000L, shipped = true),
         PLACES("places", R.string.off_part_places, 15_000_000L),
         ROUTING("routing", R.string.off_part_routing, 460_000_000L),
         MAP("map", R.string.off_part_map, 2_400_000_000L);
@@ -173,6 +174,7 @@ object Offline {
     /** Is this part on the phone? (The map: is the Switzerland pack complete? → asked of MapLibre, see OfflineMaps.) */
     fun present(ctx: Context, part: Part): Boolean = when (part) {
         Part.TIMETABLE -> Timetable.file(ctx).exists()
+        Part.TOURS -> true
         Part.PLACES -> PlacesPack.file(ctx).exists()
         Part.ROUTING -> Segments.names.all { Segments.file(ctx, it).exists() }
         Part.MAP -> sp(ctx).getBoolean("map_complete", false)
@@ -181,7 +183,7 @@ object Offline {
 
     /** Parts that are on the phone and old enough to be worth a look, from local dates only (no network). */
     fun dueLocally(ctx: Context, now: Long = System.currentTimeMillis()): List<Part> =
-        Part.entries.filter { present(ctx, it) && Policy.oldEnough(it, maxOf(updated(ctx, it), checked(ctx, it)), now) }
+        Part.entries.filter { !it.shipped && present(ctx, it) && Policy.oldEnough(it, maxOf(updated(ctx, it), checked(ctx, it)), now) }
 
     // ---- once, after the update from the version with DownloadManager and saved areas ----
 
@@ -295,6 +297,8 @@ object Offline {
  *   and the pack is rebuilt on Tuesdays (≈ 15 MB): due when a week old and the server has a newer one.
  * - Places (≈ 5 MB) and routing (≈ 450 MB): OpenStreetMap moves slowly where people walk and ride;
  *   a month is plenty. Due when a month old and the server has newer.
+ * - Signposted tours (≈ 3 MB): the Federal Roads Office republishes its routes about once a year,
+ *   and the pack on the server changes only then. Due as soon as the server's source is newer.
  * - Map (≈ 2.4 GB): swisstopo rebuilds its base map a few times a year, ASTRA its routes about yearly.
  *   Due only when their servers show a new version (one HEAD per source, see [OfflineMaps.signature]);
  *   then every tile is only *checked* (unchanged ones answer 304, no data), and changed ones are fetched.
@@ -304,7 +308,7 @@ object Policy {
     private const val DAY = 86_400_000L
     fun days(part: Offline.Part): Int = when (part) {
         Offline.Part.TIMETABLE -> 7
-        Offline.Part.PLACES, Offline.Part.ROUTING -> 30
+        Offline.Part.PLACES, Offline.Part.ROUTING, Offline.Part.TOURS -> 30
         Offline.Part.MAP -> 90
     }
     /** Old enough that the server is worth asking (`since` = last fetch or last "nothing newer"). */
@@ -312,7 +316,7 @@ object Policy {
 
     /** Due = old enough and the server has something newer (map: a new version on the server). */
     fun due(part: Offline.Part, since: Long, now: Long, newerOnServer: Boolean): Boolean =
-        newerOnServer && (part == Offline.Part.MAP || oldEnough(part, since, now))
+        newerOnServer && (part == Offline.Part.MAP || part == Offline.Part.TOURS || oldEnough(part, since, now))
 }
 
 /** The PAUSE button of the progress notification. */

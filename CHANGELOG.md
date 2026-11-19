@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.16.0 — 2026-11-19
+
+* The signposted tours no longer wait for a new version of the app: when the Federal Roads
+  Office publishes newer routes (about once a year), MENU › Switzerland offline says so on its
+  new line « Signposted tours » and the same button fetches them (≈ 3 MB). The pack shipped
+  with the app stays the base: the list works at once and offline as before, and nothing is
+  fetched without being asked. The line says where the tours in use come from (with the app,
+  or fetched) and how recent their data are.
+* The workflow `tours-data` looks at the source every week and rebuilds the pack on the rolling
+  release « tours-data » only when it has changed; the health check watches that release.
+
 ## 0.15.0 — 2026-11-19
 
 * SWITZERLAND (in TOURS) also has the signposted cycling routes of SwitzerlandMobility: 128

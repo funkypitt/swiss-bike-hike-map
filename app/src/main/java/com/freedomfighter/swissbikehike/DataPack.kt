@@ -11,7 +11,7 @@ import java.util.zip.GZIPInputStream
 
 /**
  * A data pack built by the repository's workflows and kept on a rolling GitHub release: the
- * timetable, the places. Fetched by [OfflineWorker] (a .gz beside a .json description), unpacked,
+ * timetable, the places, the signposted tours. Fetched by [OfflineWorker] (a .gz beside a .json description), unpacked,
  * checked, then put in place. Nothing is fetched without the person asking.
  */
 abstract class DataPack(private val release: String, val name: String, private val key: String, val part: Offline.Part) {
@@ -25,6 +25,8 @@ abstract class DataPack(private val release: String, val name: String, private v
 
     @Volatile var unpacking = false; private set
     fun isReady(ctx: Context): Boolean = file(ctx).exists() && !unpacking
+    /** Is there a pack to compare the server's with? (The signposted tours always: one ships with the app.) */
+    open fun has(ctx: Context): Boolean = file(ctx).exists()
 
     /** What a pack says about itself: a version (feed date, count…), when it was built, its size. */
     class Info(val version: String, val built: String, val bytes: Long)
@@ -82,7 +84,7 @@ abstract class DataPack(private val release: String, val name: String, private v
     fun parse(text: String, remote: Boolean): Info? = runCatching { info(JSONObject(text), remote) }.getOrNull()
 
     /** Is the server's pack newer than the phone's (or is there none on the phone)? */
-    fun newer(local: Info?, remote: Info): Boolean = local == null || remote.built > local.built ||
+    open fun newer(local: Info?, remote: Info): Boolean = local == null || remote.built > local.built ||
         (local.built.isBlank() && remote.version > local.version)
 
     /** Unpacks the downloaded .gz, checks it, puts it and its description in place. False = damaged (the .gz is dropped). */
@@ -152,4 +154,26 @@ object PlacesPack : DataPack("places-data", "switzerland.places", "places", Offl
     }
 
     override fun local(ctx: Context): Info? = super.local(ctx) ?: open(ctx)?.let { Info(it.nPlaces.toString(), it.built, file(ctx).length()) }
+}
+
+/**
+ * The signposted tours of Switzerland: a pack ships with the app (assets), and the workflow
+ * tours-data (tools/make-tours.py) publishes a new one on the rolling release "tours-data" when
+ * the Federal Roads Office has published newer routes, about once a year. A fetched pack is used
+ * as long as it is newer than the shipped one ([SwissTours.load]).
+ */
+object ToursPack : DataPack("tours-data", "switzerland.tours", "tours", Offline.Part.TOURS) {
+    /** `version` = how recent the source is: what packs are compared by (a rebuild of the same data is not news). */
+    override fun info(o: JSONObject, remote: Boolean) = Info(o.optString("source").ifBlank { o.optString("built") }, o.optString("built"), o.optLong(if (remote) "gz_bytes" else "bytes"))
+    override fun check(f: File): Boolean {
+        val p = f.inputStream().buffered().use { SwissTours.readIndex(it) }
+        return p.tours.size >= 1000 && f.length() >= p.bytes
+    }
+    override fun replaced() = SwissTours.forget()
+    override fun has(ctx: Context) = true
+    /** The pack in use, shipped or fetched. */
+    override fun local(ctx: Context): Info? = runCatching { SwissTours.load(ctx) }.getOrNull()?.let { Info(it.stamp, it.built, it.file?.length() ?: 0L) }
+    override fun newer(local: Info?, remote: Info): Boolean = local == null || remote.version > local.version
+    /** True when the pack in use was fetched (false: the one shipped with the app). */
+    fun fetched(ctx: Context): Boolean = runCatching { SwissTours.load(ctx).file != null }.getOrDefault(false)
 }

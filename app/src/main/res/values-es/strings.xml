@@ -271,6 +271,10 @@
     <string name="off_part_places">Lugares</string>
     <string name="off_part_routing">Rutas</string>
     <string name="off_part_map">Mapa</string>
+    <string name="off_part_tours">Recorridos señalizados</string>
+    <string name="off_s_with_app">con la app</string>
+    <string name="off_s_data_of">datos del %1$s</string>
+    <string name="off_why_tours">la Oficina Federal de Carreteras publicó rutas señalizadas más recientes (≈ 3 MB)</string>
     <string name="off_head">SUIZA SIN CONEXIÓN</string>
     <string name="off_download">DESCARGAR TODA SUIZA</string>
     <string name="off_download_size">DESCARGAR TODA SUIZA · ≈ %1$s</string>
@@ -284,7 +288,7 @@
     <string name="off_delete_q">¿Borrar del teléfono el mapa, las rutas, los lugares y el horario? Las rutas (GO) volverán a necesitar sus datos.</string>
     <string name="off_delete_old">BORRAR LAS ZONAS ANTIGUAS (%1$d · %2$s)</string>
     <string name="off_delete_old_q">¿Borrar las %1$d zona(s) guardada(s) por una versión anterior? El mapa de toda Suiza las sustituye.</string>
-    <string name="off_policy">Las actualizaciones siguen el ritmo real de los cambios: el horario cada semana, los lugares y las rutas cada mes, el mapa cuando swisstopo o la ASTRA publican uno nuevo (las teselas sin cambios solo se comprueban, no se vuelven a descargar). Nada se descarga sin usted; una línea en la primera pantalla avisa cuando vale la pena actualizar.</string>
+    <string name="off_policy">Las actualizaciones siguen el ritmo real de los cambios: el horario cada semana, los lugares y las rutas cada mes, los recorridos señalizados cuando la Oficina Federal de Carreteras publica nuevos (una vez al año, más o menos), el mapa cuando swisstopo o la ASTRA publican uno nuevo (las teselas sin cambios solo se comprueban, no se vuelven a descargar). Nada se descarga sin usted; una línea en la primera pantalla avisa cuando vale la pena actualizar.</string>
     <string name="off_s_paused">en pausa al %1$d %%</string>
     <string name="off_s_downloading">descargando %1$d %%</string>
     <string name="off_s_queued">esperando su turno</string>

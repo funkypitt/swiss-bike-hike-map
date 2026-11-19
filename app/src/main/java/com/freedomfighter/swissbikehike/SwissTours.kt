@@ -3,6 +3,7 @@ package com.freedomfighter.swissbikehike
 import android.content.Context
 import org.json.JSONObject
 import java.io.DataInputStream
+import java.io.File
 import java.io.InputStream
 import java.util.Locale
 
@@ -30,19 +31,37 @@ class SwissTour(
 /**
  * The signposted hiking, cycling and mountain-bike tours, read from the file shipped with the app
  * (tools/make-tours.py builds it from the open data of the Federal Roads Office, SwitzerlandMobility
- * and the cantons). The list is small and kept in memory; a tour's line is read when it is opened.
+ * and the cantons), or from a newer one fetched since ([ToursPack]). The list is small and kept in
+ * memory; a tour's line is read when it is opened.
  */
 object SwissTours {
     const val WALK = "walk"; const val BIKE = "bike"; const val MTB = "mtb"
     private const val ASSET = "tours.pack"
 
-    class Pack(val built: String, val tours: List<SwissTour>, val linesAt: Long)
+    class Pack(val built: String, val source: String, val tours: List<SwissTour>, val linesAt: Long) {
+        /** The fetched file this was read from; null = the one shipped with the app. */
+        var file: File? = null
+        /** How recent the data are: the date of the source, or of the build for a pack that does not say. */
+        val stamp: String get() = source.ifBlank { built }
+        /** The end of the last line: a whole file is at least this long. */
+        val bytes: Long get() = linesAt + (tours.maxOfOrNull { it.offset + it.bytes } ?: 0L)
+    }
 
     @Volatile private var pack: Pack? = null
 
+    /** The newer of the shipped pack and the fetched one (same source: the one built last). */
     fun load(ctx: Context): Pack = pack ?: synchronized(this) {
-        pack ?: ctx.assets.open(ASSET).use { readIndex(it) }.also { pack = it }
+        pack ?: run {
+            val shipped = ctx.assets.open(ASSET).use { readIndex(it) }
+            val f = ToursPack.file(ctx)
+            val fetched = if (f.exists() && !ToursPack.unpacking) runCatching { f.inputStream().buffered().use { readIndex(it) }.also { it.file = f } }.getOrNull() else null
+            if (fetched != null && compareValuesBy(fetched, shipped, { it.stamp }, { it.built }) > 0) fetched
+            else { if (fetched != null) ToursPack.delete(ctx); shipped }  // an update of the app brought a newer one
+        }.also { pack = it }
     }
+
+    /** A pack was fetched or deleted: read again at the next use. */
+    fun forget() { pack = null }
 
     fun fold(s: String): String = java.text.Normalizer.normalize(s.lowercase(Locale.ROOT), java.text.Normalizer.Form.NFD).replace(Regex("\\p{M}+"), "")
 
@@ -64,13 +83,13 @@ object SwissTours {
                 o.getDouble("lat"), o.getDouble("lon"), o.optDouble("lat2", o.getDouble("lat")), o.optDouble("lon2", o.getDouble("lon")),
                 o.getLong("o"), o.getInt("b"))
         }
-        return Pack(root.optString("built"), tours, 9L + len)
+        return Pack(root.optString("built"), root.optString("source"), tours, 9L + len)
     }
 
     /** The line of a tour, from its start to its end, with elevations. */
     fun line(ctx: Context, t: SwissTour): List<TrackPoint> {
         val p = load(ctx)
-        return ctx.assets.open(ASSET).use { line(it, p, t) }
+        return (p.file?.inputStream()?.buffered() ?: ctx.assets.open(ASSET)).use { line(it, p, t) }
     }
 
     /** `input` at the start of the file. */

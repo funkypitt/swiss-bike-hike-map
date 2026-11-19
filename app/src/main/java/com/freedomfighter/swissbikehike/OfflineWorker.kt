@@ -28,7 +28,7 @@ import kotlin.coroutines.resume
 
 /**
  * The one download job of Switzerland offline: fetches the parts asked for, smallest first
- * (timetable, places, routing, map), each resumable — files with HTTP ranges, the map with
+ * (timetable, signposted tours, places, routing, map), each resumable — files with HTTP ranges, the map with
  * MapLibre's pack, which only fetches the tiles it lacks. One notification with the overall
  * progress and PAUSE. Waits for Wi-Fi (or any network but roaming once mobile data is allowed), survives a closed app and a restart, comes back by itself
  * after a lost connection (WorkManager's backoff). A part the server has nothing newer for is
@@ -81,6 +81,7 @@ class OfflineWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ct
     /** Fetches one part; false when the phone's copy was already the newest. */
     private suspend fun get(part: Offline.Part): Boolean = when (part) {
         Offline.Part.TIMETABLE -> pack(Timetable)
+        Offline.Part.TOURS -> pack(ToursPack)
         Offline.Part.PLACES -> pack(PlacesPack)
         Offline.Part.ROUTING -> routing()
         Offline.Part.MAP -> map()
@@ -99,7 +100,7 @@ class OfflineWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ct
         progress(part, 0, 0, app.getString(R.string.off_checking, app.getString(part.label)))
         val text = p.remoteText(tries = 4) ?: throw Stop(app.getString(R.string.server_unreachable), false)
         val remote = p.parse(text, true) ?: throw Stop(app.getString(R.string.server_unreachable), false)
-        if (p.file(app).exists() && !p.part(app).exists() && !p.newer(p.local(app), remote)) { Offline.setChecked(app, part); return false }
+        if (p.has(app) && !p.part(app).exists() && !p.newer(p.local(app), remote)) { Offline.setChecked(app, part); return false }
         space(p.dir(app), remote.bytes * 5)
         val r = Offline.fetch(p.gzUrl, p.part(app), null, 0, { d, t -> progress(part, d, t, bytesLine(part, d, t)) }, { isStopped })
         when (r) {

@@ -1,6 +1,7 @@
 package com.freedomfighter.swissbikehike
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -68,5 +69,16 @@ class SwissToursTest {
         assertEquals("https://schweizmobil.ch/fr/suisse-a-velo/itineraire-1", SwissTours.page(rhone, "fr"))
         assertEquals("https://schweizmobil.ch/it/svizzera-in-bici/percorso-1", SwissTours.page(rhone, "it"))
         assertEquals("https://schweizmobil.ch/en/cycling-in-switzerland/route-1", SwissTours.page(rhone, "pt"))
+    }
+
+    @Test fun `a pack from the server is taken only when its source is newer`() {
+        assertTrue(pack.source.startsWith("20"))
+        assertEquals(file.length(), pack.bytes)
+        val mine = DataPack.Info(pack.stamp, pack.built, 0)
+        fun server(source: String, built: String) = ToursPack.parse("""{"built":"$built","source":"$source","tours":1671,"bytes":1,"gz_bytes":1}""", true)!!
+        assertFalse(ToursPack.newer(mine, server(pack.source, "2099-01-01")))   // the same data built again
+        assertTrue(ToursPack.newer(mine, server("2099-01-01T00:00:00Z", "2099-01-02")))
+        // a pack that only says when it was built (0.15.0 and before) is as recent as that day
+        assertFalse(ToursPack.newer(DataPack.Info("2026-11-19", "2026-11-19", 0), server("2026-09-30T11:34:38Z", "2026-11-20")))
     }
 }

@@ -157,7 +157,7 @@ class ToursActivity : AppCompatActivity() {
         for ((i, v) in listOf(b.l0, b.l1, b.l2, b.l3).withIndex()) mark(v, level == i)
         b.sList.removeAllViews()
         if (p == null) { b.sInfo.text = ""; b.sMore.visibility = View.GONE; return }
-        b.sCredit.text = getString(R.string.swiss_credit, p.built)
+        b.sCredit.text = getString(R.string.swiss_credit, p.stamp.take(10))
         val words = SwissTours.fold(b.sFilter.text.toString()).split(' ').filter { it.isNotBlank() }
         val here = near
         fun away(s: SwissTour): Double = if (here == null) 0.0 else minOf(here.distanceTo(LatLng(s.lat, s.lon)), here.distanceTo(LatLng(s.lat2, s.lon2)))

@@ -271,6 +271,10 @@
     <string name="off_part_places">Orte</string>
     <string name="off_part_routing">Routing</string>
     <string name="off_part_map">Karte</string>
+    <string name="off_part_tours">Signalisierte Touren</string>
+    <string name="off_s_with_app">mit der App</string>
+    <string name="off_s_data_of">Daten vom %1$s</string>
+    <string name="off_why_tours">das Bundesamt für Strassen hat neuere signalisierte Routen veröffentlicht (≈ 3 MB)</string>
     <string name="off_head">DIE SCHWEIZ OFFLINE</string>
     <string name="off_download">GANZE SCHWEIZ HERUNTERLADEN</string>
     <string name="off_download_size">GANZE SCHWEIZ HERUNTERLADEN · ≈ %1$s</string>
@@ -284,7 +288,7 @@
     <string name="off_delete_q">Karte, Routing, Orte und Fahrplan vom Telefon löschen? Routen (GO) brauchen danach die Routing-Daten wieder.</string>
     <string name="off_delete_old">ALTE GESPEICHERTE GEBIETE LÖSCHEN (%1$d · %2$s)</string>
     <string name="off_delete_old_q">Die %1$d von einer älteren Version gespeicherten Gebiete löschen? Die Karte der ganzen Schweiz ersetzt sie.</string>
-    <string name="off_policy">Aktualisiert wird so oft, wie sich etwas ändert: der Fahrplan jede Woche, Orte und Routing jeden Monat, die Karte, wenn swisstopo oder das ASTRA eine neue veröffentlichen (unveränderte Kacheln werden nur geprüft, nicht neu geladen). Nichts wird ohne Sie heruntergeladen; eine Zeile auf dem ersten Bildschirm sagt, wann sich ein Update lohnt.</string>
+    <string name="off_policy">Aktualisiert wird so oft, wie sich etwas ändert: der Fahrplan jede Woche, Orte und Routing jeden Monat, die signalisierten Touren, wenn das Bundesamt für Strassen neue veröffentlicht (etwa einmal im Jahr), die Karte, wenn swisstopo oder das ASTRA eine neue veröffentlichen (unveränderte Kacheln werden nur geprüft, nicht neu geladen). Nichts wird ohne Sie heruntergeladen; eine Zeile auf dem ersten Bildschirm sagt, wann sich ein Update lohnt.</string>
     <string name="off_s_paused">pausiert bei %1$d %%</string>
     <string name="off_s_downloading">wird geladen %1$d %%</string>
     <string name="off_s_queued">wartet, bis es dran ist</string>
