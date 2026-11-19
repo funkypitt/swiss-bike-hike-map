@@ -132,7 +132,7 @@ def read_zips(path):
         text = open(path, encoding="utf-8-sig").read()
     else:
         zf = zipfile.ZipFile(io.BytesIO(fetch(ZIPS)))
-        text = zf.read(zf.namelist()[0]).decode("utf-8-sig")
+        text = zf.read(next(n for n in zf.namelist() if n.lower().endswith(".csv"))).decode("utf-8-sig")   # the archive opens on a folder
     acc = {}
     for r in csv.DictReader(io.StringIO(text), delimiter=";"):
         try:
