@@ -5,8 +5,8 @@
 The app has no account, no advertising, no analytics and sends no crash reports. Its author
 receives nothing from your phone.
 
-**What stays on the phone**: your position, the tours you record, your favourites, your trips,
-your searches' history and your settings. They are gone when you clear the app's data or
+**What stays on the phone**: your position, the tours you record, your favourites, your trips
+and your settings. They are gone when you clear the app's data or
 uninstall it. An export (GPX, KML, GeoJSON, CSV) goes only where you send it.
 
 **What leaves the phone, and to whom**, only to make the app work:
@@ -42,7 +42,7 @@ L'app n'a ni compte, ni publicité, ni mesure d'audience, et n'envoie aucun rapp
 Son auteur ne reçoit rien de votre téléphone.
 
 **Ce qui reste sur le téléphone** : votre position, les parcours que vous enregistrez, vos
-favoris, vos trajets, l'historique de vos recherches et vos réglages. Ils disparaissent si vous
+favoris, vos trajets et vos réglages. Ils disparaissent si vous
 effacez les données de l'app ou si vous la désinstallez. Un export (GPX, KML, GeoJSON, CSV) ne
 va que là où vous l'envoyez.
 
