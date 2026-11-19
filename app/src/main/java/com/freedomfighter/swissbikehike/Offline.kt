@@ -35,7 +35,7 @@ object Offline {
     enum class Part(val key: String, val label: Int, val estimate: Long, /** Ships with the app: never missing, only updated. */ val shipped: Boolean = false) {
         TIMETABLE("timetable", R.string.off_part_timetable, 16_000_000L),
         TOURS("tours", R.string.off_part_tours, 3_100_000L, shipped = true),
-        PLACES("places", R.string.off_part_places, 15_000_000L),
+        PLACES("places", R.string.off_part_places, 40_000_000L),
         ROUTING("routing", R.string.off_part_routing, 460_000_000L),
         MAP("map", R.string.off_part_map, 2_400_000_000L);
     }
@@ -175,7 +175,7 @@ object Offline {
     fun present(ctx: Context, part: Part): Boolean = when (part) {
         Part.TIMETABLE -> Timetable.file(ctx).exists()
         Part.TOURS -> true
-        Part.PLACES -> PlacesPack.file(ctx).exists()
+        Part.PLACES -> PlacesPack.file(ctx).exists() && FirmsPack.file(ctx).exists()   // the firms travel with the places: a phone that has only the places is offered the rest
         Part.ROUTING -> Segments.names.all { Segments.file(ctx, it).exists() }
         Part.MAP -> sp(ctx).getBoolean("map_complete", false)
     }
