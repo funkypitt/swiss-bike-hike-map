@@ -37,7 +37,7 @@ object Offline {
         TOURS("tours", R.string.off_part_tours, 3_100_000L, shipped = true),
         PLACES("places", R.string.off_part_places, 40_000_000L),
         ROUTING("routing", R.string.off_part_routing, 460_000_000L),
-        MAP("map", R.string.off_part_map, 2_400_000_000L);
+        MAP("map", R.string.off_part_map, 2_550_000_000L);
     }
 
     const val WORK = "offline"
@@ -167,11 +167,7 @@ object Offline {
     /** The map's server signature when it was last fetched (swisstopo and ASTRA validators). */
     fun mapSignature(ctx: Context): String = sp(ctx).getString("map_signature", "") ?: ""
     fun setMapSignature(ctx: Context, s: String) = sp(ctx).edit().putString("map_signature", s).apply()
-    /** The map's tiles were marked stale and are being checked: a retry must not mark them again. */
-    fun mapRefreshing(ctx: Context) = sp(ctx).getBoolean("map_refreshing", false)
-    fun setMapRefreshing(ctx: Context, v: Boolean) = sp(ctx).edit().putBoolean("map_refreshing", v).apply()
-
-    /** Is this part on the phone? (The map: is the Switzerland pack complete? → asked of MapLibre, see OfflineMaps.) */
+    /** Is this part on the phone? (The map: were its files all fetched, or is the tile pack of an older version complete?) */
     fun present(ctx: Context, part: Part): Boolean = when (part) {
         Part.TIMETABLE -> Timetable.file(ctx).exists()
         Part.TOURS -> true
@@ -277,6 +273,16 @@ object Offline {
         }.getOrNull()
     }
 
+    /** The size the server announces for a file, null when it does not say. */
+    suspend fun size(url: String): Long? = withContext(Dispatchers.IO) {
+        runCatching {
+            val c = URL(url).openConnection() as HttpURLConnection
+            c.requestMethod = "HEAD"; c.connectTimeout = 8000; c.readTimeout = 8000
+            c.setRequestProperty("Accept-Encoding", "identity")
+            try { if (c.responseCode != 200) null else c.getHeaderField("Content-Length")?.toLongOrNull()?.takeIf { it > 0 } } finally { c.disconnect() }
+        }.getOrNull()
+    }
+
     /** The server's Last-Modified, null offline. */
     suspend fun serverModified(url: String): Long? = withContext(Dispatchers.IO) {
         runCatching {
@@ -299,10 +305,9 @@ object Offline {
  *   a month is plenty. Due when a month old and the server has newer.
  * - Signposted tours (≈ 3 MB): the Federal Roads Office republishes its routes about once a year,
  *   and the pack on the server changes only then. Due as soon as the server's source is newer.
- * - Map (≈ 2.4 GB): swisstopo rebuilds its base map a few times a year, ASTRA its routes about yearly.
- *   Due only when their servers show a new version (one HEAD per source, see [OfflineMaps.signature]);
- *   then every tile is only *checked* (unchanged ones answer 304, no data), and changed ones are fetched.
- *   Looked at again after three months.
+ * - Map (≈ 2.5 GB): swisstopo rebuilds its base map a few times a year. Due only when its server
+ *   shows a new file (one HEAD per file, see [OfflineMaps.signature]); a file that did not change
+ *   is not fetched again. Looked at again after three months.
  */
 object Policy {
     private const val DAY = 86_400_000L

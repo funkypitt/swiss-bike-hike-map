@@ -17,18 +17,19 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 /**
- * The offline map: one MapLibre pack of the whole country (zoom 8 to 14), of the map as the app
- * draws it — swisstopo base map and relief, ASTRA cycling and mountain-bike routes. The closures
- * are left out: they change every day and are only worth showing live.
- * Packs saved by older versions (areas of the screen) are dropped once the country is complete.
+ * What the offline map needs besides its tiles ([MapFiles]): the letters and the symbols of the
+ * style, kept by MapLibre in one small pack. The tiles themselves are no longer fetched one by
+ * one: the packs of older versions (the whole country tile by tile, or areas of the screen) are
+ * dropped once the files are on the phone.
  */
 object OfflineMaps {
-    const val MIN_ZOOM = 8.0
-    const val MAX_ZOOM = 14.0
+    // one tile of each set at the scale of the world: the pack is there for the letters and the symbols
+    const val MIN_ZOOM = 0.0
+    const val MAX_ZOOM = 0.0
     /** The downloader only takes http(s) style URLs: the style is seeded into its database under this one. */
     const val STYLE_URL = "https://swiss-bike-hike.invalid/style.json"
     val COUNTRY: LatLngBounds = LatLngBounds.from(47.81, 10.50, 45.81, 5.95)
-    const val COUNTRY_NAME = "Switzerland"
+    const val COUNTRY_NAME = "Letters and symbols"
 
     fun manager(ctx: Context): OfflineManager = OfflineManager.getInstance(ctx).also {
         it.setOfflineMapboxTileCountLimit(2_000_000)
@@ -55,7 +56,7 @@ object OfflineMaps {
     fun name(r: OfflineRegion): String = r.metadata?.let { String(it, StandardCharsets.UTF_8) } ?: "area"
 
     suspend fun country(ctx: Context): OfflineRegion? = list(ctx).firstOrNull { name(it) == COUNTRY_NAME }
-    /** Areas saved by versions before 0.10. */
+    /** The tile packs of older versions: the country tile by tile (before 0.20), areas of the screen (before 0.10). */
     suspend fun legacy(ctx: Context): List<OfflineRegion> = list(ctx).filter { name(it) != COUNTRY_NAME }
 
     /** The style the pack is made from: the app's map without the live-only closures. */
@@ -86,18 +87,14 @@ object OfflineMaps {
     }
 
     /**
-     * What the map's servers say about their current version: the swisstopo tilesets' tiles.json
-     * validators, one tile of each ASTRA route layer over central Switzerland (any change of the
-     * routes there renews it), and the list of sources the app draws. Null when one cannot be reached.
+     * What swisstopo's server says about the current version of the map: the files of its tile
+     * sets and their validators. Null when it cannot be reached.
      */
     suspend fun signature(ctx: Context): String? {
-        val style = JSONObject(MapStyle.baseStyle(ctx)).getJSONObject("sources")
-        val urls = style.keys().asSequence().mapNotNull { style.getJSONObject(it).optString("url").ifBlank { null } }.sorted().toList()
-        val probes = urls + listOf(
-            "https://wmts.geo.admin.ch/1.0.0/ch.astra.veloland/default/current/3857/9/266/180.png",
-            "https://wmts.geo.admin.ch/1.0.0/ch.astra.mountainbikeland/default/current/3857/9/266/180.png")
-        val parts = probes.map { Offline.validator(it) ?: return null }
-        return (urls + parts).joinToString("|")
+        val tiles = MapFiles.of(MapStyle.baseStyle(ctx))
+        if (tiles.isEmpty()) return null
+        val parts = tiles.map { Offline.validator(it.remote) ?: return null }
+        return (tiles.map { it.remote } + parts).joinToString("|")
     }
 
     /** Marks every tile of the pack stale: the next download pass asks the server about each (304 when unchanged). */

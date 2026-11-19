@@ -291,7 +291,7 @@
     <string name="off_delete_q">Karte, Routing, Orte und Fahrplan vom Telefon löschen? Routen (GO) brauchen danach die Routing-Daten wieder.</string>
     <string name="off_delete_old">ALTE GESPEICHERTE GEBIETE LÖSCHEN (%1$d · %2$s)</string>
     <string name="off_delete_old_q">Die %1$d von einer älteren Version gespeicherten Gebiete löschen? Die Karte der ganzen Schweiz ersetzt sie.</string>
-    <string name="off_policy">Aktualisiert wird so oft, wie sich etwas ändert: der Fahrplan jede Woche, Orte und Routing jeden Monat, die signalisierten Touren, wenn das Bundesamt für Strassen neue veröffentlicht (etwa einmal im Jahr), die Karte, wenn swisstopo oder das ASTRA eine neue veröffentlichen (unveränderte Kacheln werden nur geprüft, nicht neu geladen). Nichts wird ohne Sie heruntergeladen; eine Zeile auf dem ersten Bildschirm sagt, wann sich ein Update lohnt.</string>
+    <string name="off_policy">Aktualisiert wird so oft, wie sich etwas ändert: der Fahrplan jede Woche, Orte und Routing jeden Monat, die signalisierten Touren, wenn das Bundesamt für Strassen neue veröffentlicht (etwa einmal im Jahr), die Karte, wenn swisstopo eine neue veröffentlicht (eine unveränderte Datei wird nicht neu geladen). Nichts wird ohne Sie heruntergeladen; eine Zeile auf dem ersten Bildschirm sagt, wann sich ein Update lohnt.</string>
     <string name="off_s_paused">pausiert bei %1$d %%</string>
     <string name="off_s_downloading">wird geladen %1$d %%</string>
     <string name="off_s_queued">wartet, bis es dran ist</string>
@@ -314,7 +314,7 @@
     <string name="off_why_timetable">der Fahrplan dieser Woche (≈ 15 MB)</string>
     <string name="off_why_places">ein Monat Änderungen in OpenStreetMap und im Handelsregister (≈ 40 MB)</string>
     <string name="off_why_routing">ein Monat OpenStreetMap-Änderungen (≈ 450 MB)</string>
-    <string name="off_why_map">swisstopo oder das ASTRA haben eine neue Karte veröffentlicht: Jede Kachel wird geprüft, nur geänderte werden geladen (einige Stunden, wenig Daten)</string>
+    <string name="off_why_map">swisstopo hat eine neue Karte veröffentlicht: Ihre Dateien werden neu geladen (etwa 2,5 GB, einige Minuten in einem guten WLAN)</string>
     <string name="off_fresh_msg">Alles auf dem Telefon ist aktuell. Trotzdem alles neu prüfen? Dateien werden nur geladen, wenn der Server neuere hat; jede Kachel der Karte wird geprüft (einige Stunden im WLAN, wenig Daten).</string>
     <string name="off_fresh_go">ALLES PRÜFEN</string>
     <string name="off_hint">Offline-Daten, die ein Update wert sind: %1$s. Tippen öffnet das Menü.</string>
@@ -325,7 +325,6 @@
     <string name="off_checking">%1$s: Server wird gefragt…</string>
     <string name="off_unpacking">%1$s: wird entpackt…</string>
     <string name="off_line_bytes">%1$s: %2$s von %3$s</string>
-    <string name="off_line_tiles">%1$s: %2$s / %3$s Kacheln (%4$s)</string>
     <string name="off_retrying">Unterbrochen (%1$s); geht von selbst weiter</string>
     <string name="off_interrupted">unterbrochen</string>
     <string name="off_stopped">Pausiert: %1$s</string>

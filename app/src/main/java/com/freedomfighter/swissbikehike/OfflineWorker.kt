@@ -23,13 +23,11 @@ import org.maplibre.android.offline.OfflineRegion
 import org.maplibre.android.offline.OfflineRegionError
 import org.maplibre.android.offline.OfflineRegionStatus
 import java.io.File
-import java.text.NumberFormat
 import kotlin.coroutines.resume
 
 /**
  * The one download job of Switzerland offline: fetches the parts asked for, smallest first
- * (timetable, signposted tours, places, routing, map), each resumable — files with HTTP ranges, the map with
- * MapLibre's pack, which only fetches the tiles it lacks. One notification with the overall
+ * (timetable, signposted tours, places, routing, map), each resumable with HTTP ranges. One notification with the overall
  * progress and PAUSE. Waits for Wi-Fi (or any network but roaming once mobile data is allowed), survives a closed app and a restart, comes back by itself
  * after a lost connection (WorkManager's backoff). A part the server has nothing newer for is
  * skipped after one small request.
@@ -146,58 +144,61 @@ class OfflineWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ct
         return any
     }
 
+    /** The map: swisstopo's file of each tile set, then the letters and symbols of the style. */
     private suspend fun map(): Boolean {
         val part = Offline.Part.MAP
         progress(part, 0, 0, app.getString(R.string.off_checking, app.getString(part.label)))
+        val tiles = MapFiles.of(runCatching { MapStyle.baseStyle(app) }.getOrNull() ?: "")
+        if (tiles.isEmpty()) throw Stop(app.getString(R.string.server_unreachable), false)
         val sig = OfflineMaps.signature(app) ?: throw Stop(app.getString(R.string.server_unreachable), false)
+        var any = false
+        for ((i, t) in tiles.withIndex()) {
+            val f = MapFiles.file(app, t.layer); val pt = MapFiles.part(app, t.layer)
+            val key = "map_" + t.layer
+            // the phone's file is the server's: nothing to fetch (the validator was just read for the signature)
+            if (f.exists() && !pt.exists() && Offline.etag(app, key).isNotBlank() && Offline.validator(t.remote) == Offline.etag(app, key)) continue
+            val size = Offline.size(t.remote) ?: (part.estimate / tiles.size)
+            space(MapFiles.dir(app), (size - pt.length()).coerceAtLeast(0L) + 100_000_000L)
+            val r = Offline.fetch(t.remote, pt, null, 0L,
+                { d, total ->
+                    val frac = if (total > 0) d.toDouble() / total else 0.0
+                    progress(part, ((i + frac) * 1000).toLong(), tiles.size * 1000L, bytesLine(part, d, total) + "  (${i + 1}/${tiles.size})")
+                }, { isStopped })
+            when (r) {
+                is Offline.Fetch.NotModified -> {}
+                is Offline.Fetch.Done -> {
+                    f.delete(); pt.renameTo(f)
+                    Offline.setEtag(app, key, Offline.validator(t.remote) ?: r.etag); any = true
+                }
+                is Offline.Fetch.Failed -> throw Stop(failText(r.why), !r.retry)
+            }
+        }
+        progress(part, 999, 1000, app.getString(R.string.off_unpacking, app.getString(part.label)))
         val style = runCatching { OfflineMaps.packStyle(app) }.getOrNull() ?: throw Stop(app.getString(R.string.server_unreachable), false)
         val region = OfflineMaps.ensureCountry(app, style) ?: throw Stop(app.getString(R.string.dl_file), false)
-        val st = OfflineMaps.status(region)
-        val complete = st?.isComplete == true
-        val known = Offline.mapSignature(app)
-        if (complete && !Offline.mapRefreshing(app)) {
-            val changed = known.isNotBlank() && known != sig
-            if (!changed && !Offline.fresh(app, part)) {
-                Offline.setMapSignature(app, sig); Offline.setMapComplete(app, true); Offline.setChecked(app, part)
-                dropLegacy(); return false
-            }
-            OfflineMaps.invalidate(region)
-            Offline.setMapRefreshing(app, true)
-        } else if (!complete) {
-            val have = st?.completedResourceSize ?: 0L
-            space(Segments.dir(app).parentFile ?: app.filesDir, (part.estimate - have).coerceAtLeast(200_000_000L))
-        }
-        download(region)
-        Offline.setMapSignature(app, sig); Offline.setMapRefreshing(app, false); Offline.setMapComplete(app, true)
+        if (OfflineMaps.status(region)?.isComplete != true) download(region)
+        Offline.setMapSignature(app, sig); Offline.setMapComplete(app, true)
         dropLegacy()
-        return true
+        if (!any) Offline.setChecked(app, part)
+        return any
     }
 
     private suspend fun dropLegacy() { for (r in OfflineMaps.legacy(app)) OfflineMaps.delete(r) }
 
-    /** Drives the country pack until complete; a stall or an error = retry later (only missing or stale tiles are fetched then). */
+    /** Drives the pack of letters and symbols until complete; a stall or an error = retry later (only what is missing is fetched then). */
     private suspend fun download(r: OfflineRegion) = withContext(Dispatchers.Main) {
-        val part = Offline.Part.MAP
-        val nf = NumberFormat.getIntegerInstance()
         var lastProgress = System.currentTimeMillis()
         var lastDone = -1L
-        var lastWrite = 0L
         var failed: String? = null
         var complete = false
         var waiter: (() -> Unit)? = null
         r.setObserver(object : OfflineRegion.OfflineRegionObserver {
             override fun onStatusChanged(status: OfflineRegionStatus) {
-                val now = System.currentTimeMillis()
-                if (status.completedResourceCount != lastDone) { lastDone = status.completedResourceCount; lastProgress = now }
+                if (status.completedResourceCount != lastDone) { lastDone = status.completedResourceCount; lastProgress = System.currentTimeMillis() }
                 if (status.isComplete) { complete = true; waiter?.invoke() }
-                if (now - lastWrite > 1000 || status.isComplete) {
-                    lastWrite = now
-                    progress(part, status.completedResourceCount, status.requiredResourceCount,
-                        app.getString(R.string.off_line_tiles, app.getString(part.label), nf.format(status.completedResourceCount), nf.format(status.requiredResourceCount), Fmt.mb(status.completedResourceSize)))
-                }
             }
             override fun onError(error: OfflineRegionError) {
-                if (error.reason == OfflineRegionError.REASON_NOT_FOUND) return // a missing tile is skipped by the engine
+                if (error.reason == OfflineRegionError.REASON_NOT_FOUND) return // a missing resource is skipped by the engine
                 failed = error.message
             }
             override fun mapboxTileCountLimitExceeded(limit: Long) { failed = "tile limit $limit" }

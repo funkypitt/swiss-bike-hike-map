@@ -291,7 +291,7 @@
     <string name="off_delete_q">Supprimer du téléphone la carte, les itinéraires, les lieux et l\'horaire ? Les itinéraires (GO) demanderont ensuite à nouveau leurs données.</string>
     <string name="off_delete_old">SUPPRIMER LES ANCIENNES ZONES (%1$d · %2$s)</string>
     <string name="off_delete_old_q">Supprimer les %1$d zone(s) enregistrée(s) par une version précédente ? La carte de toute la Suisse les remplace.</string>
-    <string name="off_policy">Les mises à jour suivent le rythme réel des changements : l\'horaire chaque semaine, les lieux et les itinéraires chaque mois, les parcours balisés quand l\'Office fédéral des routes en publie de nouveaux (environ une fois par an), la carte quand swisstopo ou l\'OFROU en publient une nouvelle (les tuiles inchangées sont seulement vérifiées, pas retéléchargées). Rien n\'est téléchargé sans vous ; une ligne sur le premier écran signale quand une mise à jour vaut la peine.</string>
+    <string name="off_policy">Les mises à jour suivent le rythme réel des changements : l\'horaire chaque semaine, les lieux et les itinéraires chaque mois, les parcours balisés quand l\'Office fédéral des routes en publie de nouveaux (environ une fois par an), la carte quand swisstopo en publie une nouvelle (un fichier inchangé n\'est pas retéléchargé). Rien n\'est téléchargé sans vous ; une ligne sur le premier écran signale quand une mise à jour vaut la peine.</string>
     <string name="off_s_paused">en pause à %1$d %%</string>
     <string name="off_s_downloading">téléchargement %1$d %%</string>
     <string name="off_s_queued">en attente de son tour</string>
@@ -314,7 +314,7 @@
     <string name="off_why_timetable">l\'horaire de la semaine (≈ 15 Mo)</string>
     <string name="off_why_places">un mois de changements dans OpenStreetMap et au registre du commerce (≈ 40 Mo)</string>
     <string name="off_why_routing">un mois de changements OpenStreetMap (≈ 450 Mo)</string>
-    <string name="off_why_map">swisstopo ou l\'OFROU ont publié une nouvelle carte : chaque tuile est vérifiée, seules celles qui ont changé sont téléchargées (quelques heures, peu de données)</string>
+    <string name="off_why_map">swisstopo a publié une nouvelle carte : ses fichiers sont téléchargés à nouveau (environ 2,5 Go, quelques minutes sur un bon Wi-Fi)</string>
     <string name="off_fresh_msg">Tout est à jour sur le téléphone. Tout revérifier quand même ? Les fichiers ne sont retéléchargés que si le serveur en a de plus récents ; chaque tuile de la carte est vérifiée (quelques heures en Wi-Fi, peu de données).</string>
     <string name="off_fresh_go">TOUT VÉRIFIER</string>
     <string name="off_hint">Données hors ligne à mettre à jour : %1$s. Touchez pour ouvrir le menu.</string>
@@ -325,7 +325,6 @@
     <string name="off_checking">%1$s : question au serveur…</string>
     <string name="off_unpacking">%1$s : décompression…</string>
     <string name="off_line_bytes">%1$s : %2$s sur %3$s</string>
-    <string name="off_line_tiles">%1$s : %2$s / %3$s tuiles (%4$s)</string>
     <string name="off_retrying">Interrompu (%1$s) ; reprend tout seul</string>
     <string name="off_interrupted">interrompu</string>
     <string name="off_stopped">En pause : %1$s</string>

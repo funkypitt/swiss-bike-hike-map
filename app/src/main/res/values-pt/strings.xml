@@ -291,7 +291,7 @@
     <string name="off_delete_q">Apagar do telemóvel o mapa, as rotas, os locais e o horário? As rotas (GO) voltarão a precisar dos seus dados.</string>
     <string name="off_delete_old">APAGAR AS ZONAS ANTIGAS (%1$d · %2$s)</string>
     <string name="off_delete_old_q">Apagar as %1$d zona(s) guardada(s) por uma versão anterior? O mapa de toda a Suíça substitui-as.</string>
-    <string name="off_policy">As atualizações seguem o ritmo real das mudanças: o horário todas as semanas, os locais e as rotas todos os meses, os percursos sinalizados quando o Departamento Federal de Estradas publica novos (cerca de uma vez por ano), o mapa quando a swisstopo ou o ASTRA publicam um novo (os mosaicos inalterados são só verificados, não descarregados de novo). Nada é descarregado sem si; uma linha no primeiro ecrã avisa quando vale a pena atualizar.</string>
+    <string name="off_policy">As atualizações seguem o ritmo real das mudanças: o horário todas as semanas, os locais e as rotas todos os meses, os percursos sinalizados quando o Departamento Federal de Estradas publica novos (cerca de uma vez por ano), o mapa quando a swisstopo publica um novo (um ficheiro inalterado não é descarregado de novo). Nada é descarregado sem si; uma linha no primeiro ecrã avisa quando vale a pena atualizar.</string>
     <string name="off_s_paused">em pausa a %1$d %%</string>
     <string name="off_s_downloading">a descarregar %1$d %%</string>
     <string name="off_s_queued">à espera da sua vez</string>
@@ -314,7 +314,7 @@
     <string name="off_why_timetable">o horário desta semana (≈ 15 MB)</string>
     <string name="off_why_places">um mês de alterações no OpenStreetMap e no registo comercial (≈ 40 MB)</string>
     <string name="off_why_routing">um mês de alterações no OpenStreetMap (≈ 450 MB)</string>
-    <string name="off_why_map">a swisstopo ou o ASTRA publicaram um mapa novo: cada mosaico é verificado, só os alterados são descarregados (algumas horas, poucos dados)</string>
+    <string name="off_why_map">a swisstopo publicou um mapa novo: os seus ficheiros são descarregados de novo (cerca de 2,5 GB, alguns minutos com um bom Wi-Fi)</string>
     <string name="off_fresh_msg">Tudo está atualizado no telemóvel. Verificar tudo de novo mesmo assim? Os ficheiros só são descarregados se o servidor tiver versões novas; cada mosaico do mapa é verificado (algumas horas em Wi-Fi, poucos dados).</string>
     <string name="off_fresh_go">VERIFICAR TUDO</string>
     <string name="off_hint">Dados offline que vale a pena atualizar: %1$s. Toque para abrir o menu.</string>
@@ -325,7 +325,6 @@
     <string name="off_checking">%1$s: a consultar o servidor…</string>
     <string name="off_unpacking">%1$s: a descompactar…</string>
     <string name="off_line_bytes">%1$s: %2$s de %3$s</string>
-    <string name="off_line_tiles">%1$s: %2$s / %3$s mosaicos (%4$s)</string>
     <string name="off_retrying">Interrompido (%1$s); continua sozinho</string>
     <string name="off_interrupted">interrompido</string>
     <string name="off_stopped">Em pausa: %1$s</string>

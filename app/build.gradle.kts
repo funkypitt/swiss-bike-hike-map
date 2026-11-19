@@ -5,14 +5,14 @@ plugins {
 
 android {
     namespace = "com.freedomfighter.swissbikehike"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.freedomfighter.swissbikehike"
         minSdk = 28
         targetSdk = 35
-        versionCode = 33
-        versionName = "0.19.1"
+        versionCode = 34
+        versionName = "0.20.0"
     }
 
     // where the app is published: « libre » (F-Droid, GitHub) asks the directory of search.ch with
@@ -20,7 +20,7 @@ android {
     flavorDimensions += "store"
     productFlavors {
         create("libre") { dimension = "store"; isDefault = true }
-        create("play") { dimension = "store" }
+        create("play") { dimension = "store"; targetSdk = 36 }   // Google Play asks for the newest target; F-Droid keeps the one the app was tested with
     }
 
     buildTypes {

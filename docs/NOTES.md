@@ -22,12 +22,12 @@ Everything is recycled:
 | Map rendering | [MapLibre Native](https://maplibre.org) (BSD) |
 | Base map | swisstopo vector tiles and style, clutter layers removed (`MapStyle.kt`) |
 | Official hiking trails | the `sac_scale` attribute of swisstopo's vector tiles: yellow / white-red-white / white-blue-white |
-| Official cycling routes | swisstopo WMTS overlays Veloland (blue) and Mountainbikeland (orange) |
+| Official cycling routes | since 0.20: the Veloland (blue) and Mountainbikeland (orange) lines of the tours pack, written once as GeoJSON (`Routes.kt`); before, swisstopo WMTS overlays |
 | Closures and detours | swisstopo WMS overlays, online only |
 | Routing | [BRouter](https://github.com/abrensch/brouter) (MIT) embedded as the `brouter` module, OpenStreetMap data from brouter.de (profiles `trekking` and `hiking-mountain`) |
 | Turn instructions | BRouter's own voice hints (`turnInstructionMode`), read through `brouter/.../TurnHints.java` |
 | Search | GeoAdmin search API; people and firms through the search.ch directory with the person's own key |
-| Offline | 0.10: one "Switzerland offline" run (`Offline.kt`, `OfflineWorker.kt`): timetable, places, routing files by HTTP Range/If-Range (resumable, 304 when unchanged), then one MapLibre pack of the country zoom 8–14 without the live closure layers (1.25 M resources). Map updates only when the swisstopo tiles.json / ASTRA probe-tile validators change, by invalidate + revalidation. Nothing automatic at launch (0.6.1: it stalled the map) |
+| Offline | 0.10: one "Switzerland offline" run (`Offline.kt`, `OfflineWorker.kt`): timetable, places, routing files by HTTP Range/If-Range (resumable, 304 when unchanged), then the map. Since 0.20 the map is swisstopo's own `.mbtiles` file of each tile set (base 1.0 GB, relief 1.5 GB, `MapFiles.kt`; the style then reads `mbtiles://` sources) plus a tiny MapLibre pack at zoom 0 for the glyphs and sprites; before, one MapLibre pack of the country zoom 8–14 (1.25 M requests, 94 % of them for the two raster route overlays). Map updates only when the validators of the files change. Nothing automatic at launch (0.6.1: it stalled the map) |
 
 Data © swisstopo, © SchweizMobil, © OpenStreetMap contributors.
 

@@ -291,7 +291,7 @@
     <string name="off_delete_q">¿Borrar del teléfono el mapa, las rutas, los lugares y el horario? Las rutas (GO) volverán a necesitar sus datos.</string>
     <string name="off_delete_old">BORRAR LAS ZONAS ANTIGUAS (%1$d · %2$s)</string>
     <string name="off_delete_old_q">¿Borrar las %1$d zona(s) guardada(s) por una versión anterior? El mapa de toda Suiza las sustituye.</string>
-    <string name="off_policy">Las actualizaciones siguen el ritmo real de los cambios: el horario cada semana, los lugares y las rutas cada mes, los recorridos señalizados cuando la Oficina Federal de Carreteras publica nuevos (una vez al año, más o menos), el mapa cuando swisstopo o la ASTRA publican uno nuevo (las teselas sin cambios solo se comprueban, no se vuelven a descargar). Nada se descarga sin usted; una línea en la primera pantalla avisa cuando vale la pena actualizar.</string>
+    <string name="off_policy">Las actualizaciones siguen el ritmo real de los cambios: el horario cada semana, los lugares y las rutas cada mes, los recorridos señalizados cuando la Oficina Federal de Carreteras publica nuevos (una vez al año, más o menos), el mapa cuando swisstopo publica uno nuevo (un archivo sin cambios no se vuelve a descargar). Nada se descarga sin usted; una línea en la primera pantalla avisa cuando vale la pena actualizar.</string>
     <string name="off_s_paused">en pausa al %1$d %%</string>
     <string name="off_s_downloading">descargando %1$d %%</string>
     <string name="off_s_queued">esperando su turno</string>
@@ -314,7 +314,7 @@
     <string name="off_why_timetable">el horario de esta semana (≈ 15 MB)</string>
     <string name="off_why_places">un mes de cambios en OpenStreetMap y en el registro mercantil (≈ 40 MB)</string>
     <string name="off_why_routing">un mes de cambios en OpenStreetMap (≈ 450 MB)</string>
-    <string name="off_why_map">swisstopo o la ASTRA publicaron un mapa nuevo: se comprueba cada tesela y solo se descargan las que cambiaron (unas horas, pocos datos)</string>
+    <string name="off_why_map">swisstopo publicó un mapa nuevo: sus archivos se descargan de nuevo (unos 2,5 GB, unos minutos con un buen Wi-Fi)</string>
     <string name="off_fresh_msg">Todo está al día en el teléfono. ¿Comprobarlo todo de nuevo de todos modos? Los archivos solo se descargan si el servidor tiene versiones nuevas; se comprueba cada tesela del mapa (unas horas por wifi, pocos datos).</string>
     <string name="off_fresh_go">COMPROBAR TODO</string>
     <string name="off_hint">Datos sin conexión que conviene actualizar: %1$s. Toque para abrir el menú.</string>
@@ -325,7 +325,6 @@
     <string name="off_checking">%1$s: consultando el servidor…</string>
     <string name="off_unpacking">%1$s: descomprimiendo…</string>
     <string name="off_line_bytes">%1$s: %2$s de %3$s</string>
-    <string name="off_line_tiles">%1$s: %2$s / %3$s teselas (%4$s)</string>
     <string name="off_retrying">Interrumpido (%1$s); sigue solo</string>
     <string name="off_interrupted">interrumpido</string>
     <string name="off_stopped">En pausa: %1$s</string>

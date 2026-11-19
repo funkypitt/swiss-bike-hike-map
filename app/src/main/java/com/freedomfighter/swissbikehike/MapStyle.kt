@@ -16,7 +16,6 @@ import java.net.URL
  */
 object MapStyle {
     const val STYLE_URL = "https://vectortiles.geo.admin.ch/styles/ch.swisstopo.basemap.vt/style.json"
-    private const val WMTS = "https://wmts.geo.admin.ch/1.0.0/%s/default/current/3857/{z}/{x}/{y}.%s"
     // Closures: 512 px drawn at 192 dpi (MapServer's MAP_RESOLUTION scales the symbols) shown as 256 tiles,
     // asked up to z18 so the line stays on the streets instead of a blurred upscale of a z14 image.
     private const val WMS = "https://wms.geo.admin.ch/?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=%s" +
@@ -45,6 +44,11 @@ object MapStyle {
     const val SRC_JOURNEY = "journey"
     const val SRC_JOURNEY_PTS = "journey-pts"
     const val SRC_PLACES = "places"
+    /** The signposted cycling and mountain-bike routes, from the tours pack ([Routes]). */
+    const val SRC_ROUTES = "routes"
+    // The colours of the official route maps (SwitzerlandMobility): cycling blue, mountain bike ochre, each with its darker edge
+    private const val VELO = "#0099FF"; private const val VELO_EDGE = "#0032FD"
+    private const val MTB = "#CC6600"; private const val MTB_EDGE = "#663300"
     val placeLayers = listOf("places", "places-name")
     /** The favourites: yellow dots ringed in black, always there, the name close up. */
     const val SRC_FAVS = "favs"
@@ -54,7 +58,7 @@ object MapStyle {
     /** Layer ids by group, so visibility can be switched without rebuilding. */
     val walkLayers = listOf("trail-hiking-casing", "trail-hiking", "trail-mountain", "trail-mountain-dash",
         "trail-alpine", "trail-alpine-dash", "closures-walk")
-    val bikeLayers = listOf("veloland", "mtbland", "closures-bike", "closures-mtb")
+    val bikeLayers = listOf("veloland-edge", "veloland", "mtbland-edge", "mtbland", "closures-bike", "closures-mtb")
     val transitLayers = listOf("pt-rail-casing", "pt-rail", "pt-tram-casing", "pt-tram", "pt-lift", "pt-lift-dash", "pt-boat")
     val stopLayers = listOf("pt-stops", "pt-stops-name")
 
@@ -74,15 +78,22 @@ object MapStyle {
         if (cache.exists()) cache.readText() else ctx.assets.open("basemap-style.json").bufferedReader().readText()
     }
 
-    fun build(base: String, night: Boolean = false): String {
+    /**
+     * `local` gives the file on the phone that holds a tile set of the base map, if any ([MapFiles.local]);
+     * `routes` is the address of the cycling routes' file ([Routes.url]).
+     */
+    fun build(base: String, night: Boolean = false, local: (String) -> String? = { null }, routes: String? = null): String {
         val s = JSONObject(base)
         val sources = s.getJSONObject("sources")
         val baseSrc = sources.keys().asSequence()
             .first { sources.getJSONObject(it).optString("url").contains("ch.swisstopo.base.vt") }
+        for (k in sources.keys().asSequence().toList()) {
+            val src = sources.getJSONObject(k)
+            local(src.optString("url"))?.let { src.put("url", it) }
+        }
 
         // --- sources ---
-        sources.put("veloland", raster(WMTS.format("ch.astra.veloland", "png"), 128, 16))
-        sources.put("mtbland", raster(WMTS.format("ch.astra.mountainbikeland", "png"), 128, 16))
+        sources.put(SRC_ROUTES, JSONObject().put("type", "geojson").put("data", routes ?: emptyCollection()))
         sources.put("closures-walk", raster(WMS.format("ch.astra.wanderland-sperrungen_umleitungen"), 256, 18))
         sources.put("closures-bike", raster(WMS.format("ch.astra.veloland-sperrungen_umleitungen"), 256, 18))
         sources.put("closures-mtb", raster(WMS.format("ch.astra.mountainbikeland-sperrungen_umleitungen"), 256, 18))
@@ -107,8 +118,13 @@ object MapStyle {
 
         // Below the labels: official routes and trails.
         val below = JSONArray()
-        below.put(rasterLayer("veloland", "veloland", 9))
-        below.put(rasterLayer("mtbland", "mtbland", 9))
+        for ((id, land, colour, edge) in listOf(listOf("mtbland", SwissTours.MTB, MTB, MTB_EDGE), listOf("veloland", SwissTours.BIKE, VELO, VELO_EDGE))) {
+            val of = JSONArray().put("==").put(JSONArray().put("get").put("l")).put(land)
+            below.put(line("$id-edge", SRC_ROUTES, edge, 0.0, null).put("minzoom", 8).put("filter", of)
+                .also { it.getJSONObject("paint").put("line-width", byZoom(3.2, 4.6, 7.0)); it.getJSONObject("layout").put("visibility", "none") })
+            below.put(line(id, SRC_ROUTES, colour, 0.0, null).put("minzoom", 8).put("filter", of)
+                .also { it.getJSONObject("paint").put("line-width", byZoom(2.0, 3.0, 5.0)); it.getJSONObject("layout").put("visibility", "none") })
+        }
         below.put(trail("trail-hiking-casing", baseSrc, "hiking", "#5A4A00", widthX(1.6), null))
         below.put(trail("trail-hiking", baseSrc, "hiking", YELLOW, widthX(1.0), null))
         below.put(trail("trail-mountain", baseSrc, "mountain_hiking", RED, widthX(1.0), null))

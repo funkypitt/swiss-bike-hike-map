@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.20.0 — 2026-11-19
+
+* The offline map downloads in a few minutes instead of hours: it now comes as the two files
+  swisstopo publishes for offline use (about 2.5 GB), fetched in one piece each, instead of
+  more than a million single requests. A phone that has the map of an older version keeps it
+  and is offered the new one as an update; the old one is removed once the new one is there.
+* The signposted cycling and mountain-bike routes are drawn from data shipped with the app:
+  same lines, same colours, sharp at every scale, with or without a network.
+
 ## 0.19.1 — 2026-11-19
 
 * MENU › Switzerland offline: a phone that has the places but not yet the firms reads « the

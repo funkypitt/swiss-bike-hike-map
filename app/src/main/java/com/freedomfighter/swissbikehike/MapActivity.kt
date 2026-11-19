@@ -339,8 +339,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
         lifecycleScope.launch {
             val json = withContext(Dispatchers.Default) {
                 val base = MapStyle.baseStyle(this@MapActivity)
-                MapStyle.styleFile(this@MapActivity).writeText(MapStyle.build(base, false))
-                if (night) MapStyle.build(base, true) else MapStyle.build(base, false)
+                MapStyle.build(base, night, MapFiles.local(this@MapActivity), Routes.url(this@MapActivity))
             }
             m.setStyle(Style.Builder().fromJson(json)) { s ->
                 style = s

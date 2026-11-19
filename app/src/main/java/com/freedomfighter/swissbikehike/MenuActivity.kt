@@ -18,6 +18,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.work.WorkInfo
 import com.freedomfighter.swissbikehike.databinding.ActivityMenuBinding
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -134,13 +136,14 @@ class MenuActivity : AppCompatActivity() {
 
     private fun refreshOffline(askServer: Boolean) {
         lifecycleScope.launch {
-            val st = OfflineMaps.country(this@MenuActivity)?.let { OfflineMaps.status(it) }
-            mapBytes = st?.completedResourceSize ?: 0L
-            mapComplete = st?.isComplete == true && !Offline.mapRefreshing(this@MenuActivity)
-            if (!Offline.mapRefreshing(this@MenuActivity)) Offline.setMapComplete(this@MenuActivity, mapComplete)
+            val files = withContext(Dispatchers.IO) { MapFiles.bytes(this@MenuActivity) }
             val old = OfflineMaps.legacy(this@MenuActivity)
-            oldCount = old.size
-            oldBytes = old.sumOf { OfflineMaps.status(it)?.completedResourceSize ?: 0L }
+            val oldSize = old.sumOf { OfflineMaps.status(it)?.completedResourceSize ?: 0L }
+            mapComplete = Offline.present(this@MenuActivity, Offline.Part.MAP)
+            // the tile pack of an older version stands for the map until the files replace it
+            mapBytes = if (files > 0) files else if (mapComplete) oldSize else 0L
+            oldCount = if (files > 0 && mapComplete) old.size else 0
+            oldBytes = if (oldCount > 0) oldSize else 0L
             renderOffline()
             if (askServer && !asked) { asked = true; askServers(); renderOffline() }
         }
@@ -332,7 +335,8 @@ class MenuActivity : AppCompatActivity() {
                 lifecycleScope.launch {
                     Offline.pause(this@MenuActivity); Offline.clearRun(this@MenuActivity)
                     for (r in OfflineMaps.list(this@MenuActivity)) OfflineMaps.delete(r)
-                    Offline.setMapComplete(this@MenuActivity, false); Offline.setMapRefreshing(this@MenuActivity, false)
+                    withContext(Dispatchers.IO) { MapFiles.delete(this@MenuActivity) }
+                    Offline.setMapComplete(this@MenuActivity, false)
                     Segments.delete(this@MenuActivity); Timetable.delete(this@MenuActivity); PlacesPack.delete(this@MenuActivity); ToursPack.delete(this@MenuActivity)
                     newer.clear()
                     refreshOffline(false)
@@ -347,10 +351,7 @@ class MenuActivity : AppCompatActivity() {
                 lifecycleScope.launch {
                     val wanted = Offline.wanted(this@MenuActivity)
                     Offline.pause(this@MenuActivity); Offline.clearRun(this@MenuActivity)
-                    if (Offline.Part.MAP in wanted && !mapComplete) {
-                        OfflineMaps.country(this@MenuActivity)?.let { OfflineMaps.delete(it) }
-                        Offline.setMapRefreshing(this@MenuActivity, false)
-                    }
+                    if (Offline.Part.MAP in wanted) withContext(Dispatchers.IO) { MapFiles.deleteParts(this@MenuActivity) }
                     for (p in listOf(Timetable, PlacesPack, FirmsPack, ToursPack)) p.part(this@MenuActivity).let { it.delete(); java.io.File(it.path + ".tag").delete() }
                     for (n in Segments.names) Segments.part(this@MenuActivity, n).let { it.delete(); java.io.File(it.path + ".tag").delete() }
                     refreshOffline(false)
