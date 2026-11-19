@@ -309,13 +309,13 @@
     <string name="off_wait_retry">%1$d %% erledigt — geht gleich weiter (Verbindung verloren oder Akku schwach).</string>
     <string name="off_not_wifi">Sie sind nicht im WLAN: Es beginnt, sobald Sie es sind.</string>
     <string name="off_no_space_now">Nicht genug Platz auf dem Telefon: %1$s nötig, %2$s frei.</string>
-    <string name="off_download_msg">Alles, um die App ohne Netz zu nutzen, für die ganze Schweiz:\n%1$s\n\n%2$s. Die Karte dauert einige Stunden, am besten mit dem Telefon am Ladegerät; die App bleibt währenddessen nutzbar. Die Benachrichtigung zeigt den Fortschritt und hat PAUSE. Fällt die Verbindung aus oder startet das Telefon neu, geht es von selbst weiter.</string>
+    <string name="off_download_msg">Alles, um die App ohne Netz zu nutzen, für die ganze Schweiz:\n%1$s\n\n%2$s. Die Karte ist der grösste Teil (etwa 2,5 GB); die App bleibt währenddessen nutzbar. Die Benachrichtigung zeigt den Fortschritt und hat PAUSE. Fällt die Verbindung aus oder startet das Telefon neu, geht es von selbst weiter.</string>
     <string name="off_update_msg">Jetzt lohnt sich ein Update:\n%1$s\n\n%2$s, im Hintergrund, Fortschritt in der Benachrichtigung.</string>
     <string name="off_why_timetable">der Fahrplan dieser Woche (≈ 15 MB)</string>
     <string name="off_why_places">ein Monat Änderungen in OpenStreetMap und im Handelsregister (≈ 40 MB)</string>
     <string name="off_why_routing">ein Monat OpenStreetMap-Änderungen (≈ 450 MB)</string>
     <string name="off_why_map">swisstopo hat eine neue Karte veröffentlicht: Ihre Dateien werden neu geladen (etwa 2,5 GB, einige Minuten in einem guten WLAN)</string>
-    <string name="off_fresh_msg">Alles auf dem Telefon ist aktuell. Trotzdem alles neu prüfen? Dateien werden nur geladen, wenn der Server neuere hat; jede Kachel der Karte wird geprüft (einige Stunden im WLAN, wenig Daten).</string>
+    <string name="off_fresh_msg">Alles auf dem Telefon ist aktuell. Trotzdem alles neu prüfen? Dateien werden nur geladen, wenn der Server neuere hat.</string>
     <string name="off_fresh_go">ALLES PRÜFEN</string>
     <string name="off_hint">Offline-Daten, die ein Update wert sind: %1$s. Tippen öffnet das Menü.</string>
     <string name="off_channel">Die Schweiz offline</string>

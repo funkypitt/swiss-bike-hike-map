@@ -309,13 +309,13 @@
     <string name="off_wait_retry">%1$d %% hecho — sigue en un momento (conexión perdida o batería baja).</string>
     <string name="off_not_wifi">No está en wifi: empezará en cuanto lo esté.</string>
     <string name="off_no_space_now">No hay espacio suficiente en el teléfono: se necesitan %1$s, hay %2$s libres.</string>
-    <string name="off_download_msg">Todo para usar la app sin red, en toda Suiza:\n%1$s\n\n%2$s. El mapa tarda unas horas, mejor con el teléfono cargando; mientras tanto puede usar la app. La notificación muestra el progreso y tiene PAUSA. Si se corta la conexión o el teléfono se reinicia, sigue solo.</string>
+    <string name="off_download_msg">Todo para usar la app sin red, en toda Suiza:\n%1$s\n\n%2$s. El mapa es la parte más grande (unos 2,5 GB); mientras tanto puede usar la app. La notificación muestra el progreso y tiene PAUSA. Si se corta la conexión o el teléfono se reinicia, sigue solo.</string>
     <string name="off_update_msg">Conviene actualizar:\n%1$s\n\n%2$s, en segundo plano, con el progreso en la notificación.</string>
     <string name="off_why_timetable">el horario de esta semana (≈ 15 MB)</string>
     <string name="off_why_places">un mes de cambios en OpenStreetMap y en el registro mercantil (≈ 40 MB)</string>
     <string name="off_why_routing">un mes de cambios en OpenStreetMap (≈ 450 MB)</string>
     <string name="off_why_map">swisstopo publicó un mapa nuevo: sus archivos se descargan de nuevo (unos 2,5 GB, unos minutos con un buen Wi-Fi)</string>
-    <string name="off_fresh_msg">Todo está al día en el teléfono. ¿Comprobarlo todo de nuevo de todos modos? Los archivos solo se descargan si el servidor tiene versiones nuevas; se comprueba cada tesela del mapa (unas horas por wifi, pocos datos).</string>
+    <string name="off_fresh_msg">Todo está al día en el teléfono. ¿Comprobarlo todo de nuevo de todos modos? Los archivos solo se descargan si el servidor tiene versiones nuevas.</string>
     <string name="off_fresh_go">COMPROBAR TODO</string>
     <string name="off_hint">Datos sin conexión que conviene actualizar: %1$s. Toque para abrir el menú.</string>
     <string name="off_channel">Suiza sin conexión</string>

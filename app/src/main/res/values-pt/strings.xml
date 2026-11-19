@@ -309,13 +309,13 @@
     <string name="off_wait_retry">%1$d %% feito — continua daqui a pouco (ligação perdida ou bateria fraca).</string>
     <string name="off_not_wifi">Não está em Wi-Fi: começa assim que estiver.</string>
     <string name="off_no_space_now">Espaço insuficiente no telemóvel: são precisos %1$s, há %2$s livres.</string>
-    <string name="off_download_msg">Tudo para usar a app sem rede, em toda a Suíça:\n%1$s\n\n%2$s. O mapa demora algumas horas, de preferência com o telemóvel a carregar; pode usar a app entretanto. A notificação mostra o progresso e tem PAUSA. Se a ligação cair ou o telemóvel reiniciar, continua sozinho.</string>
+    <string name="off_download_msg">Tudo para usar a app sem rede, em toda a Suíça:\n%1$s\n\n%2$s. O mapa é a parte maior (cerca de 2,5 GB); pode usar a app entretanto. A notificação mostra o progresso e tem PAUSA. Se a ligação cair ou o telemóvel reiniciar, continua sozinho.</string>
     <string name="off_update_msg">Vale a pena atualizar:\n%1$s\n\n%2$s, em segundo plano, com o progresso na notificação.</string>
     <string name="off_why_timetable">o horário desta semana (≈ 15 MB)</string>
     <string name="off_why_places">um mês de alterações no OpenStreetMap e no registo comercial (≈ 40 MB)</string>
     <string name="off_why_routing">um mês de alterações no OpenStreetMap (≈ 450 MB)</string>
     <string name="off_why_map">a swisstopo publicou um mapa novo: os seus ficheiros são descarregados de novo (cerca de 2,5 GB, alguns minutos com um bom Wi-Fi)</string>
-    <string name="off_fresh_msg">Tudo está atualizado no telemóvel. Verificar tudo de novo mesmo assim? Os ficheiros só são descarregados se o servidor tiver versões novas; cada mosaico do mapa é verificado (algumas horas em Wi-Fi, poucos dados).</string>
+    <string name="off_fresh_msg">Tudo está atualizado no telemóvel. Verificar tudo de novo mesmo assim? Os ficheiros só são descarregados se o servidor tiver versões novas.</string>
     <string name="off_fresh_go">VERIFICAR TUDO</string>
     <string name="off_hint">Dados offline que vale a pena atualizar: %1$s. Toque para abrir o menu.</string>
     <string name="off_channel">A Suíça offline</string>

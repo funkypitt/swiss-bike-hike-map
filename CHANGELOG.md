@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.20.1 — 2026-11-19
+
+* MENU › Switzerland offline: the two messages that still announced « a few hours » for the map
+  say what it is now, a download of about 2.5 GB.
+
 ## 0.20.0 — 2026-11-19
 
 * The offline map downloads in a few minutes instead of hours: it now comes as the two files

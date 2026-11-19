@@ -316,13 +316,13 @@
     <string name="off_wait_retry">%1$d%% done — goes on in a moment (connection lost, or battery low).</string>
     <string name="off_not_wifi">You are not on Wi-Fi: it starts as soon as you are.</string>
     <string name="off_no_space_now">Not enough room on the phone: %1$s needed, %2$s free.</string>
-    <string name="off_download_msg">Everything for using the app without a network, all of Switzerland:\n%1$s\n\n%2$s. The map takes a few hours, best with the phone charging; you can use the app meanwhile. The notification shows the progress and has PAUSE. If the connection drops or the phone restarts, it goes on by itself.</string>
+    <string name="off_download_msg">Everything for using the app without a network, all of Switzerland:\n%1$s\n\n%2$s. The map is the biggest part (about 2.5 GB); you can use the app meanwhile. The notification shows the progress and has PAUSE. If the connection drops or the phone restarts, it goes on by itself.</string>
     <string name="off_update_msg">Worth updating now:\n%1$s\n\n%2$s, in the background, with the progress in the notification.</string>
     <string name="off_why_timetable">this week\'s timetable (≈ 15 MB)</string>
     <string name="off_why_places">a month of changes in OpenStreetMap and in the commercial register (≈ 40 MB)</string>
     <string name="off_why_routing">a month of OpenStreetMap changes (≈ 450 MB)</string>
     <string name="off_why_map">swisstopo published a new map: its files are fetched again (about 2.5 GB, a few minutes on a good Wi-Fi)</string>
-    <string name="off_fresh_msg">Everything on the phone is current. Check it all again anyway? Files are fetched only if the server has newer ones; every map tile is checked (a few hours over Wi-Fi, little data).</string>
+    <string name="off_fresh_msg">Everything on the phone is current. Check it all again anyway? Files are fetched only if the server has newer ones.</string>
     <string name="off_fresh_go">CHECK EVERYTHING</string>
     <string name="off_hint">Offline data worth updating: %1$s. Tap to open the menu.</string>
     <string name="off_channel">Switzerland offline</string>

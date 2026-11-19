@@ -309,13 +309,13 @@
     <string name="off_wait_retry">%1$d %% fait — reprend dans un instant (connexion perdue ou batterie faible).</string>
     <string name="off_not_wifi">Vous n\'êtes pas en Wi-Fi : cela commencera dès que vous le serez.</string>
     <string name="off_no_space_now">Pas assez de place sur le téléphone : %1$s nécessaires, %2$s libres.</string>
-    <string name="off_download_msg">Tout pour utiliser l\'app sans réseau, sur toute la Suisse :\n%1$s\n\n%2$s. La carte prend quelques heures, idéalement téléphone en charge ; l\'app reste utilisable pendant ce temps. La notification montre la progression et offre PAUSE. Si la connexion tombe ou si le téléphone redémarre, cela reprend tout seul.</string>
+    <string name="off_download_msg">Tout pour utiliser l\'app sans réseau, sur toute la Suisse :\n%1$s\n\n%2$s. La carte est la plus grosse partie (environ 2,5 Go) ; l\'app reste utilisable pendant ce temps. La notification montre la progression et offre PAUSE. Si la connexion tombe ou si le téléphone redémarre, cela reprend tout seul.</string>
     <string name="off_update_msg">Mise à jour conseillée :\n%1$s\n\n%2$s, en arrière-plan, progression dans la notification.</string>
     <string name="off_why_timetable">l\'horaire de la semaine (≈ 15 Mo)</string>
     <string name="off_why_places">un mois de changements dans OpenStreetMap et au registre du commerce (≈ 40 Mo)</string>
     <string name="off_why_routing">un mois de changements OpenStreetMap (≈ 450 Mo)</string>
     <string name="off_why_map">swisstopo a publié une nouvelle carte : ses fichiers sont téléchargés à nouveau (environ 2,5 Go, quelques minutes sur un bon Wi-Fi)</string>
-    <string name="off_fresh_msg">Tout est à jour sur le téléphone. Tout revérifier quand même ? Les fichiers ne sont retéléchargés que si le serveur en a de plus récents ; chaque tuile de la carte est vérifiée (quelques heures en Wi-Fi, peu de données).</string>
+    <string name="off_fresh_msg">Tout est à jour sur le téléphone. Tout revérifier quand même ? Les fichiers ne sont retéléchargés que si le serveur en a de plus récents.</string>
     <string name="off_fresh_go">TOUT VÉRIFIER</string>
     <string name="off_hint">Données hors ligne à mettre à jour : %1$s. Touchez pour ouvrir le menu.</string>
     <string name="off_channel">La Suisse hors ligne</string>
