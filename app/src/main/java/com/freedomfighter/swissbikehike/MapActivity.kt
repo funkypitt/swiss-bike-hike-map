@@ -611,9 +611,10 @@ class MapActivity : AppCompatActivity(), LocationListener {
         val p = pack.nearby(at.latitude, at.longitude, 8.0, null, 10, maxM = 8.0)
             .firstOrNull { name.isBlank() || it.place.label(this) == name }?.place ?: return false
         val from = lastLocation?.let { LatLng(it.latitude, it.longitude) }
+        val detail = (listOf(Places.categoryText(this, p)) + Places.describe(this, p)).joinToString(" · ")
         PlaceCard.show(this, PlaceInfo.of(this, p), from, if (pin) R.string.place_pin to {
-            addStop(Stop(p.at, p.label(this), Favourites.POI, (listOf(Places.categoryText(this, p)) + Places.describe(this, p)).joinToString(" · ")))
-        } else null)
+            addStop(Stop(p.at, p.label(this), Favourites.POI, detail))
+        } else null, favourite = { Fav(p.label(this), p.at.latitude, p.at.longitude, Favourites.POI, detail) }, onFavourite = { updatePinStrip() })
         return true
     }
 
@@ -651,7 +652,7 @@ class MapActivity : AppCompatActivity(), LocationListener {
         val saved = Favourites.find(this, s.at.latitude, s.at.longitude)
         val head = if (stops.size > 1) getString(R.string.stop_n, stops.size) + "  " else ""
         b.pinLabel.text = head + listOf(saved?.name ?: s.name, if (s.kind == Favourites.STOP) "" else s.detail).filter { it.isNotBlank() }.joinToString("\n")
-        b.btnSave.text = if (saved != null) "★" else "☆"
+        b.btnSave.text = (if (saved != null) "★ " else "☆ ") + getString(R.string.fav_one)
         b.btnSave.isActivated = saved != null
         b.btnDrop.visibility = View.VISIBLE
         // DIRECTIONS until a route is on screen; then the preview below says the rest

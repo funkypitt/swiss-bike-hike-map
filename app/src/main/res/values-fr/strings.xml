@@ -55,8 +55,11 @@
     <string name="directory_key_hint">Clé search.ch (usage privé)</string>
     <string name="directory_credit">Données : Swisscom Directories AG. Une clé privée permet environ mille requêtes par mois ; chaque recherche est gardée un mois, pas plus de quarante quittent le téléphone par jour.</string>
     <string name="fav_hint">Filtrer les favoris</string>
-    <string name="fav_empty">Aucun favori. Posez un point sur la carte (appui long, CHERCHER) et appuyez sur ☆, ou importez un fichier de lieux (GPX, KML, GeoJSON, CSV ou lignes avec coordonnées).</string>
+    <string name="fav_empty">Aucun favori. Posez un point sur la carte (appui long, CHERCHER) et appuyez sur ☆ FAVORI, ou ouvrez un lieu trouvé avec CHERCHER et appuyez sur ☆ AJOUTER AUX FAVORIS, ou importez un fichier de lieux (GPX, KML, GeoJSON, CSV ou lignes avec coordonnées).</string>
     <string name="fav_added">Ajouté aux favoris</string>
+    <string name="fav_add">☆ Ajouter aux favoris</string>
+    <string name="fav_in">★ Dans les favoris</string>
+    <string name="fav_one">Favori</string>
     <string name="fav_removed">Retiré des favoris</string>
     <string name="fav_remove_q">Retirer « %1$s » des favoris ?</string>
     <string name="fav_imported">%1$d lieux ajoutés</string>

@@ -62,11 +62,14 @@ class PlaceInfo(
  * The card of a place: name, kind, open or closed now with the week's hours, address, phone,
  * e-mail, website, position; then CALL (the phone app, the number typed in), CONTACT (the
  * contacts app's new-contact form, filled in), COPY, WEBSITE, SHARE and SEARCH.CH (completes the
- * place with the directory, when a key is set). `primary` is the caller's own action (pin it,
- * show it on the map).
+ * place with the directory, when a key is set), and a wide button that keeps the place among the
+ * favourites or takes it out. `primary` is the caller's own action (pin it, show it on the map);
+ * `favourite` gives the place as a favourite (a directory entry is first placed from its address:
+ * null when that fails), `onFavourite` is told after each change.
  */
 object PlaceCard {
-    fun show(act: AppCompatActivity, info: PlaceInfo, from: LatLng? = null, primary: Pair<Int, () -> Unit>? = null) {
+    fun show(act: AppCompatActivity, info: PlaceInfo, from: LatLng? = null, primary: Pair<Int, () -> Unit>? = null,
+             favourite: (suspend () -> Fav?)? = null, onFavourite: () -> Unit = {}) {
         val v = DialogPlaceBinding.inflate(act.layoutInflater)
         val dlg = AlertDialog.Builder(act).setView(v.root).setNegativeButton(R.string.close, null)
         primary?.let { (label, run) -> dlg.setPositiveButton(label) { _, _ -> run() } }
@@ -81,6 +84,25 @@ object PlaceCard {
             runCatching { act.startActivity(Intent.createChooser(send, null)) }
         }
         v.pDirectory.setOnClickListener { complete(act, v, info, from) }
+        v.pFav.visibility = if (favourite == null) View.GONE else View.VISIBLE
+        fun mark(saved: Boolean) {
+            v.pFav.text = act.getString(if (saved) R.string.fav_in else R.string.fav_add)
+            v.pFav.isActivated = saved
+        }
+        mark(info.at?.let { Favourites.find(act, it.latitude, it.longitude) } != null)
+        v.pFav.setOnClickListener {
+            act.lifecycleScope.launch {
+                v.pFav.isEnabled = false
+                val f = favourite?.invoke()
+                v.pFav.isEnabled = true
+                if (f == null) { Toast.makeText(act, R.string.address_not_found, Toast.LENGTH_SHORT).show(); return@launch }
+                val saved = Favourites.find(act, f.lat, f.lon)
+                if (saved == null) Favourites.add(act, f) else Favourites.remove(act, saved)
+                mark(saved == null)
+                Toast.makeText(act, if (saved == null) R.string.fav_added else R.string.fav_removed, Toast.LENGTH_SHORT).show()
+                onFavourite()
+            }
+        }
         d.show()
     }
 

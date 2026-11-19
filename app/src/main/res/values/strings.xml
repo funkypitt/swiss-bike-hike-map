@@ -60,8 +60,11 @@
     <string name="directory_key_hint">search.ch key (private use)</string>
     <string name="directory_credit">Data: Swisscom Directories AG. A private key allows about a thousand requests a month; each search is kept for a month, no more than forty leave the phone a day.</string>
     <string name="fav_hint">Filter the favourites</string>
-    <string name="fav_empty">No favourite yet. Put a point on the map (long press, FIND) and press ☆, or import a file of places (GPX, KML, GeoJSON, CSV, or lines with coordinates).</string>
+    <string name="fav_empty">No favourite yet. Put a point on the map (long press, FIND) and press ☆ FAVOURITE, or open a place found with FIND and press ☆ ADD TO FAVOURITES, or import a file of places (GPX, KML, GeoJSON, CSV, or lines with coordinates).</string>
     <string name="fav_added">Saved to the favourites</string>
+    <string name="fav_add">☆ Add to favourites</string>
+    <string name="fav_in">★ In favourites</string>
+    <string name="fav_one">Favourite</string>
     <string name="fav_removed">Removed from the favourites</string>
     <string name="fav_remove_q">Remove « %1$s » from the favourites?</string>
     <string name="fav_imported">%1$d places added</string>

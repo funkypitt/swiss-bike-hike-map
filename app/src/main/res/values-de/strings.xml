@@ -55,8 +55,11 @@
     <string name="directory_key_hint">search.ch-Schlüssel (privat)</string>
     <string name="directory_credit">Daten: Swisscom Directories AG. Ein privater Schlüssel erlaubt etwa tausend Anfragen im Monat; jede Suche wird einen Monat behalten, höchstens vierzig verlassen das Telefon pro Tag.</string>
     <string name="fav_hint">Favoriten filtern</string>
-    <string name="fav_empty">Noch kein Favorit. Setzen Sie einen Punkt auf die Karte (lang drücken, SUCHEN) und tippen Sie ☆, oder importieren Sie eine Ortsdatei (GPX, KML, GeoJSON, CSV oder Zeilen mit Koordinaten).</string>
+    <string name="fav_empty">Noch kein Favorit. Setzen Sie einen Punkt auf die Karte (lang drücken, SUCHEN) und tippen Sie ☆ FAVORIT, oder öffnen Sie einen mit SUCHEN gefundenen Ort und tippen Sie ☆ ZU DEN FAVORITEN, oder importieren Sie eine Ortsdatei (GPX, KML, GeoJSON, CSV oder Zeilen mit Koordinaten).</string>
     <string name="fav_added">Zu den Favoriten gelegt</string>
+    <string name="fav_add">☆ Zu den Favoriten</string>
+    <string name="fav_in">★ In den Favoriten</string>
+    <string name="fav_one">Favorit</string>
     <string name="fav_removed">Aus den Favoriten entfernt</string>
     <string name="fav_remove_q">« %1$s » aus den Favoriten entfernen?</string>
     <string name="fav_imported">%1$d Orte hinzugefügt</string>

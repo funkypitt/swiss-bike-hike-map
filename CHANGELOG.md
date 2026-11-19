@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.17.0 — 2026-11-19
+
+* Favourites are easier to reach. The card of a place, a business or a person found with FIND
+  has a wide button ☆ ADD TO FAVOURITES (★ IN FAVOURITES once kept; a second tap takes it out),
+  so nothing has to be pinned on the map first. A business or a person of search.ch is placed
+  from its address and kept with its address and phone.
+* On the map, the black strip of a point shows its name on a full line, and under it the
+  buttons with their words: DIRECTIONS, DEPARTURES at a stop, and ☆ FAVOURITE (yellow ★ once
+  kept) instead of a bare star.
+
 ## 0.16.0 — 2026-11-19
 
 * The signposted tours no longer wait for a new version of the app: when the Federal Roads

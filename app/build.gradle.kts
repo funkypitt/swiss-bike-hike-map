@@ -11,8 +11,8 @@ android {
         applicationId = "com.freedomfighter.swissbikehike"
         minSdk = 28
         targetSdk = 35
-        versionCode = 29
-        versionName = "0.16.0"
+        versionCode = 30
+        versionName = "0.17.0"
     }
 
     buildTypes {

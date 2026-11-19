@@ -55,8 +55,11 @@
     <string name="directory_key_hint">Clave de search.ch (uso privado)</string>
     <string name="directory_credit">Datos: Swisscom Directories AG. Una clave privada permite unas mil consultas al mes; cada búsqueda se guarda un mes y no salen más de cuarenta del teléfono al día.</string>
     <string name="fav_hint">Filtrar los favoritos</string>
-    <string name="fav_empty">Aún no hay favoritos. Ponga un punto en el mapa (pulsación larga, BUSCAR) y pulse ☆, o importe un archivo de lugares (GPX, KML, GeoJSON, CSV o líneas con coordenadas).</string>
+    <string name="fav_empty">Aún no hay favoritos. Ponga un punto en el mapa (pulsación larga, BUSCAR) y pulse ☆ FAVORITO, o abra un lugar encontrado con BUSCAR y pulse ☆ AÑADIR A FAVORITOS, o importe un archivo de lugares (GPX, KML, GeoJSON, CSV o líneas con coordenadas).</string>
     <string name="fav_added">Guardado en los favoritos</string>
+    <string name="fav_add">☆ Añadir a favoritos</string>
+    <string name="fav_in">★ En favoritos</string>
+    <string name="fav_one">Favorito</string>
     <string name="fav_removed">Quitado de los favoritos</string>
     <string name="fav_remove_q">¿Quitar « %1$s » de los favoritos?</string>
     <string name="fav_imported">%1$d lugares añadidos</string>

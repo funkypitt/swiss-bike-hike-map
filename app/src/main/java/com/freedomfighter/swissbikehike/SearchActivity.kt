@@ -389,12 +389,14 @@ class SearchActivity : AppCompatActivity() {
             if (info.phone.isNullOrBlank()) info.phone = e.phone.ifBlank { null }
             if (info.street.isBlank()) { info.street = e.street; info.zip = e.zip; info.city = e.city.ifBlank { info.city } }
         }
-        PlaceCard.show(this, info, if (nearIsGps) near else null, R.string.place_pin to { finishWith(h) })
+        PlaceCard.show(this, info, if (nearIsGps) near else null, R.string.place_pin to { finishWith(h) },
+            favourite = { Fav(h.label, h.lat, h.lon, h.kind, h.detail) })
     }
 
     /** The card of a directory entry (person or business): ON THE MAP places it through GeoAdmin. */
     private fun showDirectory(e: Directory.Hit) {
-        PlaceCard.show(this, PlaceInfo.of(e), null, R.string.place_on_map to { pick(e) })
+        PlaceCard.show(this, PlaceInfo.of(e), null, R.string.place_on_map to { pick(e) },
+            favourite = { locate(e)?.let { Fav(it.label, it.lat, it.lon, it.kind, it.detail) } })
     }
 
     /** Adds the directory's phone and address to a hit of the pack, and refreshes its row. */
@@ -479,14 +481,20 @@ class SearchActivity : AppCompatActivity() {
 
     /** A directory hit has an address, not a position: GeoAdmin turns it into one (the street first, the town as a fallback). */
     private fun pick(h: Directory.Hit) {
-        if (h.city.isBlank() && h.street.isBlank()) return
         lifecycleScope.launch {
-            val place = (if (h.street.isNotBlank()) geocode("${h.street} ${h.zip} ${h.city}", "address") else null)
-                ?: geocode("${h.zip} ${h.city}", "zipcode")
-            if (place == null) { Toast.makeText(this@SearchActivity, R.string.address_not_found, Toast.LENGTH_SHORT).show(); return@launch }
-            finishWith(Hit(h.name, place.lat, place.lon, if (h.person) Favourites.PERSON else Favourites.FIRM,
-                listOf(h.address, h.phone).filter { it.isNotBlank() }.joinToString(" · ")))
+            val hit = locate(h)
+            if (hit == null) { Toast.makeText(this@SearchActivity, R.string.address_not_found, Toast.LENGTH_SHORT).show(); return@launch }
+            finishWith(hit)
         }
+    }
+
+    /** The entry with a position, its address and phone kept as its detail; null when the address cannot be placed. */
+    private suspend fun locate(h: Directory.Hit): Hit? {
+        if (h.city.isBlank() && h.street.isBlank()) return null
+        val place = (if (h.street.isNotBlank()) geocode("${h.street} ${h.zip} ${h.city}", "address") else null)
+            ?: geocode("${h.zip} ${h.city}", "zipcode") ?: return null
+        return Hit(h.name, place.lat, place.lon, if (h.person) Favourites.PERSON else Favourites.FIRM,
+            listOf(h.address, h.phone).filter { it.isNotBlank() }.joinToString(" · "))
     }
 
     // ---- GeoAdmin ----

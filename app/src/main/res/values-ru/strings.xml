@@ -55,8 +55,11 @@
     <string name="directory_key_hint">Ключ search.ch (личное использование)</string>
     <string name="directory_credit">Данные: Swisscom Directories AG. Личный ключ даёт около тысячи запросов в месяц; каждый поиск хранится месяц, не более сорока в день уходят с телефона.</string>
     <string name="fav_hint">Фильтр избранного</string>
-    <string name="fav_empty">Избранного пока нет. Поставьте точку на карте (долгое нажатие, ПОИСК) и нажмите ☆, или импортируйте файл мест (GPX, KML, GeoJSON, CSV или строки с координатами).</string>
+    <string name="fav_empty">Избранного пока нет. Поставьте точку на карте (долгое нажатие, ПОИСК) и нажмите ☆ ИЗБРАННОЕ, либо откройте место, найденное через ПОИСК, и нажмите ☆ В ИЗБРАННОЕ, или импортируйте файл мест (GPX, KML, GeoJSON, CSV или строки с координатами).</string>
     <string name="fav_added">Сохранено в избранное</string>
+    <string name="fav_add">☆ В избранное</string>
+    <string name="fav_in">★ В избранном</string>
+    <string name="fav_one">Избранное</string>
     <string name="fav_removed">Убрано из избранного</string>
     <string name="fav_remove_q">Убрать « %1$s » из избранного?</string>
     <string name="fav_imported">Добавлено мест: %1$d</string>
