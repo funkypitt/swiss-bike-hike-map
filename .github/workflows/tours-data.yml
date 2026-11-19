@@ -1,0 +1,51 @@
+# Keeps the signposted tours of the app (on foot, by bike, by mountain bike) current between app
+# releases: when the Federal Roads Office has published newer routes on data.geo.admin.ch (about
+# once a year), rebuilds the pack with tools/make-tours.py and puts it on the rolling release
+# "tours-data", which the app offers as an update. Looks every week (three small requests);
+# builds only when the source is newer than the published pack, or on demand with "force".
+name: tours-data
+
+on:
+  schedule:
+    - cron: "41 3 * * 0"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Rebuild even when the source has not changed"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Is the source newer than the published pack?
+        id: look
+        env:
+          FORCE: ${{ inputs.force }}
+        run: |
+          source=$(python3 tools/make-tours.py --source)
+          published=$(curl -sfL "https://github.com/$GITHUB_REPOSITORY/releases/download/tours-data/switzerland.tours.json" \
+            | python3 -c 'import sys,json; print(json.load(sys.stdin).get("source",""))' 2>/dev/null || true)
+          echo "source: $source — published: ${published:-nothing}"
+          if [ "$FORCE" = "true" ] || [[ "$source" > "$published" ]]; then echo "build=yes" >> "$GITHUB_OUTPUT"; fi
+      - name: Build the pack
+        if: steps.look.outputs.build == 'yes'
+        run: python3 tools/make-tours.py --release out
+      - name: Publish on the tours-data release
+        if: steps.look.outputs.build == 'yes'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view tours-data --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+            gh release create tours-data --repo "$GITHUB_REPOSITORY" --title "Signposted tours (SwitzerlandMobility)" \
+              --notes "The signposted hiking, cycling and mountain-bike routes of the app, stage by stage, rebuilt when the source changes. Source: Federal Roads Office FEDRO, SwitzerlandMobility and the cantons, open data of data.geo.admin.ch (Wanderland, Veloland, Mountainbikeland Schweiz). Not an app release." --prerelease
+          gh release upload tours-data out/switzerland.tours.gz out/switzerland.tours.json --repo "$GITHUB_REPOSITORY" --clobber
+          cat out/switzerland.tours.json

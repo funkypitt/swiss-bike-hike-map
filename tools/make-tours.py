@@ -15,16 +15,25 @@ Each index entry has the offset and the point count of its line. A line is a run
 varints: latitude and longitude in 1e-6 degrees, elevation in decimetres, each as the difference
 from the point before.
 
-Standard library only.  Usage:  tools/make-tours.py [--out app/src/main/assets/tours.pack] [--keep DIR]
-The data change about once a year: run it again before a release when the health check says so.
+The index also says when the pack was built and how recent its source is ("source": the newest
+« updated » of the three GeoPackages); the app takes a pack from the server only when its source
+is newer than the one it has.
+
+Standard library only.  Usage:
+    tools/make-tours.py [--out app/src/main/assets/tours.pack] [--keep DIR]    the pack shipped with the app
+    tools/make-tours.py --release DIR     switzerland.tours.gz + .json for the rolling release « tours-data »
+    tools/make-tours.py --source          only prints how recent the source is
+The data change about once a year; the workflow tours-data looks every week and rebuilds then.
 """
-import argparse, collections, datetime, json, math, os, sqlite3, struct, sys, tempfile, urllib.parse, urllib.request
+import argparse, collections, datetime, gzip, json, math, os, sqlite3, struct, sys, tempfile, urllib.parse, urllib.request
 
 SOURCES = [
     ("walk", "https://data.geo.admin.ch/ch.astra.wanderland/wanderland/wanderland_2056.gpkg"),
     ("mtb", "https://data.geo.admin.ch/ch.astra.mountainbikeland/mountainbikeland/mountainbikeland_2056.gpkg"),
     ("bike", "https://data.geo.admin.ch/ch.astra.veloland/veloland/veloland_2056.gpkg"),
 ]
+# fewer stages than this in a land = the source is broken or has changed shape: nothing is published
+LEAST = {"walk": 800, "mtb": 300, "bike": 250}
 TOLERANCE_M = 3.0
 LEVEL = {"easy": 1, "medium": 2, "difficult": 3}
 KIND = {"national": "n", "regional": "r", "local": "l", "lokal": "l", "handicap": "h"}
@@ -287,6 +296,19 @@ def encode(pts):
     return bytes(out)
 
 
+def source_date():
+    """The newest « updated » of the GeoPackages, as the server's catalogue gives it (an ISO date and time)."""
+    newest = ""
+    for land, url in SOURCES:
+        collection = url.split("/")[3]
+        req = urllib.request.Request("https://data.geo.admin.ch/api/stac/v0.9/collections/%s/items" % collection,
+                                     headers={"User-Agent": "swiss-bikers-pedestrians-map tours pack"})
+        with urllib.request.urlopen(req, timeout=60) as r:
+            assets = json.load(r)["features"][0]["assets"]
+        newest = max(newest, next(v["updated"] for k, v in assets.items() if k.endswith(".gpkg")))
+    return newest
+
+
 def minutes(v):
     try:
         return round(float(v) * 60)
@@ -349,7 +371,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=os.path.join(os.path.dirname(__file__), "..", "app", "src", "main", "assets", "tours.pack"))
     ap.add_argument("--keep", help="folder for the downloaded GeoPackages (kept between runs)")
+    ap.add_argument("--release", metavar="DIR", help="write switzerland.tours.gz and switzerland.tours.json there instead of --out")
+    ap.add_argument("--source", action="store_true", help="print how recent the source is, and stop")
     a = ap.parse_args()
+    source = source_date()
+    if a.source:
+        print(source)
+        return
     folder = a.keep or tempfile.mkdtemp(prefix="tours-")
     os.makedirs(folder, exist_ok=True)
     report = collections.Counter()
@@ -361,6 +389,8 @@ def main():
         fetch(url, path)
         got = read(land, path, report, places)
         print("%s: %d stages of %d routes" % (land, len(got), len({i[0]['nr'] for i in got})), file=sys.stderr)
+        if len(got) < LEAST[land]:
+            sys.exit("%s: only %d stages, at least %d expected: nothing written" % (land, len(got), LEAST[land]))
         items += got
     blob = bytearray()
     index = []
@@ -369,9 +399,19 @@ def main():
         entry["b"] = len(line)
         blob += line
         index.append(entry)
-    head = json.dumps({"built": datetime.date.today().isoformat(), "tours": index}, ensure_ascii=False, separators=(",", ":")).encode()
-    with open(a.out, "wb") as f:
-        f.write(b"SBHT" + bytes([1]) + struct.pack("<I", len(head)) + head + blob)
+    built = datetime.date.today().isoformat()
+    head = json.dumps({"built": built, "source": source, "tours": index}, ensure_ascii=False, separators=(",", ":")).encode()
+    pack = b"SBHT" + bytes([1]) + struct.pack("<I", len(head)) + head + blob
+    if a.release:
+        os.makedirs(a.release, exist_ok=True)
+        a.out = os.path.join(a.release, "switzerland.tours.gz")
+        with open(a.out, "wb") as f:
+            f.write(gzip.compress(pack, 9, mtime=0))
+        with open(os.path.join(a.release, "switzerland.tours.json"), "w") as f:
+            json.dump({"built": built, "source": source, "tours": len(index), "bytes": len(pack), "gz_bytes": os.path.getsize(a.out)}, f)
+    else:
+        with open(a.out, "wb") as f:
+            f.write(pack)
     print("%d tours, %.1f MB (index %.0f kB, lines %.1f MB); %d km stated, %d km sewn; empty %d; partial %d" % (
         len(index), os.path.getsize(a.out) / 1e6, len(head) / 1e3, len(blob) / 1e6, report["km_stated"], report["km_sewn"], report["empty"], len(report["partial"])), file=sys.stderr)
     places.save()
