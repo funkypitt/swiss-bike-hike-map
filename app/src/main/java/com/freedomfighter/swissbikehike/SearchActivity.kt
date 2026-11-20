@@ -1,6 +1,11 @@
 package com.freedomfighter.swissbikehike
 
 import android.app.Activity
+import android.app.PendingIntent
+import android.os.Build
+import android.widget.RemoteViews
+import androidx.browser.customtabs.CustomTabsIntent
+import androidx.core.graphics.drawable.toBitmap
 import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.provider.ContactsContract
@@ -68,6 +73,8 @@ class SearchActivity : AppCompatActivity() {
         const val EXTRA_RESULTS = "results"
         /** Open on the list of favourites. */
         const val EXTRA_FAVS = "favs"
+        /** Sent by the browser tab's button, with the address of the page shown there. */
+        private const val ACTION_WEB_ENTRY = "com.freedomfighter.swissbikehike.WEB_ENTRY"
         /** A place of a result list drawn on the map; `placeIndex` = its index in the places pack. */
         class Result(val label: String, val at: LatLng, val placeIndex: Int, val detail: String)
         /** The list handed to the map by SHOW ON THE MAP (kept in memory: an Intent is too small for it). */
@@ -460,14 +467,55 @@ class SearchActivity : AppCompatActivity() {
 
     // ---- a person on the website of search.ch (the build without the directory's interface) ----
 
-    /** Opens search.ch on the typed name; an address copied there is offered when the person comes back. */
+    /**
+     * Opens search.ch on the typed name, in a tab of the browser laid over this screen. The tab
+     * carries one button of this app (a bar under the page, and a pin beside the address): the
+     * browser answers it with the address of the page shown, and an entry's page names its town,
+     * street and name there, so nothing has to be copied. A browser without such tabs opens the
+     * page as usual: an address copied there is then offered on the way back.
+     */
     private fun openWeb() {
         val q = b.query.text?.toString()?.trim() ?: ""
         val w = shownWhere
         val url = "https://search.ch/tel/?was=" + URLEncoder.encode(w?.what ?: q, "UTF-8") + (if (w != null) "&wo=" + URLEncoder.encode(w.town.name, "UTF-8") else "")
-        runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }.onSuccess {
+        if (openTab(url)) {
             leftForWeb = System.currentTimeMillis(); webName = w?.what ?: q
             Toast.makeText(this, R.string.web_copy_hint, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun openTab(url: String): Boolean {
+        val back = PendingIntent.getActivity(this, 1,
+            Intent(this, SearchActivity::class.java).setAction(ACTION_WEB_ENTRY).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            PendingIntent.FLAG_UPDATE_CURRENT or (if (Build.VERSION.SDK_INT >= 31) PendingIntent.FLAG_MUTABLE else 0))
+        val dp = resources.displayMetrics.density
+        val pin = AppCompatResources.getDrawable(this, R.drawable.pin)!!.toBitmap((18 * dp).toInt(), (24 * dp).toInt())
+        val tab = CustomTabsIntent.Builder().setShowTitle(true)
+            // the browser draws the bar in the phone's language: the words are given in the app's own
+            .setSecondaryToolbarViews(RemoteViews(packageName, R.layout.web_bar).apply { setTextViewText(R.id.webUse, getString(R.string.web_use)) }, intArrayOf(R.id.webUse), back)
+            .setActionButton(pin, getString(R.string.web_use), back, false)
+            .build()
+        return runCatching { tab.launchUrl(this, Uri.parse(url)) }.isSuccess
+    }
+
+    /** The tab's button was pressed: the entry shown there goes on the map; on any other page the tab comes back with a word of help. */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.action != ACTION_WEB_ENTRY) return
+        val url = intent.dataString ?: return
+        val e = Firms.webEntry(url)
+        if (e == null) {
+            Toast.makeText(this, R.string.web_open_entry, Toast.LENGTH_LONG).show()
+            if (url.startsWith("https://")) openTab(url)
+            return
+        }
+        leftForWeb = 0L
+        lifecycleScope.launch {
+            // the map service knows the address as it is written, postcode included
+            val place = (if (e.street.isNotBlank()) geocode("${e.street} ${e.city}", "address") else null)
+                ?: geocode(e.city, "zipcode") ?: geocode(e.city, "gg25")
+            if (place == null) { Toast.makeText(this@SearchActivity, R.string.address_not_found, Toast.LENGTH_SHORT).show(); return@launch }
+            finishWith(Hit(e.name, place.lat, place.lon, Favourites.PERSON, if (e.street.isNotBlank()) place.label else e.city))
         }
     }
 

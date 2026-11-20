@@ -465,7 +465,9 @@
     <string name="search_contact_row">☺  Адрес одного из контактов</string>
     <string name="contact_no_address">У этого контакта нет адреса, который можно найти на карте</string>
     <string name="contact_no_app">На этом телефоне нет приложения контактов</string>
-    <string name="web_copy_hint">Скопируйте там адрес и вернитесь: он будет предложен здесь.</string>
+    <string name="web_copy_hint">Откройте нужную запись и нажмите ПОКАЗАТЬ НА КАРТЕ внизу.</string>
+    <string name="web_use">ПОКАЗАТЬ ЭТОТ АДРЕС НА КАРТЕ</string>
+    <string name="web_open_entry">Сначала откройте запись (нажмите на имя), затем кнопку.</string>
     <string name="copied_use_q">Использовать скопированный адрес?</string>
     <string name="copied_use">ИСПОЛЬЗОВАТЬ</string>
     <string name="place_card_more">Нажмите на место, чтобы открыть карточку (часы работы, телефон, адрес).</string>

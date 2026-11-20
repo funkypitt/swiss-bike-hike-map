@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.21.0 — 2026-11-20
+
+* A person or a firm the app does not know: the row « Look up … on search.ch » now opens the
+  directory's website in a tab laid over the app. Open the entry you want and tap SHOW THIS
+  ADDRESS ON THE MAP: the point is there, ready as a destination or a favourite, with nothing
+  to copy. (In a browser without such tabs, an address copied there is still offered on the
+  way back.)
+* The app no longer holds a request to the directory of search.ch with a key of one's own:
+  the field for that key is gone from the menu.
+
 ## 0.20.1 — 2026-11-19
 
 * MENU › Switzerland offline: the two messages that still announced « a few hours » for the map

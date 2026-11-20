@@ -457,7 +457,9 @@
     <string name="search_contact_row">☺  L’adresse d’un contact</string>
     <string name="contact_no_address">Ce contact n\'a pas d\'adresse qui puisse être placée</string>
     <string name="contact_no_app">Aucune application de contacts sur ce téléphone</string>
-    <string name="web_copy_hint">Copiez l\'adresse là-bas, puis revenez : elle vous sera proposée ici.</string>
+    <string name="web_copy_hint">Ouvrez la fiche voulue, puis touchez AFFICHER SUR LA CARTE en bas.</string>
+    <string name="web_use">AFFICHER CETTE ADRESSE SUR LA CARTE</string>
+    <string name="web_open_entry">Ouvrez d\'abord une fiche (touchez son nom), puis le bouton.</string>
     <string name="copied_use_q">Utiliser l\'adresse copiée ?</string>
     <string name="copied_use">UTILISER</string>
     <string name="place_card_more">Touchez un lieu pour sa fiche (horaires, téléphone, adresse).</string>

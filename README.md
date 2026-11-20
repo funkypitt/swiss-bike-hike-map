@@ -51,10 +51,9 @@ the app was called Swiss Bike-Hike Map; the package name has not changed.)
   (« Ardentis Lausanne », « hotel Bern ») is looked for in that town; the firms of the Swiss
   commercial register, offline (about 789 000, at their registered address, a 33 MB pack that comes
   with the places); the postal address of one of your contacts, through Android's own picker (no
-  access to the contacts is asked); people and firms from the
-  search.ch directory with your own free key (the Search key or the directory row), which also
-  completes a place with its phone and address — without a key, the name is looked up on search.ch
-  in the browser, and an address copied there is offered as a point when you come back; and your favourites,
+  access to the contacts is asked); people and firms the packs do
+  not know, looked up on search.ch in a browser tab laid over the app: open the entry and one
+  button puts its address on the map, ready as a destination or a favourite; and your favourites,
   which you can import and export (GPX, KML, GeoJSON, CSV). The places can be drawn on the map
   as coloured dots.
 * **Offline**: one option, all of Switzerland — map, routing, places and timetable (about
@@ -89,9 +88,8 @@ All three deliver the same file, with the same signature. Android 9 or newer, ar
 ./gradlew assembleLibreRelease      # app/build/outputs/apk/libre/release/app-libre-release-unsigned.apk
 ```
 
-Two builds of the same app: `libre` (the one published here and on F-Droid) can ask the directory
-of search.ch with your own key; `play` (`assemblePlayRelease`) holds no such request and sends to
-the directory's website instead. Everything else is the same code.
+Two published builds of the same app: `libre` (here and on F-Droid) and `play`
+(`assemblePlayRelease`, Google Play, newest target SDK). Everything else is the same code.
 
 `local.properties` must point at an Android SDK. The `brouter` module is BRouter's routing core
 (MIT) copied from upstream, see `brouter/UPSTREAM-COMMIT.txt`; the profiles and `lookups.dat`
@@ -120,7 +118,7 @@ Search: GeoAdmin API; places (fountains, shelters, huts, shops…): © OpenStree
 (ODbL), extract by [Geofabrik](https://download.geofabrik.de), packed weekly by this repository;
 firms: the Swiss commercial register (Zefix, Federal Commercial Registry Office, open government
 data), placed with swisstopo's directory of building addresses, packed weekly by this repository;
-people and firms: search.ch directory (Swisscom Directories AG) with the user's own key. Public transport: [transport.opendata.ch](https://transport.opendata.ch)
+people and firms beyond these: the website of search.ch, in the browser. Public transport: [transport.opendata.ch](https://transport.opendata.ch)
 (Opendata.ch) online; the offline pack comes from the official Swiss timetable (GTFS) of
 [opentransportdata.swiss](https://opentransportdata.swiss), open data of the Federal Office of
 Transport, converted by this repository.

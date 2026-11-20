@@ -464,7 +464,9 @@
     <string name="search_contact_row">☺  The address of a contact</string>
     <string name="contact_no_address">This contact has no address that can be placed</string>
     <string name="contact_no_app">No contacts app on this phone</string>
-    <string name="web_copy_hint">Copy the address there, then come back: it will be offered here.</string>
+    <string name="web_copy_hint">Open the entry you want, then tap SHOW ON THE MAP at the bottom.</string>
+    <string name="web_use">SHOW THIS ADDRESS ON THE MAP</string>
+    <string name="web_open_entry">Open an entry first (tap its name), then tap the button.</string>
     <string name="copied_use_q">Use the address you copied?</string>
     <string name="copied_use">USE</string>
     <string name="place_card_more">Tap a place for its card (hours, phone, address).</string>

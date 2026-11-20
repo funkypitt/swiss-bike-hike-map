@@ -22,9 +22,10 @@ uninstall it. An export (GPX, KML, GeoJSON, CSV) goes only where you send it.
   searched on the phone once their pack is downloaded.
 - **Downloads you ask for**: the offline data come from swisstopo, brouter.de and the app's
   page on GitHub. These servers see your IP address, like any website.
-- **The directory of search.ch**: the version on Google Play never queries it; it can open
-  search.ch in your browser, at your request. In the version from F-Droid or GitHub, and only
-  if you enter your own search.ch key, the name you search is sent to search.ch with that key.
+- **The directory of search.ch**: the app never queries it. At your request it opens search.ch
+  in a tab of your browser, on the name you typed. If you press the app's button in that tab,
+  the browser hands the app the address of the page shown, and the postal address it names is
+  sent to the federal geoportal to be placed on the map.
 
 **Permissions**: location (your position on the map, guidance, recording a tour — also with the
 screen off while a guidance or a recording runs, never otherwise), notifications (guidance and
@@ -61,10 +62,10 @@ va que là où vous l'envoyez.
 - **Téléchargements que vous demandez** : les données hors ligne viennent de swisstopo, de
   brouter.de et de la page de l'app sur GitHub. Ces serveurs voient votre adresse IP, comme
   tout site web.
-- **L'annuaire de search.ch** : la version de Google Play ne l'interroge jamais ; elle peut
-  ouvrir search.ch dans votre navigateur, à votre demande. Dans la version de F-Droid ou de
-  GitHub, et seulement si vous saisissez votre propre clé search.ch, le nom cherché est envoyé
-  à search.ch avec cette clé.
+- **L'annuaire de search.ch** : l'app ne l'interroge jamais. À votre demande, elle ouvre
+  search.ch dans un onglet de votre navigateur, sur le nom saisi. Si vous touchez le bouton de
+  l'app dans cet onglet, le navigateur lui remet l'adresse de la page affichée, et l'adresse
+  postale qu'elle désigne est envoyée au géoportail fédéral pour être placée sur la carte.
 
 **Autorisations** : position (votre position sur la carte, le guidage, l'enregistrement d'un
 parcours — aussi écran éteint pendant un guidage ou un enregistrement, jamais autrement),

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- the bar under the page of search.ch, in the browser tab: one button that brings the entry shown back to the map -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="56dp"
+    android:background="@color/ink" android:padding="4dp">
+    <TextView android:id="@+id/webUse"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:background="@color/route_magenta" android:gravity="center"
+        android:text="@string/web_use" android:textColor="@color/paper"
+        android:textSize="15sp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end"/>
+</FrameLayout>

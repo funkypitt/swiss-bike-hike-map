@@ -178,6 +178,25 @@ class Firms private constructor(private val b: ByteBuffer) {
         /** Two points this close are one address (a firm and the place of OpenStreetMap at its door). */
         const val SAME_PLACE_M = 60.0
 
+        /**
+         * What the address of a search.ch entry page says of the entry: the town, the street and the
+         * name are its three last parts (« /tel/vevey/rue-de-lausanne-17/fleur-de-pains-sa »), written
+         * without capitals or accents. Null for any other page (the list of answers, another site).
+         */
+        fun webEntry(url: String): Copied? {
+            val u = runCatching { java.net.URI(url.trim()) }.getOrNull() ?: return null
+            val host = u.host?.lowercase() ?: return null
+            if (host != "search.ch" && !host.endsWith(".search.ch")) return null
+            val parts = (u.path ?: return null).split('/').filter { it.isNotBlank() }
+            if (parts.size !in 3..4 || parts[0] != "tel") return null
+            fun words(slug: String) = slug.substringBefore('.').split('-').filter { it.isNotBlank() }
+            fun title(slug: String) = words(slug).joinToString(" ") { w -> if (w in UPPER) w.uppercase() else w.replaceFirstChar { it.uppercase() } }
+            if (parts.drop(1).any { p -> words(p).isEmpty() || !p.all { it.isLetterOrDigit() || it == '-' || it == '.' } }) return null
+            val street = if (parts.size == 4) title(parts[2]) else ""
+            return Copied(title(parts.last()), street, "", title(parts[1]))
+        }
+        private val UPPER = setOf("sa", "ag", "gmbh", "sarl")
+
         /** `text` read as a Swiss address copied from elsewhere (« Rue du Collège 3, 1800 Vevey », lines or commas), or null. */
         fun copiedAddress(text: String): Copied? {
             if (text.length > 400) return null

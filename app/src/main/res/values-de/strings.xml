@@ -457,7 +457,9 @@
     <string name="search_contact_row">☺  Die Adresse eines Kontakts</string>
     <string name="contact_no_address">Dieser Kontakt hat keine Adresse, die sich verorten lässt</string>
     <string name="contact_no_app">Keine Kontakte-App auf diesem Telefon</string>
-    <string name="web_copy_hint">Kopieren Sie dort die Adresse und kommen Sie zurück: Sie wird hier angeboten.</string>
+    <string name="web_copy_hint">Öffnen Sie den gewünschten Eintrag und tippen Sie unten auf AUF DER KARTE ZEIGEN.</string>
+    <string name="web_use">DIESE ADRESSE AUF DER KARTE ZEIGEN</string>
+    <string name="web_open_entry">Öffnen Sie zuerst einen Eintrag (auf den Namen tippen), dann die Taste.</string>
     <string name="copied_use_q">Die kopierte Adresse verwenden?</string>
     <string name="copied_use">VERWENDEN</string>
     <string name="place_card_more">Tippen Sie auf einen Ort für seine Karte (Öffnungszeiten, Telefon, Adresse).</string>

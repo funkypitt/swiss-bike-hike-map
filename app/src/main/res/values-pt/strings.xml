@@ -457,7 +457,9 @@
     <string name="search_contact_row">☺  A morada de um contacto</string>
     <string name="contact_no_address">Este contacto não tem uma morada que se possa situar</string>
     <string name="contact_no_app">Não há aplicação de contactos neste telefone</string>
-    <string name="web_copy_hint">Copie lá a morada e volte: ela será proposta aqui.</string>
+    <string name="web_copy_hint">Abra a ficha pretendida e toque em MOSTRAR NO MAPA em baixo.</string>
+    <string name="web_use">MOSTRAR ESTA MORADA NO MAPA</string>
+    <string name="web_open_entry">Abra primeiro uma ficha (toque no nome) e depois o botão.</string>
     <string name="copied_use_q">Usar a morada copiada?</string>
     <string name="copied_use">USAR</string>
     <string name="place_card_more">Toque num lugar para ver a ficha (horário, telefone, morada).</string>

@@ -30,6 +30,6 @@ jobs:
           python3 tools/make-places.py app/src/test/resources/places/test.osm out
           cmp out/switzerland.places app/src/test/resources/test.places && echo "fixture pack unchanged" || echo "fixture pack differs from the committed one (fine if the tool changed on purpose)"
       - name: Unit tests
-        run: ./gradlew --no-daemon -q :app:testLibreDebugUnitTest :app:testPlayDebugUnitTest
+        run: ./gradlew --no-daemon -q :app:testLibreDebugUnitTest :app:testPlayDebugUnitTest :app:testPriveDebugUnitTest
       - name: Debug build
         run: ./gradlew --no-daemon -q :app:assembleDebug

@@ -7,8 +7,8 @@ import java.util.Locale
 
 /**
  * The request to the directory of search.ch, with the person's own key. This file is of the
- * builds published outside Google Play (F-Droid, GitHub); the Google Play build has another
- * [DirectoryApi] that asks nothing.
+ * private build only, which is not published; the published builds (F-Droid, GitHub, Google
+ * Play) have another [DirectoryApi] that asks nothing.
  */
 object DirectoryApi {
     const val AVAILABLE = true

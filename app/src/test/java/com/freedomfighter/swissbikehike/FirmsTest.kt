@@ -135,4 +135,16 @@ class FirmsTest {
         assertTrue(p.search("ardent", 46.52, 6.63).isNotEmpty())
         assertTrue(p.search("garage", 46.52, 6.63).isEmpty() || p.search("garage", 46.52, 6.63).size <= 15)
     }
+
+    @Test fun `an entry page of search_ch names its town, street and name`() {
+        val e = Firms.webEntry("https://search.ch/tel/vevey/rue-de-lausanne-17/fleur-de-pains-sa")!!
+        assertEquals("Fleur De Pains SA", e.name); assertEquals("Rue De Lausanne 17", e.street); assertEquals("Vevey", e.city)
+        val p = Firms.webEntry("https://search.ch/tel/la-tour-de-peilz/jean-dupont.fr.html?x=1")!!
+        assertEquals("Jean Dupont", p.name); assertEquals("", p.street); assertEquals("La Tour De Peilz", p.city)
+        assertNull(Firms.webEntry("https://search.ch/tel/?was=dupont&wo=vevey"))
+        assertNull(Firms.webEntry("https://search.ch/tel/opensearch.xml"))
+        assertNull(Firms.webEntry("https://search.ch/map/vevey/rue-de-lausanne-17/x"))
+        assertNull(Firms.webEntry("https://example.org/tel/vevey/rue-de-lausanne-17/fleur-de-pains-sa"))
+        assertNull(Firms.webEntry("not an address"))
+    }
 }

@@ -11,16 +11,26 @@ android {
         applicationId = "com.freedomfighter.swissbikehike"
         minSdk = 28
         targetSdk = 35
-        versionCode = 35
-        versionName = "0.20.1"
+        versionCode = 36
+        versionName = "0.21.0"
     }
 
-    // where the app is published: « libre » (F-Droid, GitHub) asks the directory of search.ch with
-    // the person's own key; « play » (Google Play) holds no such request (src/play, src/libre)
+    // « libre » (F-Droid, GitHub) and « play » (Google Play) are the published builds: people and firms
+    // that the packs do not know are looked up on the website of search.ch (src/published).
+    // « prive » is not published: it asks the directory of search.ch with the person's own key (src/prive).
     flavorDimensions += "store"
     productFlavors {
         create("libre") { dimension = "store"; isDefault = true }
         create("play") { dimension = "store"; targetSdk = 36 }   // Google Play asks for the newest target; F-Droid keeps the one the app was tested with
+        create("prive") {
+            dimension = "store"
+            versionCode = 1000 + (defaultConfig.versionCode ?: 0)   // installs over the published build, never under it
+            versionNameSuffix = "-prive"
+        }
+    }
+    sourceSets {
+        getByName("libre") { java.srcDir("src/published/java") }
+        getByName("play") { java.srcDir("src/published/java") }
     }
 
     buildTypes {
@@ -50,6 +60,7 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.2.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.work:work-runtime-ktx:2.10.0")
+    implementation("androidx.browser:browser:1.8.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
     testImplementation("org.json:json:20240303")
     testImplementation("junit:junit:4.13.2")

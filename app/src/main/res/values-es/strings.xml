@@ -457,7 +457,9 @@
     <string name="search_contact_row">☺  La dirección de un contacto</string>
     <string name="contact_no_address">Este contacto no tiene una dirección que se pueda situar</string>
     <string name="contact_no_app">No hay aplicación de contactos en este teléfono</string>
-    <string name="web_copy_hint">Copie allí la dirección y vuelva: se le ofrecerá aquí.</string>
+    <string name="web_copy_hint">Abra la ficha deseada y toque MOSTRAR EN EL MAPA abajo.</string>
+    <string name="web_use">MOSTRAR ESTA DIRECCIÓN EN EL MAPA</string>
+    <string name="web_open_entry">Abra primero una ficha (toque su nombre) y luego el botón.</string>
     <string name="copied_use_q">¿Usar la dirección copiada?</string>
     <string name="copied_use">USAR</string>
     <string name="place_card_more">Toque un lugar para ver su ficha (horario, teléfono, dirección).</string>
